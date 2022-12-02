@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>opstool.vis package &mdash; opstool 0.0.1 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> opstool
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">opstool.vis package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-opstool.vis.fiber_sec_vis">opstool.vis.fiber_sec_vis module</a></li>
+<li><a class="reference internal" href="#module-opstool.vis.get_model_data">opstool.vis.get_model_data module</a></li>
+<li><a class="reference internal" href="#module-opstool.vis.ops_vis_plotly">opstool.vis.ops_vis_plotly module</a></li>
+<li><a class="reference internal" href="#module-opstool.vis">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">opstool</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a></li>
+      <li class="breadcrumb-item active">opstool.vis package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/opstool.vis.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="opstool-vis-package">
+<h1>opstool.vis package<a class="headerlink" href="#opstool-vis-package" title="Permalink to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
+</section>
+<section id="module-opstool.vis.fiber_sec_vis">
+<span id="opstool-vis-fiber-sec-vis-module"></span><h2>opstool.vis.fiber_sec_vis module<a class="headerlink" href="#module-opstool.vis.fiber_sec_vis" title="Permalink to this heading"></a></h2>
+<p>Visualizing OpenSeesPy Fiber Section</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="opstool.vis.fiber_sec_vis.FiberSecVis">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">opstool.vis.fiber_sec_vis.</span></span><span class="sig-name descname"><span class="pre">FiberSecVis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ele_tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sec_tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'opstool_output'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">line_width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.75</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">line_color</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'k'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colormap</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'viridis'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opacity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.75</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.fiber_sec_vis.FiberSecVis" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A class to vis the fiber section in OpenSeesPy.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ele_tag</strong> (<em>int</em>) – The element tag to which the section is to be displayed.</p></li>
+<li><p><strong>sec_tag</strong> (<em>int</em>) – Which integration point section is displayed, tag from 1 from segment i to j.</p></li>
+<li><p><strong>results_dir</strong> (<em>str</em><em>, </em><em>default=&quot;opstool_output&quot;</em>) – The dir that results saved.</p></li>
+<li><p><strong>line_width</strong> (<em>float</em><em>, </em><em>default = 0.75</em>) – The line width of mesh edges.</p></li>
+<li><p><strong>line_color</strong> (<em>str</em><em>, </em><em>default = &quot;k&quot;</em>) – The color of mesh edges.</p></li>
+<li><p><strong>colormap</strong> (<em>str</em><em>, </em><em>default = &quot;jet&quot;</em>) – Color map used to display the response.</p></li>
+<li><p><strong>opacity</strong> (<em>float</em><em>, </em><em>default=0.75</em>) – Transparency of mesh.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="opstool.vis.fiber_sec_vis.FiberSecVis.animation">
+<span class="sig-name descname"><span class="pre">animation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">analysis_tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_variable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'strain'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_mats</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">framerate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">24</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.fiber_sec_vis.FiberSecVis.animation" title="Permalink to this definition"></a></dt>
+<dd><p>fiber section response animation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>analysis_tag</strong> (<em>int</em>) – Analysis tag.</p></li>
+<li><p><strong>output_file</strong> (<em>str</em>) – The output file name, must end with .gif.</p></li>
+<li><p><strong>show_variable</strong> (<em>str</em><em>, </em><em>default='strain</em>) – Response type to display, optional “stress” or “strain”.</p></li>
+<li><p><strong>show_mats</strong> (<em>Union</em><em>[</em><em>int</em><em>, </em><em>list</em><em>[</em><em>int</em><em>]</em><em>, </em><em>tuple</em><em>[</em><em>int</em><em>]</em><em>]</em><em>, </em><em>default=None</em>) – Mat tag to dispaly. If None, all tags will display.</p></li>
+<li><p><strong>framerate</strong> (<em>int</em><em>, </em><em>default=24</em>) – The number of frames per second.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="opstool.vis.fiber_sec_vis.FiberSecVis.resp_vis">
+<span class="sig-name descname"><span class="pre">resp_vis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">analysis_tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_variable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'strain'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_mats</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.fiber_sec_vis.FiberSecVis.resp_vis" title="Permalink to this definition"></a></dt>
+<dd><p>fiber section response vis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>analysis_tag</strong> (<em>int</em>) – Analysis tag.</p></li>
+<li><p><strong>step</strong> (<em>int</em><em>, </em><em>default = None</em>) – Analysis step to display. If None, the step that max response; If -1, the final step; Else, the other step.</p></li>
+<li><p><strong>show_variable</strong> (<em>str</em><em>, </em><em>default = 'srain'</em>) – Response type to display, optional “stress” or “strain”.</p></li>
+<li><p><strong>show_mats</strong> (<em>Union</em><em>[</em><em>int</em><em>, </em><em>list</em><em>[</em><em>int</em><em>]</em><em>, </em><em>tuple</em><em>[</em><em>int</em><em>]</em><em>]</em>) – Mat tag to dispaly.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="opstool.vis.fiber_sec_vis.FiberSecVis.sec_vis">
+<span class="sig-name descname"><span class="pre">sec_vis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mat_color</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.fiber_sec_vis.FiberSecVis.sec_vis" title="Permalink to this definition"></a></dt>
+<dd><p>plot the fiber section.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>mat_color</strong> (<em>dict</em>) – Dict for assign color by matTag, {matTag1:color1,matTag2:color2,…,}</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-opstool.vis.get_model_data">
+<span id="opstool-vis-get-model-data-module"></span><h2>opstool.vis.get_model_data module<a class="headerlink" href="#module-opstool.vis.get_model_data" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="opstool.vis.get_model_data.GetFEMdata">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">opstool.vis.get_model_data.</span></span><span class="sig-name descname"><span class="pre">GetFEMdata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'opstool_output'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.get_model_data.GetFEMdata" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Get the data in the openseespy model domain.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>results_dir</strong> (<em>str</em><em>, </em><em>default=&quot;opstool_output&quot;</em>) – The dir that results saved.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="opstool.vis.get_model_data.GetFEMdata.get_eigen_data">
+<span class="sig-name descname"><span class="pre">get_eigen_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode_tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'-genBandArpack'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.get_model_data.GetFEMdata.get_eigen_data" title="Permalink to this definition"></a></dt>
+<dd><p>Get eigenvalue Analysis Data. The data will saved to file <code class="docutils literal notranslate"><span class="pre">EigenData.dat</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mode_tag</strong> (<em>int</em>) – mode tag.</p></li>
+<li><p><strong>solver</strong> (<em>str</em><em>, </em><em>default '-genBandArpack'</em>) – type of solver, optional ‘-genBandArpack’, ‘-fullGenLapack’,
+see <a class="reference external" href="https://openseespydoc.readthedocs.io/en/latest/src/eigen.html">https://openseespydoc.readthedocs.io/en/latest/src/eigen.html</a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="opstool.vis.get_model_data.GetFEMdata.get_fiber_data">
+<span class="sig-name descname"><span class="pre">get_fiber_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ele_sec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.get_model_data.GetFEMdata.get_fiber_data" title="Permalink to this definition"></a></dt>
+<dd><p>Get data from the section assigned by parameter ele_sec.
+The data will saved to file <code class="docutils literal notranslate"><span class="pre">FiberData.dat</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ele_sec</strong> (<em>list</em><em>[</em><em>tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em><em>]</em>) – A list or tuple composed of element tag and sectag.
+e.g., [(ele1, sec1), (ele2, sec2), … , (elen, secn)],
+The section is attached to an element in the order from end i to end j of that element.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="opstool.vis.get_model_data.GetFEMdata.get_fiber_resp_step">
+<span class="sig-name descname"><span class="pre">get_fiber_resp_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">analysis_tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.get_model_data.GetFEMdata.get_fiber_resp_step" title="Permalink to this definition"></a></dt>
+<dd><p>Get analysis step data for fiber section.
+The data will saved to file <code class="docutils literal notranslate"><span class="pre">FiberRespStepData-{analysis_tag}.dat</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>analysis_tag</strong> (<em>int</em>) – </p></li>
+<li><p><strong>num_steps</strong> (<em>int</em>) – Total number of steps, must be set after output_file is set to determine when to save data.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="opstool.vis.get_model_data.GetFEMdata.get_frame_resp_step">
+<span class="sig-name descname"><span class="pre">get_frame_resp_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">analysis_tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.get_model_data.GetFEMdata.get_frame_resp_step" title="Permalink to this definition"></a></dt>
+<dd><p>Get the response data step by step. The data will saved to file <code class="docutils literal notranslate"><span class="pre">BeamRespStepData-{analysis_tag}.dat</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>analysis_tag</strong> (<em>int</em>) – Analysis tag used to assign the analysis data.</p></li>
+<li><p><strong>num_steps</strong> (<em>int</em>) – Total number of steps, must be set to determine when to save data.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You need to call this function at each analysis step in OpenSees.
+The advantage is that you can modify the iterative algorithm at each analysis step to facilitate convergence.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="opstool.vis.get_model_data.GetFEMdata.get_model_data">
+<span class="sig-name descname"><span class="pre">get_model_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.get_model_data.GetFEMdata.get_model_data" title="Permalink to this definition"></a></dt>
+<dd><p>Get data from the current model domain. The data will saved to file <code class="docutils literal notranslate"><span class="pre">ModelData.da</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="opstool.vis.get_model_data.GetFEMdata.get_node_resp_step">
+<span class="sig-name descname"><span class="pre">get_node_resp_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">analysis_tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_update</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.get_model_data.GetFEMdata.get_node_resp_step" title="Permalink to this definition"></a></dt>
+<dd><p>Get the response data step by step. The data will saved to file <code class="docutils literal notranslate"><span class="pre">NodeRespStepData-{analysis_tag}.dat</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>analysis_tag</strong> (<em>int</em>) – Analysis tag used to assign the analysis data.</p></li>
+<li><p><strong>num_steps</strong> (<em>int</em>) – Total number of steps, must be set to determine when to save data.</p></li>
+<li><p><strong>model_update</strong> (<em>bool</em><em>, </em><em>default False</em>) – whether to update the model domain data at each analysis step,
+this will be useful if model data has changed.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You need to call this function at each analysis step in OpenSees.
+The advantage is that you can modify the iterative algorithm at each analysis step to facilitate convergence.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="opstool.vis.get_model_data.GetFEMdata.reset_eigen_state">
+<span class="sig-name descname"><span class="pre">reset_eigen_state</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.get_model_data.GetFEMdata.reset_eigen_state" title="Permalink to this definition"></a></dt>
+<dd><p>Reset the state of results extract of eigen data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="opstool.vis.get_model_data.GetFEMdata.reset_model_state">
+<span class="sig-name descname"><span class="pre">reset_model_state</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.get_model_data.GetFEMdata.reset_model_state" title="Permalink to this definition"></a></dt>
+<dd><p>Reset the state of results extract of model data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="opstool.vis.get_model_data.GetFEMdata.reset_steps_state">
+<span class="sig-name descname"><span class="pre">reset_steps_state</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.get_model_data.GetFEMdata.reset_steps_state" title="Permalink to this definition"></a></dt>
+<dd><p>Reset the state of results extract in analysis step</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="opstool.vis.get_model_data.counter_clockwise">
+<span class="sig-prename descclassname"><span class="pre">opstool.vis.get_model_data.</span></span><span class="sig-name descname"><span class="pre">counter_clockwise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.get_model_data.counter_clockwise" title="Permalink to this definition"></a></dt>
+<dd><p>Used to sort the points on a face counterclockwise</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="opstool.vis.get_model_data.lines_angle">
+<span class="sig-prename descclassname"><span class="pre">opstool.vis.get_model_data.</span></span><span class="sig-name descname"><span class="pre">lines_angle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.get_model_data.lines_angle" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="opstool.vis.get_model_data.sort_xy">
+<span class="sig-prename descclassname"><span class="pre">opstool.vis.get_model_data.</span></span><span class="sig-name descname"><span class="pre">sort_xy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.get_model_data.sort_xy" title="Permalink to this definition"></a></dt>
+<dd><p>Sort points counterclockwise</p>
+</dd></dl>
+
+</section>
+<section id="module-opstool.vis.ops_vis_plotly">
+<span id="opstool-vis-ops-vis-plotly-module"></span><h2>opstool.vis.ops_vis_plotly module<a class="headerlink" href="#module-opstool.vis.ops_vis_plotly" title="Permalink to this heading"></a></h2>
+<p>Visualizing OpenSeesPy model</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="opstool.vis.ops_vis_plotly.OpenSeesVis">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">opstool.vis.ops_vis_plotly.</span></span><span class="sig-name descname"><span class="pre">OpenSeesVis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">point_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">line_width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colors_dict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theme</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'plotly'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'jet'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">on_notebook</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'opstool_output'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.ops_vis_plotly.OpenSeesVis" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A class to visualize OpenSeesPy model based on plotly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>point_size</strong> (<em>float</em>) – The render size of node.</p></li>
+<li><p><strong>line_width</strong> (<em>float</em>) – The width of line element;</p></li>
+<li><p><strong>colors_dict</strong> (<em>dict</em><em>,</em>) – default: dict(point=’#840000’, line=’#0165fc’, face=’#06c2ac’, solid=’#f48924’, truss=”#7552cc”, link=”#00c16e”)
+The dict for ele color.</p></li>
+<li><p><strong>theme</strong> (<em>str</em><em>, </em><em>default=plotly</em>) – Plot theme, optional “plotly”, “plotly_white”, “plotly_dark”, “ggplot2”, “seaborn”, “simple_white”, “none”.</p></li>
+<li><p><strong>color_map</strong> (<em>str</em><em>, </em><em>default=&quot;jet&quot;</em>) – color map to display the cloud plot. Optional, [‘aggrnyl’, ‘agsunset’, ‘algae’, ‘amp’, ‘armyrose’, ‘balance’,
+‘blackbody’, ‘bluered’, ‘blues’, ‘blugrn’, ‘bluyl’, ‘brbg’, ‘brwnyl’, ‘bugn’, ‘bupu’, ‘burg’, ‘burgyl’,
+‘cividis’, ‘curl’, ‘darkmint’, ‘deep’, ‘delta’, ‘dense’, ‘earth’, ‘edge’, ‘electric’, ‘emrld’, ‘fall’,
+‘geyser’, ‘gnbu’, ‘gray’, ‘greens’, ‘greys’, ‘haline’, ‘hot’, ‘hsv’, ‘ice’, ‘icefire’, ‘inferno’, ‘jet’,
+‘magenta’, ‘magma’, ‘matter’, ‘mint’, ‘mrybm’, ‘mygbm’, ‘oranges’, ‘orrd’, ‘oryel’, ‘oxy’, ‘peach’, ‘phase’,
+‘picnic’, ‘pinkyl’, ‘piyg’, ‘plasma’, ‘plotly3’, ‘portland’, ‘prgn’, ‘pubu’, ‘pubugn’, ‘puor’, ‘purd’, ‘purp’,
+‘purples’, ‘purpor’, ‘rainbow’, ‘rdbu’, ‘rdgy’, ‘rdpu’, ‘rdylbu’, ‘rdylgn’, ‘redor’, ‘reds’, ‘solar’,
+‘spectral’, ‘speed’, ‘sunset’, ‘sunsetdark’, ‘teal’, ‘tealgrn’, ‘tealrose’, ‘tempo’, ‘temps’, ‘thermal’,
+‘tropic’, ‘turbid’, ‘turbo’, ‘twilight’, ‘viridis’, ‘ylgn’, ‘ylgnbu’, ‘ylorbr’, ‘ylorrd’].</p></li>
+<li><p><strong>on_notebook</strong> (<em>bool</em><em>, </em><em>default=False</em>) – Whether work in a notebook.</p></li>
+<li><p><strong>results_dir</strong> (<em>str</em><em>, </em><em>default=&quot;opstool_output&quot;</em>) – The dir that results saved.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="opstool.vis.ops_vis_plotly.OpenSeesVis.deform_anim">
+<span class="sig-name descname"><span class="pre">deform_anim</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">analysis_tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'disp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_outline</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opacity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">framerate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">24</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_face_line</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_html</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'DefoAnimation'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_update</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.ops_vis_plotly.OpenSeesVis.deform_anim" title="Permalink to this definition"></a></dt>
+<dd><p>Deformation animation of the model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>analysis_tag</strong> (<em>int</em>) – Analysis tag in get_node_resp_step() method.</p></li>
+<li><p><strong>response</strong> (<em>str</em><em>, </em><em>default='disp'</em>) – Response type. Optional, “disp”, “vel”, “accel”.</p></li>
+<li><p><strong>alpha</strong> (<em>float</em><em>, </em><em>default=None</em>) – Scaling factor, the default value is 1/5 of the model boundary according to the maximum deformation.</p></li>
+<li><p><strong>show_outline</strong> (<em>bool</em><em>, </em><em>default=False</em>) – Whether to display the axes.</p></li>
+<li><p><strong>show_face_line</strong> (<em>bool</em><em>, </em><em>default=True</em>) – If True, the edges of plate and solid elements will be displayed.</p></li>
+<li><p><strong>framerate</strong> (<em>int</em><em>, </em><em>default=24</em>) – The number of frames per second.</p></li>
+<li><p><strong>opacity</strong> (<em>float</em><em>, </em><em>default=1.0</em>) – Plane and solid element transparency.</p></li>
+<li><p><strong>save_html</strong> (<em>str</em><em>, </em><em>default='DefoAnimation.html'</em>) – The html file name to output. If False, the html file will not be generated.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="opstool.vis.ops_vis_plotly.OpenSeesVis.deform_vis">
+<span class="sig-name descname"><span class="pre">deform_vis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">analysis_tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slider</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'disp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_outline</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_origin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_face_line</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opacity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_html</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'DefoVis'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_update</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.ops_vis_plotly.OpenSeesVis.deform_vis" title="Permalink to this definition"></a></dt>
+<dd><p>Visualize the deformation of the model at a certain analysis step.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>analysis_tag</strong> (<em>int</em>) – Analysis tag in get_node_resp_step() method.</p></li>
+<li><p><strong>slider</strong> (<em>bool</em><em>, </em><em>default=False</em>) – If True, responses in all steps will display by slider style.
+If False, the step that max response will display.</p></li>
+<li><p><strong>response</strong> (<em>str</em><em>, </em><em>default='disp'</em>) – Response type. Optional, “disp”, “vel”, “accel”.</p></li>
+<li><p><strong>alpha</strong> (<em>float</em><em>, </em><em>default=None</em>) – Scaling factor, the default value is 1/5 of the model boundary according to the maximum deformation.</p></li>
+<li><p><strong>show_outline</strong> (<em>bool</em><em>, </em><em>default=False</em>) – Whether to display the axes.</p></li>
+<li><p><strong>show_origin</strong> (<em>bool</em><em>, </em><em>default=False</em>) – Whether to show undeformed shape.</p></li>
+<li><p><strong>show_face_line</strong> (<em>bool</em><em>, </em><em>default=True</em>) – If True, the edges of plate and solid elements will be displayed.</p></li>
+<li><p><strong>opacity</strong> (<em>float</em><em>, </em><em>default=1.0</em>) – Plane and solid element transparency.</p></li>
+<li><p><strong>save_html</strong> (<em>str</em><em>, </em><em>default='DefoVis.html'</em>) – The html file name to output. If False, the html file will not be generated.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="opstool.vis.ops_vis_plotly.OpenSeesVis.eigen_anim">
+<span class="sig-name descname"><span class="pre">eigen_anim</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode_tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_outline</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opacity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">framerate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_face_line</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_html</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'EigenAnimation'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.ops_vis_plotly.OpenSeesVis.eigen_anim" title="Permalink to this definition"></a></dt>
+<dd><p>Animation of Modal Analysis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mode_tag</strong> (<em>int</em>) – The mode tag.</p></li>
+<li><p><strong>alpha</strong> (<em>float</em><em>, </em><em>default=None</em>) – Scaling factor, the default value is 1/5 of the model boundary according to the maximum deformation.</p></li>
+<li><p><strong>show_outline</strong> (<em>bool</em><em>, </em><em>default=False</em>) – Whether to display the axes.</p></li>
+<li><p><strong>opacity</strong> (<em>float</em><em>, </em><em>default=1.0</em>) – Plane and solid element transparency.</p></li>
+<li><p><strong>framerate</strong> (<em>int</em>) – The number of frames per second.</p></li>
+<li><p><strong>show_face_line</strong> (<em>bool</em><em>, </em><em>default=True</em>) – If True, the edges of plate and solid elements will be displayed.</p></li>
+<li><p><strong>save_html</strong> (<em>str</em><em>, </em><em>default='EigenAnimation.html'</em>) – The html file name to output. If False, the html file will not be generated.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="opstool.vis.ops_vis_plotly.OpenSeesVis.eigen_vis">
+<span class="sig-name descname"><span class="pre">eigen_vis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode_tags</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subplots</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_outline</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_origin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opacity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_face_line</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_html</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'EigenVis'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.ops_vis_plotly.OpenSeesVis.eigen_vis" title="Permalink to this definition"></a></dt>
+<dd><p>Eigenvalue Analysis Visualization.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mode_tags</strong> (<em>list</em><em>[</em><em>int</em><em>]</em><em>, or </em><em>tuple</em><em>[</em><em>int</em><em>]</em>) – Mode tags to be shown, if list or tuple [mode1, mode2], display the multiple modes from mode1 to mode2.</p></li>
+<li><p><strong>subplots</strong> (<em>bool</em><em>, </em><em>default=False</em>) – If True, subplots in a figure. If False, plot in a slide style.</p></li>
+<li><p><strong>alpha</strong> (<em>float</em><em>, </em><em>default=None</em>) – Model scaling factor, the default value is 1/5 of the model boundary according to the maximum deformation.</p></li>
+<li><p><strong>show_outline</strong> (<em>bool</em><em>, </em><em>default=True</em>) – Whether to display the axes.</p></li>
+<li><p><strong>show_origin</strong> (<em>bool</em><em>, </em><em>default=False</em>) – Whether to show undeformed shape.</p></li>
+<li><p><strong>opacity</strong> (<em>float</em><em>, </em><em>default=1.0</em>) – Plane and solid element transparency.</p></li>
+<li><p><strong>show_face_line</strong> (<em>bool</em><em>, </em><em>default=True</em>) – If True, the edges of plate and solid elements will be displayed.</p></li>
+<li><p><strong>save_html</strong> (<em>str</em><em>, </em><em>default='EigenVis.html'</em>) – The html file name to output. If False, the html file will not be generated.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="opstool.vis.ops_vis_plotly.OpenSeesVis.frame_resp_vis">
+<span class="sig-name descname"><span class="pre">frame_resp_vis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">analysis_tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ele_tags</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slider</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'Mz'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opacity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_html</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'FrameRespVis'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.ops_vis_plotly.OpenSeesVis.frame_resp_vis" title="Permalink to this definition"></a></dt>
+<dd><p>Display the force response of frame elements.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>analysis_tag</strong> (<em>int</em>) – Analysis tag in get_node_resp_step() method.</p></li>
+<li><p><strong>ele_tags</strong> (<em>int</em><em> or </em><em>list</em><em>[</em><em>int</em><em>]</em><em>, </em><em>default=None</em>) – Element tags to display, if None, all frame elements will display.</p></li>
+<li><p><strong>slider</strong> (<em>bool</em><em>, </em><em>default=False</em>) – If True, responses in all steps will display by slider style.
+If False, the step that max response will display.</p></li>
+<li><p><strong>response</strong> (<em>str</em><em>, </em><em>default='Mz'</em>) – Response type. Optional, “N”, “Vy”, “Vz”, “My”, “Mz”, “T”.</p></li>
+<li><p><strong>show_values</strong> (<em>bool</em><em>, </em><em>default=True</em>) – If True, will show the response values.</p></li>
+<li><p><strong>alpha</strong> (<em>float</em><em>, </em><em>default=None</em>) – Scaling factor.</p></li>
+<li><p><strong>opacity</strong> (<em>float</em><em>, </em><em>default=1.0</em>) – Plane and solid element transparency.</p></li>
+<li><p><strong>save_html</strong> (<em>str</em><em>, </em><em>default='FrameRespVis.html'</em>) – The html file name to output. If False, the html file will not be generated.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="opstool.vis.ops_vis_plotly.OpenSeesVis.model_vis">
+<span class="sig-name descname"><span class="pre">model_vis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">show_node_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_ele_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_local_crd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_outline</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opacity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_html</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'ModelVis.html'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.ops_vis_plotly.OpenSeesVis.model_vis" title="Permalink to this definition"></a></dt>
+<dd><p>Visualize the model in the current domain.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>show_node_label</strong> (<em>bool</em><em>, </em><em>default=False</em>) – Whether to display the node label.</p></li>
+<li><p><strong>show_ele_label</strong> (<em>bool</em><em>, </em><em>default=False</em>) – Whether to display the ele label.</p></li>
+<li><p><strong>show_local_crd</strong> (<em>bool</em><em>, </em><em>default=False</em>) – Whether to display the local coordinate system.</p></li>
+<li><p><strong>label_size</strong> (<em>float</em><em>, </em><em>default=8</em>) – The foontsize of node and ele label.</p></li>
+<li><p><strong>show_outline</strong> (<em>bool</em><em>, </em><em>default=True</em>) – Whether to show the axis frame.</p></li>
+<li><p><strong>opacity</strong> (<em>float</em><em>, </em><em>default=1.0</em>) – Plane and solid element transparency.</p></li>
+<li><p><strong>save_html</strong> (<em>str</em><em>, </em><em>default='ModelVis.html'</em>) – The html file name to output. If False, the html file will not be generated.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="opstool.vis.ops_vis_plotly.lines_angle">
+<span class="sig-prename descclassname"><span class="pre">opstool.vis.ops_vis_plotly.</span></span><span class="sig-name descname"><span class="pre">lines_angle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.ops_vis_plotly.lines_angle" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-opstool.vis">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-opstool.vis" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="opstool.vis.FiberSecVis">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">opstool.vis.</span></span><span class="sig-name descname"><span class="pre">FiberSecVis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ele_tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sec_tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'opstool_output'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">line_width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.75</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">line_color</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'k'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colormap</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'viridis'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opacity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.75</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.FiberSecVis" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A class to vis the fiber section in OpenSeesPy.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ele_tag</strong> (<em>int</em>) – The element tag to which the section is to be displayed.</p></li>
+<li><p><strong>sec_tag</strong> (<em>int</em>) – Which integration point section is displayed, tag from 1 from segment i to j.</p></li>
+<li><p><strong>results_dir</strong> (<em>str</em><em>, </em><em>default=&quot;opstool_output&quot;</em>) – The dir that results saved.</p></li>
+<li><p><strong>line_width</strong> (<em>float</em><em>, </em><em>default = 0.75</em>) – The line width of mesh edges.</p></li>
+<li><p><strong>line_color</strong> (<em>str</em><em>, </em><em>default = &quot;k&quot;</em>) – The color of mesh edges.</p></li>
+<li><p><strong>colormap</strong> (<em>str</em><em>, </em><em>default = &quot;jet&quot;</em>) – Color map used to display the response.</p></li>
+<li><p><strong>opacity</strong> (<em>float</em><em>, </em><em>default=0.75</em>) – Transparency of mesh.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="opstool.vis.FiberSecVis.animation">
+<span class="sig-name descname"><span class="pre">animation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">analysis_tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_variable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'strain'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_mats</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">framerate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">24</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.FiberSecVis.animation" title="Permalink to this definition"></a></dt>
+<dd><p>fiber section response animation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>analysis_tag</strong> (<em>int</em>) – Analysis tag.</p></li>
+<li><p><strong>output_file</strong> (<em>str</em>) – The output file name, must end with .gif.</p></li>
+<li><p><strong>show_variable</strong> (<em>str</em><em>, </em><em>default='strain</em>) – Response type to display, optional “stress” or “strain”.</p></li>
+<li><p><strong>show_mats</strong> (<em>Union</em><em>[</em><em>int</em><em>, </em><em>list</em><em>[</em><em>int</em><em>]</em><em>, </em><em>tuple</em><em>[</em><em>int</em><em>]</em><em>]</em><em>, </em><em>default=None</em>) – Mat tag to dispaly. If None, all tags will display.</p></li>
+<li><p><strong>framerate</strong> (<em>int</em><em>, </em><em>default=24</em>) – The number of frames per second.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="opstool.vis.FiberSecVis.resp_vis">
+<span class="sig-name descname"><span class="pre">resp_vis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">analysis_tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_variable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'strain'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_mats</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.FiberSecVis.resp_vis" title="Permalink to this definition"></a></dt>
+<dd><p>fiber section response vis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>analysis_tag</strong> (<em>int</em>) – Analysis tag.</p></li>
+<li><p><strong>step</strong> (<em>int</em><em>, </em><em>default = None</em>) – Analysis step to display. If None, the step that max response; If -1, the final step; Else, the other step.</p></li>
+<li><p><strong>show_variable</strong> (<em>str</em><em>, </em><em>default = 'srain'</em>) – Response type to display, optional “stress” or “strain”.</p></li>
+<li><p><strong>show_mats</strong> (<em>Union</em><em>[</em><em>int</em><em>, </em><em>list</em><em>[</em><em>int</em><em>]</em><em>, </em><em>tuple</em><em>[</em><em>int</em><em>]</em><em>]</em>) – Mat tag to dispaly.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="opstool.vis.FiberSecVis.sec_vis">
+<span class="sig-name descname"><span class="pre">sec_vis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mat_color</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.FiberSecVis.sec_vis" title="Permalink to this definition"></a></dt>
+<dd><p>plot the fiber section.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>mat_color</strong> (<em>dict</em>) – Dict for assign color by matTag, {matTag1:color1,matTag2:color2,…,}</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="opstool.vis.GetFEMdata">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">opstool.vis.</span></span><span class="sig-name descname"><span class="pre">GetFEMdata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'opstool_output'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.GetFEMdata" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Get the data in the openseespy model domain.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>results_dir</strong> (<em>str</em><em>, </em><em>default=&quot;opstool_output&quot;</em>) – The dir that results saved.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="opstool.vis.GetFEMdata.get_eigen_data">
+<span class="sig-name descname"><span class="pre">get_eigen_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode_tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'-genBandArpack'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.GetFEMdata.get_eigen_data" title="Permalink to this definition"></a></dt>
+<dd><p>Get eigenvalue Analysis Data. The data will saved to file <code class="docutils literal notranslate"><span class="pre">EigenData.dat</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mode_tag</strong> (<em>int</em>) – mode tag.</p></li>
+<li><p><strong>solver</strong> (<em>str</em><em>, </em><em>default '-genBandArpack'</em>) – type of solver, optional ‘-genBandArpack’, ‘-fullGenLapack’,
+see <a class="reference external" href="https://openseespydoc.readthedocs.io/en/latest/src/eigen.html">https://openseespydoc.readthedocs.io/en/latest/src/eigen.html</a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="opstool.vis.GetFEMdata.get_fiber_data">
+<span class="sig-name descname"><span class="pre">get_fiber_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ele_sec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.GetFEMdata.get_fiber_data" title="Permalink to this definition"></a></dt>
+<dd><p>Get data from the section assigned by parameter ele_sec.
+The data will saved to file <code class="docutils literal notranslate"><span class="pre">FiberData.dat</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ele_sec</strong> (<em>list</em><em>[</em><em>tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em><em>]</em>) – A list or tuple composed of element tag and sectag.
+e.g., [(ele1, sec1), (ele2, sec2), … , (elen, secn)],
+The section is attached to an element in the order from end i to end j of that element.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="opstool.vis.GetFEMdata.get_fiber_resp_step">
+<span class="sig-name descname"><span class="pre">get_fiber_resp_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">analysis_tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.GetFEMdata.get_fiber_resp_step" title="Permalink to this definition"></a></dt>
+<dd><p>Get analysis step data for fiber section.
+The data will saved to file <code class="docutils literal notranslate"><span class="pre">FiberRespStepData-{analysis_tag}.dat</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>analysis_tag</strong> (<em>int</em>) – </p></li>
+<li><p><strong>num_steps</strong> (<em>int</em>) – Total number of steps, must be set after output_file is set to determine when to save data.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="opstool.vis.GetFEMdata.get_frame_resp_step">
+<span class="sig-name descname"><span class="pre">get_frame_resp_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">analysis_tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.GetFEMdata.get_frame_resp_step" title="Permalink to this definition"></a></dt>
+<dd><p>Get the response data step by step. The data will saved to file <code class="docutils literal notranslate"><span class="pre">BeamRespStepData-{analysis_tag}.dat</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>analysis_tag</strong> (<em>int</em>) – Analysis tag used to assign the analysis data.</p></li>
+<li><p><strong>num_steps</strong> (<em>int</em>) – Total number of steps, must be set to determine when to save data.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You need to call this function at each analysis step in OpenSees.
+The advantage is that you can modify the iterative algorithm at each analysis step to facilitate convergence.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="opstool.vis.GetFEMdata.get_model_data">
+<span class="sig-name descname"><span class="pre">get_model_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.GetFEMdata.get_model_data" title="Permalink to this definition"></a></dt>
+<dd><p>Get data from the current model domain. The data will saved to file <code class="docutils literal notranslate"><span class="pre">ModelData.da</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="opstool.vis.GetFEMdata.get_node_resp_step">
+<span class="sig-name descname"><span class="pre">get_node_resp_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">analysis_tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_update</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.GetFEMdata.get_node_resp_step" title="Permalink to this definition"></a></dt>
+<dd><p>Get the response data step by step. The data will saved to file <code class="docutils literal notranslate"><span class="pre">NodeRespStepData-{analysis_tag}.dat</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>analysis_tag</strong> (<em>int</em>) – Analysis tag used to assign the analysis data.</p></li>
+<li><p><strong>num_steps</strong> (<em>int</em>) – Total number of steps, must be set to determine when to save data.</p></li>
+<li><p><strong>model_update</strong> (<em>bool</em><em>, </em><em>default False</em>) – whether to update the model domain data at each analysis step,
+this will be useful if model data has changed.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You need to call this function at each analysis step in OpenSees.
+The advantage is that you can modify the iterative algorithm at each analysis step to facilitate convergence.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="opstool.vis.GetFEMdata.reset_eigen_state">
+<span class="sig-name descname"><span class="pre">reset_eigen_state</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.GetFEMdata.reset_eigen_state" title="Permalink to this definition"></a></dt>
+<dd><p>Reset the state of results extract of eigen data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="opstool.vis.GetFEMdata.reset_model_state">
+<span class="sig-name descname"><span class="pre">reset_model_state</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.GetFEMdata.reset_model_state" title="Permalink to this definition"></a></dt>
+<dd><p>Reset the state of results extract of model data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="opstool.vis.GetFEMdata.reset_steps_state">
+<span class="sig-name descname"><span class="pre">reset_steps_state</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.GetFEMdata.reset_steps_state" title="Permalink to this definition"></a></dt>
+<dd><p>Reset the state of results extract in analysis step</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="opstool.vis.OpenSeesVis">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">opstool.vis.</span></span><span class="sig-name descname"><span class="pre">OpenSeesVis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">point_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">line_width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colors_dict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theme</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'plotly'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'jet'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">on_notebook</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'opstool_output'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.OpenSeesVis" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A class to visualize OpenSeesPy model based on plotly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>point_size</strong> (<em>float</em>) – The render size of node.</p></li>
+<li><p><strong>line_width</strong> (<em>float</em>) – The width of line element;</p></li>
+<li><p><strong>colors_dict</strong> (<em>dict</em><em>,</em>) – default: dict(point=’#840000’, line=’#0165fc’, face=’#06c2ac’, solid=’#f48924’, truss=”#7552cc”, link=”#00c16e”)
+The dict for ele color.</p></li>
+<li><p><strong>theme</strong> (<em>str</em><em>, </em><em>default=plotly</em>) – Plot theme, optional “plotly”, “plotly_white”, “plotly_dark”, “ggplot2”, “seaborn”, “simple_white”, “none”.</p></li>
+<li><p><strong>color_map</strong> (<em>str</em><em>, </em><em>default=&quot;jet&quot;</em>) – color map to display the cloud plot. Optional, [‘aggrnyl’, ‘agsunset’, ‘algae’, ‘amp’, ‘armyrose’, ‘balance’,
+‘blackbody’, ‘bluered’, ‘blues’, ‘blugrn’, ‘bluyl’, ‘brbg’, ‘brwnyl’, ‘bugn’, ‘bupu’, ‘burg’, ‘burgyl’,
+‘cividis’, ‘curl’, ‘darkmint’, ‘deep’, ‘delta’, ‘dense’, ‘earth’, ‘edge’, ‘electric’, ‘emrld’, ‘fall’,
+‘geyser’, ‘gnbu’, ‘gray’, ‘greens’, ‘greys’, ‘haline’, ‘hot’, ‘hsv’, ‘ice’, ‘icefire’, ‘inferno’, ‘jet’,
+‘magenta’, ‘magma’, ‘matter’, ‘mint’, ‘mrybm’, ‘mygbm’, ‘oranges’, ‘orrd’, ‘oryel’, ‘oxy’, ‘peach’, ‘phase’,
+‘picnic’, ‘pinkyl’, ‘piyg’, ‘plasma’, ‘plotly3’, ‘portland’, ‘prgn’, ‘pubu’, ‘pubugn’, ‘puor’, ‘purd’, ‘purp’,
+‘purples’, ‘purpor’, ‘rainbow’, ‘rdbu’, ‘rdgy’, ‘rdpu’, ‘rdylbu’, ‘rdylgn’, ‘redor’, ‘reds’, ‘solar’,
+‘spectral’, ‘speed’, ‘sunset’, ‘sunsetdark’, ‘teal’, ‘tealgrn’, ‘tealrose’, ‘tempo’, ‘temps’, ‘thermal’,
+‘tropic’, ‘turbid’, ‘turbo’, ‘twilight’, ‘viridis’, ‘ylgn’, ‘ylgnbu’, ‘ylorbr’, ‘ylorrd’].</p></li>
+<li><p><strong>on_notebook</strong> (<em>bool</em><em>, </em><em>default=False</em>) – Whether work in a notebook.</p></li>
+<li><p><strong>results_dir</strong> (<em>str</em><em>, </em><em>default=&quot;opstool_output&quot;</em>) – The dir that results saved.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="opstool.vis.OpenSeesVis.deform_anim">
+<span class="sig-name descname"><span class="pre">deform_anim</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">analysis_tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'disp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_outline</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opacity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">framerate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">24</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_face_line</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_html</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'DefoAnimation'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_update</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.OpenSeesVis.deform_anim" title="Permalink to this definition"></a></dt>
+<dd><p>Deformation animation of the model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>analysis_tag</strong> (<em>int</em>) – Analysis tag in get_node_resp_step() method.</p></li>
+<li><p><strong>response</strong> (<em>str</em><em>, </em><em>default='disp'</em>) – Response type. Optional, “disp”, “vel”, “accel”.</p></li>
+<li><p><strong>alpha</strong> (<em>float</em><em>, </em><em>default=None</em>) – Scaling factor, the default value is 1/5 of the model boundary according to the maximum deformation.</p></li>
+<li><p><strong>show_outline</strong> (<em>bool</em><em>, </em><em>default=False</em>) – Whether to display the axes.</p></li>
+<li><p><strong>show_face_line</strong> (<em>bool</em><em>, </em><em>default=True</em>) – If True, the edges of plate and solid elements will be displayed.</p></li>
+<li><p><strong>framerate</strong> (<em>int</em><em>, </em><em>default=24</em>) – The number of frames per second.</p></li>
+<li><p><strong>opacity</strong> (<em>float</em><em>, </em><em>default=1.0</em>) – Plane and solid element transparency.</p></li>
+<li><p><strong>save_html</strong> (<em>str</em><em>, </em><em>default='DefoAnimation.html'</em>) – The html file name to output. If False, the html file will not be generated.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="opstool.vis.OpenSeesVis.deform_vis">
+<span class="sig-name descname"><span class="pre">deform_vis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">analysis_tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slider</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'disp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_outline</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_origin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_face_line</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opacity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_html</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'DefoVis'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_update</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.OpenSeesVis.deform_vis" title="Permalink to this definition"></a></dt>
+<dd><p>Visualize the deformation of the model at a certain analysis step.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>analysis_tag</strong> (<em>int</em>) – Analysis tag in get_node_resp_step() method.</p></li>
+<li><p><strong>slider</strong> (<em>bool</em><em>, </em><em>default=False</em>) – If True, responses in all steps will display by slider style.
+If False, the step that max response will display.</p></li>
+<li><p><strong>response</strong> (<em>str</em><em>, </em><em>default='disp'</em>) – Response type. Optional, “disp”, “vel”, “accel”.</p></li>
+<li><p><strong>alpha</strong> (<em>float</em><em>, </em><em>default=None</em>) – Scaling factor, the default value is 1/5 of the model boundary according to the maximum deformation.</p></li>
+<li><p><strong>show_outline</strong> (<em>bool</em><em>, </em><em>default=False</em>) – Whether to display the axes.</p></li>
+<li><p><strong>show_origin</strong> (<em>bool</em><em>, </em><em>default=False</em>) – Whether to show undeformed shape.</p></li>
+<li><p><strong>show_face_line</strong> (<em>bool</em><em>, </em><em>default=True</em>) – If True, the edges of plate and solid elements will be displayed.</p></li>
+<li><p><strong>opacity</strong> (<em>float</em><em>, </em><em>default=1.0</em>) – Plane and solid element transparency.</p></li>
+<li><p><strong>save_html</strong> (<em>str</em><em>, </em><em>default='DefoVis.html'</em>) – The html file name to output. If False, the html file will not be generated.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="opstool.vis.OpenSeesVis.eigen_anim">
+<span class="sig-name descname"><span class="pre">eigen_anim</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode_tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_outline</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opacity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">framerate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_face_line</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_html</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'EigenAnimation'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.OpenSeesVis.eigen_anim" title="Permalink to this definition"></a></dt>
+<dd><p>Animation of Modal Analysis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mode_tag</strong> (<em>int</em>) – The mode tag.</p></li>
+<li><p><strong>alpha</strong> (<em>float</em><em>, </em><em>default=None</em>) – Scaling factor, the default value is 1/5 of the model boundary according to the maximum deformation.</p></li>
+<li><p><strong>show_outline</strong> (<em>bool</em><em>, </em><em>default=False</em>) – Whether to display the axes.</p></li>
+<li><p><strong>opacity</strong> (<em>float</em><em>, </em><em>default=1.0</em>) – Plane and solid element transparency.</p></li>
+<li><p><strong>framerate</strong> (<em>int</em>) – The number of frames per second.</p></li>
+<li><p><strong>show_face_line</strong> (<em>bool</em><em>, </em><em>default=True</em>) – If True, the edges of plate and solid elements will be displayed.</p></li>
+<li><p><strong>save_html</strong> (<em>str</em><em>, </em><em>default='EigenAnimation.html'</em>) – The html file name to output. If False, the html file will not be generated.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="opstool.vis.OpenSeesVis.eigen_vis">
+<span class="sig-name descname"><span class="pre">eigen_vis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode_tags</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subplots</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_outline</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_origin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opacity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_face_line</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_html</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'EigenVis'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.OpenSeesVis.eigen_vis" title="Permalink to this definition"></a></dt>
+<dd><p>Eigenvalue Analysis Visualization.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mode_tags</strong> (<em>list</em><em>[</em><em>int</em><em>]</em><em>, or </em><em>tuple</em><em>[</em><em>int</em><em>]</em>) – Mode tags to be shown, if list or tuple [mode1, mode2], display the multiple modes from mode1 to mode2.</p></li>
+<li><p><strong>subplots</strong> (<em>bool</em><em>, </em><em>default=False</em>) – If True, subplots in a figure. If False, plot in a slide style.</p></li>
+<li><p><strong>alpha</strong> (<em>float</em><em>, </em><em>default=None</em>) – Model scaling factor, the default value is 1/5 of the model boundary according to the maximum deformation.</p></li>
+<li><p><strong>show_outline</strong> (<em>bool</em><em>, </em><em>default=True</em>) – Whether to display the axes.</p></li>
+<li><p><strong>show_origin</strong> (<em>bool</em><em>, </em><em>default=False</em>) – Whether to show undeformed shape.</p></li>
+<li><p><strong>opacity</strong> (<em>float</em><em>, </em><em>default=1.0</em>) – Plane and solid element transparency.</p></li>
+<li><p><strong>show_face_line</strong> (<em>bool</em><em>, </em><em>default=True</em>) – If True, the edges of plate and solid elements will be displayed.</p></li>
+<li><p><strong>save_html</strong> (<em>str</em><em>, </em><em>default='EigenVis.html'</em>) – The html file name to output. If False, the html file will not be generated.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="opstool.vis.OpenSeesVis.frame_resp_vis">
+<span class="sig-name descname"><span class="pre">frame_resp_vis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">analysis_tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ele_tags</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slider</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'Mz'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opacity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_html</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'FrameRespVis'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.OpenSeesVis.frame_resp_vis" title="Permalink to this definition"></a></dt>
+<dd><p>Display the force response of frame elements.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>analysis_tag</strong> (<em>int</em>) – Analysis tag in get_node_resp_step() method.</p></li>
+<li><p><strong>ele_tags</strong> (<em>int</em><em> or </em><em>list</em><em>[</em><em>int</em><em>]</em><em>, </em><em>default=None</em>) – Element tags to display, if None, all frame elements will display.</p></li>
+<li><p><strong>slider</strong> (<em>bool</em><em>, </em><em>default=False</em>) – If True, responses in all steps will display by slider style.
+If False, the step that max response will display.</p></li>
+<li><p><strong>response</strong> (<em>str</em><em>, </em><em>default='Mz'</em>) – Response type. Optional, “N”, “Vy”, “Vz”, “My”, “Mz”, “T”.</p></li>
+<li><p><strong>show_values</strong> (<em>bool</em><em>, </em><em>default=True</em>) – If True, will show the response values.</p></li>
+<li><p><strong>alpha</strong> (<em>float</em><em>, </em><em>default=None</em>) – Scaling factor.</p></li>
+<li><p><strong>opacity</strong> (<em>float</em><em>, </em><em>default=1.0</em>) – Plane and solid element transparency.</p></li>
+<li><p><strong>save_html</strong> (<em>str</em><em>, </em><em>default='FrameRespVis.html'</em>) – The html file name to output. If False, the html file will not be generated.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="opstool.vis.OpenSeesVis.model_vis">
+<span class="sig-name descname"><span class="pre">model_vis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">show_node_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_ele_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_local_crd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_outline</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opacity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_html</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'ModelVis.html'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#opstool.vis.OpenSeesVis.model_vis" title="Permalink to this definition"></a></dt>
+<dd><p>Visualize the model in the current domain.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>show_node_label</strong> (<em>bool</em><em>, </em><em>default=False</em>) – Whether to display the node label.</p></li>
+<li><p><strong>show_ele_label</strong> (<em>bool</em><em>, </em><em>default=False</em>) – Whether to display the ele label.</p></li>
+<li><p><strong>show_local_crd</strong> (<em>bool</em><em>, </em><em>default=False</em>) – Whether to display the local coordinate system.</p></li>
+<li><p><strong>label_size</strong> (<em>float</em><em>, </em><em>default=8</em>) – The foontsize of node and ele label.</p></li>
+<li><p><strong>show_outline</strong> (<em>bool</em><em>, </em><em>default=True</em>) – Whether to show the axis frame.</p></li>
+<li><p><strong>opacity</strong> (<em>float</em><em>, </em><em>default=1.0</em>) – Plane and solid element transparency.</p></li>
+<li><p><strong>save_html</strong> (<em>str</em><em>, </em><em>default='ModelVis.html'</em>) – The html file name to output. If False, the html file will not be generated.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Yexiang Yan.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
