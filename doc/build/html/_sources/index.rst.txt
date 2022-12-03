@@ -7,10 +7,13 @@ Welcome to opstool's documentation!
 ===================================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: Contents:
 
    Installation
+   model_vis
+   fiber_sec_mesh
+   demos
 
 
 

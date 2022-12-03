@@ -5,7 +5,7 @@
 
 ``opstool`` is a useful toolbox package to help ``OpenSeesPy`` *modelling*, *visualization*, *post-processing of results*, etc. The package is still under development and currently mainly supports *visualization*.
 
-To use, install `opstool` from [pypi]([opstool · PyPI](https://pypi.org/project/opstool/)):
+To use, install `opstool` from [pypi](https://pypi.org/project/opstool/):
 
 ```
 pip install --upgrade opstool
@@ -15,7 +15,7 @@ pip install --upgrade opstool
 
 This document and the [`tests/`](https://github.com/yexiang1992/opstool/tree/master/tests)
 directory contain many small examples. See
-[here]() for the full documentation.
+[here](https://opstool.readthedocs.io/en/latest/index.html) for the full documentation.
 
 #### Vis Module
 
