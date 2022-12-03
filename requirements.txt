@@ -1,6 +1,6 @@
-matplotlib==3.5.3
-numpy==1.21.5
-openseespy==3.4.0.2
-plotly==5.9.0
-sectionproperties==2.1.4
-Shapely==1.8.5.post1
+matplotlib
+numpy
+openseespy
+plotly
+sectionproperties
+Shapely
