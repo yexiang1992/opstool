@@ -1,7 +1,7 @@
 Installation
 ============
 
-Currently, opstool depends on the following python third-party libraries:
+Currently, **opstool** depends on the following python third-party libraries:
 
 * `openseespy <https://openseespydoc.readthedocs.io/en/latest/>`_
 * `matplotlib <https://matplotlib.org/>`_
@@ -12,7 +12,7 @@ Currently, opstool depends on the following python third-party libraries:
 
 
 Installing *opstool*
-------------------------------
+---------------------
 
 
 .. code-block:: console
