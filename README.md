@@ -1,6 +1,6 @@
 <p align="center">
-  <a href="https://github.com/yexiang1992/opstool">opstool</a>
-  <p align="center">modelling, visualization, post-processing for OpenSeesPy.</p>
+  <font size=6><a href="https://github.com/yexiang1992/opstool">opstool</a></font>
+  <p align="center"><font size=4 color=YellowGreen>modelling, visualization, post-processing for OpenSeesPy.</font></p>
 </p>
 
 ``opstool`` is a useful toolbox package to help ``OpenSeesPy`` *modelling*, *visualization*, *post-processing of results*, etc. The package is still under development and currently mainly supports *visualization*.
@@ -125,7 +125,6 @@ FEMdata = GetFEMdata()
 FEMdata.get_fiber_data([(1, 1)])
 vis = FiberSecVis(ele_tag=1, sec_tag=1, opacity=1, colormap='viridis')
 vis.sec_vis(mat_color={1: 'gray', 2: 'orange', 3: 'black'})
-
 ```
 
 ![FiberSecVis.png](https://s2.loli.net/2022/12/03/jwvVecT3GCWbdBI.png)
@@ -215,7 +214,6 @@ sec.centring()
 sec.view(fill=True, engine='plotly', save_html="SecMesh.html")
 G = 10000
 sec.to_file("mysec.py", secTag=1, GJ=G * sec_props['J'])
-
 ```
 
 ![SecMesh.png](https://s2.loli.net/2022/12/03/Jla3yTh1QxVZ9pk.png) 
