@@ -9,7 +9,7 @@ load_ops_examples("SDOF")
 FEMdata = GetFEMdata()
 FEMdata.get_fiber_data([(1, 1)])
 vis = FiberSecVis(ele_tag=1, sec_tag=1, opacity=1, colormap='viridis')
-vis.sec_vis(mat_color={1: 'green', 2: 'red', 3: 'black'})
+vis.sec_vis(mat_color={1: 'gray', 2: 'orange', 3: 'black'})
 
 vis.sec_vis()
 

@@ -17,19 +17,19 @@ ModelData.get_model_data()
 ModelData.get_eigen_data(mode_tag=15)
 opsv = OpenSeesVis(point_size=2, line_width=3, colors_dict=None, theme="plotly",
                    color_map="jet", on_notebook=False, results_dir="opstool_output")
-opsv.model_vis(show_node_label=False, show_ele_label=False,
-               show_local_crd=True, label_size=8,
-               show_outline=True,
-               opacity=1.0,
-               save_html='ModelVis.html')
-opsv.eigen_vis(mode_tags=[1, 9], subplots=True,
-               alpha=None, show_outline=False,
-               show_origin=False, opacity=1.0,
-               show_face_line=False, save_html="EigenVis")
-opsv.eigen_anim(mode_tag=1, alpha=None, show_outline=False,
-                opacity=1, framerate=3,
-                show_face_line=True,
-                save_html="EigenAnimation")
+# opsv.model_vis(show_node_label=False, show_ele_label=False,
+#                show_local_crd=True, label_size=8,
+#                show_outline=True,
+#                opacity=1.0,
+#                save_html='ModelVis.html')
+# opsv.eigen_vis(mode_tags=[1, 9], subplots=False,
+#                alpha=None, show_outline=False,
+#                show_origin=False, opacity=1.0,
+#                show_face_line=False, save_html="EigenVis")
+# opsv.eigen_anim(mode_tag=1, alpha=None, show_outline=True,
+#                 opacity=1, framerate=3,
+#                 show_face_line=True,
+#                 save_html="EigenAnimation")
 
 # responses
 gen_grav_load(ts_tag=10, pattern_tag=10,
@@ -52,23 +52,23 @@ for i in range(Nsteps):
                                  num_steps=Nsteps,
                                  model_update=False)
     ModelData.get_frame_resp_step(analysis_tag=1, num_steps=Nsteps,)
-opsv.deform_vis(analysis_tag=1, slider=True,
-                response="disp", alpha=None,
-                show_outline=False, show_origin=True,
-                show_face_line=False, opacity=1,
-                save_html="DefoVis",
-                model_update=False)
-# opsv.deform_anim(analysis_tag=1,
-#                  response="disp", alpha=None,
-#                  show_outline=False,
-#                  show_face_line=False, opacity=1,
-#                  save_html="DefoAnimation",
-#                  model_update=False)
+# opsv.deform_vis(analysis_tag=1, slider=False,
+#                 response="disp", alpha=None,
+#                 show_outline=False, show_origin=True,
+#                 show_face_line=False, opacity=1,
+#                 save_html="DefoVis",
+#                 model_update=False)
+# # opsv.deform_anim(analysis_tag=1,
+# #                  response="disp", alpha=None,
+# #                  show_outline=False,
+# #                  show_face_line=False, opacity=1,
+# #                  save_html="DefoAnimation",
+# #                  model_update=False)
 opsv.frame_resp_vis(analysis_tag=1,
                     ele_tags=None,
-                    slider=False,
-                    response="My",
+                    slider=True,
+                    response="Mz",
                     show_values=False,
                     alpha=None,
-                    opacity=1,
+                    opacity=0.5,
                     save_html="FrameRespVis")
