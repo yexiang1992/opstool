@@ -495,8 +495,10 @@ class SecMesh:
                             f"ops.fiber({xy[0]:.3E}, {xy[1]:.3E}, {area:.3E}, {matTag})\n"
                         )
 
-    def view(self, fill: bool = True, engine: str = "plotly", save_html: str = "SecMesh.html"):
-        """Output the opensees fiber code to file.
+    def view(self, fill: bool = True, engine: str = "plotly",
+             save_html: str = "SecMesh.html",
+             on_notebook: bool = False):
+        """Display the section mesh.
 
         Parameters
         ----------
