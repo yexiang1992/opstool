@@ -5,6 +5,8 @@ matplotlib
 Sphinx
 sphinx-rtd-theme
 sphinx-gallery
+sphinxcontrib-napoleon
+sphinx-autodoc-typehints
 nbsphinx
 cad_to_shapely
 openseespy

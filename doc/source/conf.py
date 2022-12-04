@@ -12,8 +12,15 @@
 #
 import os
 import sys
+from pathlib import Path
 
-sys.path.insert(0, os.path.abspath('../../src'))
+this_dir = Path(__file__).resolve().parent.parent.parent
+about = {}
+with open(this_dir / "src" / "opstool" / "__about__.py") as f:
+    d = exec(f.read(), about)
+__version__ = about["__version__"]
+
+sys.path.insert(0, os.path.abspath('../../src/'))
 
 
 # -- Project information -----------------------------------------------------
@@ -23,7 +30,7 @@ copyright = '2022, Yexiang Yan'
 author = 'Yexiang Yan'
 
 # The full version, including alpha/beta/rc tags
-release = '0.0.5'
+release = __version__
 
 
 # -- General configuration ---------------------------------------------------
@@ -33,14 +40,18 @@ release = '0.0.5'
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    # "sphinx_autodoc_typehints",
     'sphinx.ext.napoleon',
     'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
-    'sphinx.ext.todo',
+    # 'sphinx.ext.todo',
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
     'nbsphinx',
 ]
+
+# The master toctree document.
+master_doc = "index"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -48,7 +59,7 @@ templates_path = ['_templates']
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['opstool/examples', 'opstool.examples']
+exclude_patterns = ['opstool/examples', 'opstool.examples.rst']
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -63,3 +74,6 @@ html_theme = 'sphinx_rtd_theme'
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+# Output file base name for HTML help builder.
+htmlhelp_basename = "opstooldoc"

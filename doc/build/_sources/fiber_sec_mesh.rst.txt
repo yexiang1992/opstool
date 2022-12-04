@@ -1,2 +1,0 @@
-Fiber Section Mesh
-==================

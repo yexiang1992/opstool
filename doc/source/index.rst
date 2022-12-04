@@ -7,7 +7,7 @@ Welcome to opstool's documentation!
 ===================================
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 3
    :caption: Contents:
 
    src/installation
@@ -15,6 +15,7 @@ Welcome to opstool's documentation!
    src/mod_vis
    src/mod_pre
    src/demos
+   modules.rst
 
 
 
