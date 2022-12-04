@@ -1,0 +1,12 @@
+scipy
+numpy
+shapely
+matplotlib
+Sphinx
+sphinx-rtd-theme
+sphinx-gallery
+nbsphinx
+cad_to_shapely
+openseespy
+plotly
+sectionproperties

@@ -506,7 +506,12 @@ class SecMesh:
              Whether to fill the trangles.
         engine: str, default='plotly'
             Plot engine, optional "plotly" or "matplotlib".
-        save_html:
+        save_html: str, default="SecMesh.html"
+            If set, the figure will save as a html file, only useful for engine="plotly".
+            If False or None, this parameter will be ignored.
+        on_notebook: bool, default=False
+            If True, the figure will display in a notebook.
+
         Returns
         -------
         None
@@ -679,9 +684,10 @@ class SecMesh:
             )
             fig.update_xaxes(tickfont_size=18, ticks="outside")
             fig.update_yaxes(tickfont_size=18, ticks="outside")
-            # fig.show()
             if save_html:
                 pio.write_html(fig, file=save_html, auto_open=True)
+            if on_notebook:
+                fig.show(renderer="notebook")
         else:
             raise ValueError(
                 f"not supported engine {engine}! optional, 'plotly' or 'matplotlib'!")
@@ -735,7 +741,7 @@ class Rebars:
         rebar_lines = LineString(points)
         x, y = rebar_lines.xy
         # mesh rebar points based on spacing
-        rebar_xy = lines_subdivide(x, y, gap)
+        rebar_xy = _lines_subdivide(x, y, gap)
         data = dict(
             rebar_xy=rebar_xy, color=color, name=group_name, dia=dia, matTag=matTag
         )
@@ -774,7 +780,7 @@ class Rebars:
         color : str or rgb tuple.
             Color to plot rebar.
         group_name : str
-            Assign rebar group name
+            Assign rebar group name.
 
         Returns
         -------
@@ -878,6 +884,7 @@ def add_circle(
         material=None,
 ):
     """Add the circle geom obj.
+
     Parameters
     ----------
     xo : list[float, float]
@@ -915,7 +922,7 @@ def add_circle(
     return geometry
 
 
-def lines_subdivide(x, y, gap):
+def _lines_subdivide(x, y, gap):
     """
     The polylines consisting of coordinates x and y are divided by the gap.
     """

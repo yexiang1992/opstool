@@ -13,7 +13,7 @@ from plotly.subplots import make_subplots
 from ..utils import check_file, shape_dict
 
 
-class OpenSeesVis:
+class OpsVisPlotly:
     """A class to visualize OpenSeesPy model based on plotly.
 
     Parameters
@@ -385,7 +385,7 @@ class OpenSeesVis:
                 save_html += ".html"
             pio.write_html(fig, file=save_html, auto_open=True)
         if self.notebook:
-            fig.show()
+            fig.show(renderer='notebook')
 
     def eigen_vis(
             self,
@@ -630,7 +630,7 @@ class OpenSeesVis:
                 save_html += ".html"
             pio.write_html(fig, file=save_html, auto_open=True)
         if self.notebook:
-            fig.show()
+            fig.show(renderer='notebook')
 
     def eigen_anim(
             self,
@@ -799,7 +799,7 @@ class OpenSeesVis:
                 save_html += ".html"
             pio.write_html(fig, file=save_html, auto_open=True)
         if self.notebook:
-            fig.show()
+            fig.show(renderer='notebook')
 
     def deform_vis(
             self,
@@ -1030,7 +1030,7 @@ class OpenSeesVis:
                 save_html += ".html"
             pio.write_html(fig, file=save_html, auto_open=True)
         if self.notebook:
-            fig.show()
+            fig.show(renderer='notebook')
 
     def deform_anim(
             self,
@@ -1238,7 +1238,7 @@ class OpenSeesVis:
                 save_html += ".html"
             pio.write_html(fig, file=save_html, auto_open=True)
         if self.notebook:
-            fig.show()
+            fig.show(renderer='notebook')
 
     def frame_resp_vis(self,
                        analysis_tag: int,
@@ -1541,7 +1541,7 @@ class OpenSeesVis:
                 save_html += ".html"
             pio.write_html(fig, file=save_html, auto_open=True)
         if self.notebook:
-            fig.show()
+            fig.show(renderer='notebook')
 
 
 def _generate_line_mesh(points, cells, line_width=1, color='blue', scalars=None, use_cmap=False, coloraxis=None):
