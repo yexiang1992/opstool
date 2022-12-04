@@ -12,5 +12,4 @@ cad_to_shapely
 openseespy
 plotly
 sectionproperties
-python==3.9.15
 opstool
