@@ -20,7 +20,7 @@ with open(this_dir / "src" / "opstool" / "__about__.py") as f:
     d = exec(f.read(), about)
 __version__ = about["__version__"]
 
-sys.path.insert(0, os.path.abspath('../..'))
+sys.path.insert(0, os.path.abspath('../../../src/'))
 
 
 # -- Project information -----------------------------------------------------
