@@ -13,14 +13,6 @@ Subpackages
 Submodules
 ----------
 
-opstool.utils module
---------------------
-
-.. automodule:: opstool.utils
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 Module contents
 ---------------
 

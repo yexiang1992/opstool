@@ -1,5 +1,5 @@
-opstool
-=======
+Module Index
+=============
 
 .. toctree::
    :maxdepth: 4

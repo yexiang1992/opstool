@@ -14,12 +14,5 @@ Welcome to opstool's documentation!
    model_vis
    fiber_sec_mesh
    demos
+   modules
 
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
