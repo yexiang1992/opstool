@@ -7,10 +7,14 @@ Welcome to opstool's documentation!
 ===================================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
 
-   Installation
+   src/installation
+   src/test.ipynb
+   src/mod_vis
+   src/mod_pre
+   src/demos
 
 
 

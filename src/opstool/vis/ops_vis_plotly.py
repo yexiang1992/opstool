@@ -119,9 +119,6 @@ class OpsVisPlotly:
         --------
         None
 
-        Note
-        ----
-
         """
 
         filename = self.out_dir + '/ModelData'
