@@ -41,6 +41,7 @@ class OpsVisPlotly:
         Whether work in a notebook.
     results_dir: str, default="opstool_output"
         The dir that results saved.
+
     Returns
     -------
     None
@@ -115,6 +116,7 @@ class OpsVisPlotly:
             Plane and solid element transparency.
         save_html: str, default='ModelVis.html'
             The html file name to output. If False, the html file will not be generated.
+
         Returns
         --------
         None
