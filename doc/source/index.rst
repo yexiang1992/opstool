@@ -15,13 +15,5 @@ Welcome to opstool's documentation!
    src/mod_vis
    src/mod_pre
    src/demos
-   modules.rst
+   opstool.rst
 
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

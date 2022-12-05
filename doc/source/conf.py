@@ -13,33 +13,34 @@
 import os
 import sys
 from pathlib import Path
-from unittest.mock import MagicMock
+
+# from unittest.mock import MagicMock
 
 
-class Mock(MagicMock):
-    @classmethod
-    def __getattr__(cls, name):
-        return MagicMock()
+# class Mock(MagicMock):
+#     @classmethod
+#     def __getattr__(cls, name):
+#         return MagicMock()
 
 
-MOCK_MODULES = [
-    'numpy',
-    # 'scipy',
-    # 'sklearn',
-    'matplotlib',
-    'shapely',
-    'Sphinx',
-    'sphinx-rtd-theme',
-    'sphinx-gallery',
-    'sphinxcontrib-napoleon',
-    'sphinx-autodoc-typehints',
-    'nbsphinx',
-    'cad_to_shapely',
-    'openseespy',
-    'plotly',
-    'sectionproperties',
-]
-sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+# MOCK_MODULES = [
+#     'numpy',
+#     # 'scipy',
+#     # 'sklearn',
+#     'matplotlib',
+#     'shapely',
+#     'Sphinx',
+#     'sphinx-rtd-theme',
+#     'sphinx-gallery',
+#     'sphinxcontrib-napoleon',
+#     'sphinx-autodoc-typehints',
+#     'nbsphinx',
+#     'cad_to_shapely',
+#     'openseespy',
+#     'plotly',
+#     'sectionproperties',
+# ]
+# sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 this_dir = Path(__file__).resolve().parent.parent.parent
 about = {}
@@ -47,7 +48,7 @@ with open(this_dir / "src" / "opstool" / "__about__.py") as f:
     d = exec(f.read(), about)
 __version__ = about["__version__"]
 
-sys.path.insert(0, os.path.abspath('../../src/'))
+sys.path.insert(0, os.path.abspath('../../src'))
 
 
 # -- Project information -----------------------------------------------------
@@ -84,6 +85,9 @@ templates_path = ['_templates']
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ['../../src/opstool/examples', 'opstool.examples.rst']
 
+# The name of the Pygments (syntax highlighting) style to use.
+pygments_style = "sphinx"
+
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -100,3 +104,59 @@ html_static_path = ['_static']
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = "opstooldoc"
+
+# -- Options for LaTeX output ------------------------------------------------
+
+latex_elements = {
+    # The paper size ('letterpaper' or 'a4paper').
+    #
+    # 'papersize': 'letterpaper',
+    # The font size ('10pt', '11pt' or '12pt').
+    #
+    # 'pointsize': '10pt',
+    # Additional stuff for the LaTeX preamble.
+    #
+    # 'preamble': '',
+    # Latex figure (float) alignment
+    #
+    # 'figure_align': 'htbp',
+}
+
+# Grouping the document tree into LaTeX files. List of tuples
+# (source start file, target name, title,
+#  author, documentclass [howto, manual, or own class]).
+latex_documents = [
+    (
+        master_doc,
+        "opstool.tex",
+        "opstool Documentation",
+        "Yexiang Yan",
+        "manual",
+    ),
+]
+
+# -- Options for manual page output ------------------------------------------
+
+# One entry per manual page. List of tuples
+# (source start file, name, description, authors, manual section).
+man_pages = [
+    (master_doc, "opstool",
+     "opstool Documentation", [author], 1)
+]
+
+# -- Options for Texinfo output ----------------------------------------------
+
+# Grouping the document tree into Texinfo files. List of tuples
+# (source start file, target name, title, author,
+#  dir menu entry, description, category)
+texinfo_documents = [
+    (
+        master_doc,
+        "opstool",
+        "opstool Documentation",
+        author,
+        "opstool",
+        "One line description of project.",
+        "Miscellaneous",
+    ),
+]

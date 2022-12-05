@@ -22,12 +22,12 @@ class SecMesh:
     """A class to mesh the cross-section with triangular fibers.
 
     Parameters
-    ----------
+    --------------
     sec_name : str
         Assign a name to the section
 
     Returns
-    -------
+    -----------
     None
 
     Examples
@@ -99,7 +99,7 @@ class SecMesh:
         """Assign the group dict for each mesh.
 
         Parameters
-        ----------
+        ------------
         group : dict
             A dict of name as key, mesh obj as value.
 
@@ -114,12 +114,12 @@ class SecMesh:
         """Assign the mesh size dict for each mesh.
 
         Parameters
-        ----------
+        ------------
         mesh_size : dict[str, float]
             A dict of name as key, mesh size as value.
 
         Returns
-        ----------
+        ------------
         instance
         """
         if not self.group_map:
@@ -136,7 +136,7 @@ class SecMesh:
         """Assign the mesh size dict for each mesh.
 
         Parameters
-        ----------
+        --------------
         mat_tag : dict[str, int]
             A dict of name as key, opensees matTag previous defined as value.
 
@@ -158,7 +158,7 @@ class SecMesh:
         """Assign the color dict to plot the section.
 
         Parameters
-        ----------
+        -------------
         colors : dict[str, str]
             A dict of name as key, color as value.
         """
@@ -227,7 +227,7 @@ class SecMesh:
             The instance of Rebars class.
 
         Returns
-        ------
+        ----------
         None
         """
         self.rebar_data = rebars_obj.rebar_data
@@ -239,7 +239,7 @@ class SecMesh:
         Solving Section Geometry Properties by Finite Element Method, by `sectionproperties` pacakge.
 
         Parameters
-        ----------
+        -----------
         Eref: float, default=1.0
             Reference modulus of elasticity, it is important to analyze the composite section.
             See `sectionproperties doc <https://sectionproperties.readthedocs.io/en/latest/rst/post.html>`_
@@ -249,7 +249,7 @@ class SecMesh:
             whether to plot centroids
 
         Returns
-        ------
+        -----------
         sec_props: dict
             section props dict, including:
 
@@ -329,7 +329,7 @@ class SecMesh:
         Move the section centroid to (0, 0).
 
         Returns
-        -------
+        ---------
          None
         """
         if self.sec_props == dict():
@@ -350,12 +350,12 @@ class SecMesh:
         """Rotate the section clockwise.
 
         Parameters
-        ----------
+        ------------
         theta : float, default=0
              Rotation angle, unit: degree.
 
         Returns
-        -------
+        ---------
         None
         """
         theta = theta / 180 * np.pi
@@ -388,14 +388,14 @@ class SecMesh:
         """Generate openseespy fiber section command.
 
         Parameters
-        ----------
+        ------------
         secTag : int
             The section tag assigned in OpenSees.
         GJ : float
             Torsion stiffness.
 
         Returns
-        -------
+        ----------
         None
         """
         ops.section("Fiber", secTag, "-GJ", GJ)
@@ -420,7 +420,7 @@ class SecMesh:
         """Output the opensees fiber code to file.
 
         Parameters
-        ----------
+        -------------
         output_path : str
             The filepath to save, e.g., r"my_dir/my_section.py"
         secTag : int
@@ -429,7 +429,7 @@ class SecMesh:
             Torsion stiffness.
 
         Returns
-        -------
+        ---------
         None
 
         Notes
@@ -501,7 +501,7 @@ class SecMesh:
         """Display the section mesh.
 
         Parameters
-        ----------
+        -----------
         fill : bool, default=True
              Whether to fill the trangles.
         engine: str, default='plotly'
@@ -513,7 +513,7 @@ class SecMesh:
             If True, the figure will display in a notebook.
 
         Returns
-        -------
+        --------
         None
         """
 
