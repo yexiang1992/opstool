@@ -13,6 +13,33 @@
 import os
 import sys
 from pathlib import Path
+from unittest.mock import MagicMock
+
+
+class Mock(MagicMock):
+    @classmethod
+    def __getattr__(cls, name):
+        return MagicMock()
+
+
+MOCK_MODULES = [
+    'numpy',
+    # 'scipy',
+    # 'sklearn',
+    'matplotlib',
+    'shapely',
+    'Sphinx',
+    'sphinx-rtd-theme',
+    'sphinx-gallery',
+    'sphinxcontrib-napoleon',
+    'sphinx-autodoc-typehints',
+    'nbsphinx',
+    'cad_to_shapely',
+    'openseespy',
+    'plotly',
+    'sectionproperties',
+]
+sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 this_dir = Path(__file__).resolve().parent.parent.parent
 about = {}
@@ -55,7 +82,7 @@ templates_path = ['_templates']
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['opstool/examples', 'opstool.examples.rst']
+exclude_patterns = ['../../src/opstool/examples', 'opstool.examples.rst']
 
 
 # -- Options for HTML output -------------------------------------------------

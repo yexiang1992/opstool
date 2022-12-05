@@ -12,4 +12,3 @@ cad_to_shapely
 openseespy
 plotly
 sectionproperties
-opstool
