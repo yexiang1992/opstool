@@ -12,3 +12,4 @@ cad_to_shapely
 openseespy
 plotly
 sectionproperties
+jinja2==3.0.3

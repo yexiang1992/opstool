@@ -1,6 +1,6 @@
 import openseespy.opensees as ops
 from opstool.preprocessing import gen_grav_load
-from opstool.vis import GetFEMdata, OpenSeesVis
+from opstool.vis import GetFEMdata, OpsVisPlotly
 from opstool import load_ops_examples
 
 
@@ -15,8 +15,8 @@ load_ops_examples("Frame3D")
 ModelData = GetFEMdata()
 ModelData.get_model_data()
 ModelData.get_eigen_data(mode_tag=15)
-opsv = OpenSeesVis(point_size=2, line_width=3, colors_dict=None, theme="plotly",
-                   color_map="jet", on_notebook=False, results_dir="opstool_output")
+opsv = OpsVisPlotly(point_size=2, line_width=3, colors_dict=None, theme="plotly",
+                    color_map="jet", on_notebook=False, results_dir="opstool_output")
 # opsv.model_vis(show_node_label=False, show_ele_label=False,
 #                show_local_crd=True, label_size=8,
 #                show_outline=True,
@@ -32,8 +32,8 @@ opsv = OpenSeesVis(point_size=2, line_width=3, colors_dict=None, theme="plotly",
 #                 save_html="EigenAnimation")
 
 # responses
-gen_grav_load(ts_tag=10, pattern_tag=10,
-              g=9.81, factor=-1.0, direction="Z")
+gen_grav_load(ts_tag=1, pattern_tag=1,
+              factor=-9.81, direction="Z")
 # 分析参数设置
 Nsteps = 10   # 分析10步
 ops.wipeAnalysis()

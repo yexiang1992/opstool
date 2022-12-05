@@ -1382,7 +1382,7 @@ class OpsVisPlotly:
                 line_plot = _generate_line_mesh(beam_node_coords, beam_cells, line_width=self.line_width,
                                                 color=self.color_line, use_cmap=False)
                 face_plot = _generate_face_mesh(face_points, face_cells, show_face_line=False, opacity=opacity,
-                                                use_cmap=True, scalars=scalars, coloraxis=f"scalars{step+1}")
+                                                use_cmap=True, scalars=scalars, coloraxis=f"coloraxis{step+1}")
                 fig.add_traces(line_plot + face_plot)
                 if show_values:
                     txt_plot = go.Scatter3d(

@@ -675,7 +675,7 @@ class GetFEMdata:
         output_filename = self.out_dir + '/FiberData'
         with shelve.open(output_filename) as db:
             db["Fiber"] = self.fiber_sec_data
-        return self.fiber_sec_data
+        return None
 
     def get_fiber_resp_step(self, analysis_tag: int, num_steps: int):
         """Get analysis step data for fiber section.

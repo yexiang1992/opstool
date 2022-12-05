@@ -15,7 +15,7 @@ class FiberSecVis:
     A class to vis the fiber section in OpenSeesPy.
 
     Parameters
-    ----------
+    -------------
     ele_tag: int
         The element tag to which the section is to be displayed.
     sec_tag: int
@@ -31,6 +31,9 @@ class FiberSecVis:
     opacity: float, default=0.75
         Transparency of mesh.
 
+    Returns
+    --------
+    FiberSecVis instance.
     """
 
     def __init__(self, ele_tag: int, sec_tag: int,
@@ -204,7 +207,7 @@ class FiberSecVis:
         """fiber section response vis.
 
         Parameters
-        ----------
+        -----------
         analysis_tag: int
             Analysis tag.
         step: int, default = None
@@ -215,7 +218,7 @@ class FiberSecVis:
             Mat tag to dispaly.
 
         Returns
-        -------
+        --------
         None
         """
         filename = self.out_dir + f'/FiberRespStepData-{analysis_tag}'

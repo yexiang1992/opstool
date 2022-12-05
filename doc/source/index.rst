@@ -11,9 +11,8 @@ Welcome to opstool's documentation!
    :caption: Contents:
 
    src/installation
-   src/test.ipynb
    src/mod_vis
-   src/mod_pre
+   src/mod_secmesh
    src/demos
-   opstool.rst
+   src/opstool.rst
 
