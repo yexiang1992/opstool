@@ -11,7 +11,7 @@ Welcome to opstool's documentation!
    :caption: Contents:
 
    src/installation
-   src/mod_vis
+   src/mod_vis2
    src/mod_secmesh
    src/demos
    src/opstool.rst

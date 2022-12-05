@@ -15,14 +15,14 @@ pip install --upgrade opstool
 
 This document and the [`tests/`](https://github.com/yexiang1992/opstool/tree/master/tests)
 directory contain many small examples. See
-[here]() for the full documentation.
+[here](https://opstool.readthedocs.io/en/latest/index.html) for the full documentation.
 
 #### Vis Module
 
 ```python
 import openseespy.opensees as ops
 from opstool.preprocessing import gen_grav_load
-from opstool.vis import GetFEMdata, OpenSeesVis
+from opstool.vis import GetFEMdata, OpsVisPlotly
 from opstool import load_ops_examples
 
 load_ops_examples("CableStayedBridge")
@@ -32,8 +32,7 @@ load_ops_examples("CableStayedBridge")
 ModelData = GetFEMdata()
 ModelData.get_model_data()
 ModelData.get_eigen_data(mode_tag=15)
-opsv = OpenSeesVis(point_size=2, line_width=3, colors_dict=None, theme="plotly",
-                   color_map="jet", on_notebook=False, results_dir="opstool_output")
+opsv = OpsVisPlotly(point_size=2, line_width=3, colors_dict=None, theme="plotly", color_map="jet", on_notebook=False, results_dir="opstool_output")
 opsv.model_vis(show_node_label=False, show_ele_label=False,
                show_local_crd=True, label_size=8,
                show_outline=True,
