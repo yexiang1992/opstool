@@ -25,3 +25,4 @@ src/opstool/vis/__init__.py
 src/opstool/vis/fiber_sec_vis.py
 src/opstool/vis/get_model_data.py
 src/opstool/vis/ops_vis_plotly.py
+src/opstool/vis/ops_vis_pyvista.py

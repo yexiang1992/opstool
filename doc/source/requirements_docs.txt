@@ -1,7 +1,11 @@
 scipy
 numpy
 shapely
+pyvista
+plotly
 matplotlib
+openseespy
+sectionproperties
 Sphinx
 sphinx-rtd-theme
 sphinx-gallery
@@ -9,7 +13,6 @@ sphinxcontrib-napoleon
 sphinx-autodoc-typehints
 nbsphinx
 cad_to_shapely
-openseespy
-plotly
-sectionproperties
 jinja2==3.0.3
+jupyter-sphinx
+pythreejs

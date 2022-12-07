@@ -13,6 +13,11 @@
 import os
 import sys
 from pathlib import Path
+import plotly.io as pio
+# import pyvista as pv
+# pv.set_jupyter_backend('pythreejs')
+# pio.renderers = 'jupyterlab'
+pio.renderers = 'notebook'
 
 # from unittest.mock import MagicMock
 
@@ -72,6 +77,7 @@ extensions = [
     "sphinx.ext.viewcode",
     # "sphinx_gallery.gen_gallery",
     'nbsphinx',
+    "jupyter_sphinx",
 ]
 
 # The master toctree document.

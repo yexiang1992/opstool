@@ -11,6 +11,7 @@ Welcome to opstool's documentation!
    :caption: Contents:
 
    src/installation
+   CHANGELOG
    src/mod_vis2
    src/mod_secmesh
    src/demos
