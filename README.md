@@ -11,6 +11,8 @@
 ![python version](https://img.shields.io/pypi/pyversions/opstool)
 ![code size](https://img.shields.io/github/languages/code-size/yexiang1992/opstool)
 [![code grade](https://img.shields.io/codefactor/grade/github/yexiang1992/opstool)](https://www.codefactor.io/repository/github/yexiang1992/opstool)
+[![Build Status](https://scrutinizer-ci.com/g/yexiang1992/opstool/badges/build.png?b=master)](https://scrutinizer-ci.com/g/yexiang1992/opstool/build-status/master)
+[![Code Intelligence Status](https://scrutinizer-ci.com/g/yexiang1992/opstool/badges/code-intelligence.svg?b=master)](https://scrutinizer-ci.com/code-intelligence)
 
 ``opstool`` is a useful toolbox package aims to help [OpenSeesPy](https://openseespydoc.readthedocs.io/en/latest/) *modelling*, *visualization*, *post-processing of results*, etc. 
 The package is still under development.
