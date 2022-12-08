@@ -3,6 +3,15 @@
   <p align="center"><font size=5 color=YellowGreen>modelling, visualization, post-processing for OpenSeesPy.</font></p>
 </p>
 
+[![pypi](https://img.shields.io/pypi/v/opstool)](https://pypi.org/project/opstool/)
+[![Documentation Status](https://readthedocs.org/projects/opstool/badge/?version=latest)](https://opstool.readthedocs.io/en/latest/?badge=latest)
+[![github stars](https://img.shields.io/github/stars/yexiang1992/opstool?style=social)](https://github.com/yexiang1992/opstool)
+![license](https://img.shields.io/github/license/yexiang1992/opstool)
+
+![python version](https://img.shields.io/pypi/pyversions/opstool)
+![code size](https://img.shields.io/github/languages/code-size/yexiang1992/opstool)
+[![code grade](https://img.shields.io/codefactor/grade/github/yexiang1992/opstool)](https://www.codefactor.io/repository/github/yexiang1992/opstool)
+
 ``opstool`` is a useful toolbox package aims to help [OpenSeesPy](https://openseespydoc.readthedocs.io/en/latest/) *modelling*, *visualization*, *post-processing of results*, etc. 
 The package is still under development.
 

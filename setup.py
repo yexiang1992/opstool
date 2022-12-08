@@ -22,7 +22,7 @@ setup(
     package_dir={'': 'src'},
     packages=find_packages('src'),
     classifiers=[
-        "Programming Language :: Python :: 3"
+        "Programming Language :: Python :: 3.9",
     ],
     install_requires=[
         'matplotlib',
