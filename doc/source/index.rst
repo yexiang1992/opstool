@@ -6,9 +6,19 @@
 Welcome to opstool's documentation!
 ===================================
 
+``opstool`` is a useful toolbox package aims to *modelling*, *visualization*, *post-processing*, etc., for `openseespy <https://openseespydoc.readthedocs.io/en/latest/>`_. 
+The package is still under development.
+
+To use, install `opstool` from 
+`opstool-PyPI <https://pypi.org/project/opstool/>`_:
+
+.. code-block:: console
+
+   pip install --upgrade opstool
+
 .. toctree::
    :maxdepth: 3
-   :caption: Contents:
+   :caption: Here are some instructions:
 
    src/installation
    CHANGELOG
