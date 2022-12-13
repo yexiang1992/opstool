@@ -131,8 +131,14 @@ class GetFEMdata:
 
         # Beam Element Analysis Step Response Data
 
-    def get_model_data(self):
-        """Get data from the current model domain. The data will saved to file ``ModelData.da``.
+    def get_model_data(self, save_file: bool = True):
+        """Get data from the current model domain. The data will saved to file ``ModelData.dat``.
+
+        Parameters
+        -----------
+        save_file: bool, default=True
+            Wether to save model infomation data.
+
         """
         # --------------------------------
         node_tags = ops.getNodeTags()
@@ -213,8 +219,11 @@ class GetFEMdata:
                     other_line_cells_tags.append(ele)
                 ele_midpoints.append((node_coords[idx_i] + node_coords[idx_j]) / 2)
 
-            elif len(ele_nodes) == 3:
-                node_i, node_j, node_k = ops.eleNodes(ele)
+            elif len(ele_nodes) == 3 or len(ele_nodes) == 6:
+                if len(ele_nodes) == 3:
+                    node_i, node_j, node_k = ops.eleNodes(ele)
+                elif len(ele_nodes) == 6:
+                    node_i, node_j, node_k = ops.eleNodes(ele)[1], ops.eleNodes(ele)[3], ops.eleNodes(ele)[5]
                 idx_i, idx_j, idx_k = (
                     node_index[node_i],
                     node_index[node_j],
@@ -292,8 +301,8 @@ class GetFEMdata:
                 tag_list = np.array(tag_list)[idxxx]
                 temp_points = [tuple(i) for i in temp_points]
                 tag_list = list(tag_list)
-                tag_counter1 = counter_clockwise(temp_points[:4], tag_list[:4])  # 逆时针排序
-                tag_counter2 = counter_clockwise(temp_points[4:], tag_list[4:])  # 逆时针排序
+                tag_counter1 = counter_clockwise(temp_points[:4], tag_list[:4])
+                tag_counter2 = counter_clockwise(temp_points[4:], tag_list[4:])
                 tag_counts = tag_counter1 + tag_counter2
                 idx1, idx2, idx3, idx4, idx5, idx6, idx7, idx8 = tag_counts
                 brick_cells.append([4, idx1, idx4, idx3, idx2])
@@ -377,13 +386,14 @@ class GetFEMdata:
 
         self.get_model_data_finished = True
 
-        if not os.path.exists(self.out_dir):
-            os.makedirs(self.out_dir)
-        output_filename = self.out_dir + '/ModelData'
-        with shelve.open(output_filename) as db:
-            db["ModelInfo"] = self.model_info
-            db["Cell"] = self.cells
-
+        if save_file:
+            if not os.path.exists(self.out_dir):
+                os.makedirs(self.out_dir)
+            output_filename = self.out_dir + '/ModelData'
+            with shelve.open(output_filename) as db:
+                db["ModelInfo"] = self.model_info
+                db["Cell"] = self.cells
+            print(f"Model data saved in {output_filename}!")
         # if output_file:
         #     with h5py.File(output_file, "w") as f:
         #         grp1 = f.create_group("ModelInfo")
@@ -412,7 +422,8 @@ class GetFEMdata:
         None
         """
         # ----------------------------------
-        self.get_model_data()
+        if not self.get_model_data_finished:
+            self.get_model_data()
         self.reset_eigen_state()
         # ----------------------------------
         ops.wipeAnalysis()
@@ -435,8 +446,11 @@ class GetFEMdata:
                     eigen.extend([0, 0])
                 elif len(coord) == 2:
                     coord.extend([0])
-                    eigen = eigen[:2]
-                    eigen.extend([0])
+                    if len(eigen) == 3 or len(eigen) == 2:
+                        eigen = eigen[:2]
+                        eigen.extend([0])
+                    elif len(eigen) == 1:
+                        eigen.extend([0, 0])
                 else:
                     eigen = eigen[:3]
                 eigen_vector[i] = np.array(eigen)
@@ -451,17 +465,27 @@ class GetFEMdata:
         output_filename = self.out_dir + '/EigenData'
         with shelve.open(output_filename) as db:
             db["EigenInfo"] = self.eigen
+        print(f"Eigen data saved in {output_filename}!")
 
-    def get_node_resp_step(self, analysis_tag: int, num_steps: int, model_update: bool = False):
+    def get_node_resp_step(self, analysis_tag: int, num_steps: int = 10000000000,
+                           total_time: float = 10000000000, model_update: bool = False):
         """Get the response data step by step. The data will saved to file ``NodeRespStepData-{analysis_tag}.dat``.
+
+        .. tip::
+            You need to call this function at each analysis step in OpenSees.
+            The advantage is that you can modify the iterative algorithm at each analysis step to facilitate convergence.
 
         Parameters
         ----------
         analysis_tag: int
             Analysis tag used to assign the analysis data.
 
-        num_steps: int
-            Total number of steps, must be set to determine when to save data.
+        num_steps: int, default=10000000000
+            Total number of steps, set to determine when to save data.
+        total_time: float, default=10000000000
+            Total analysis time, set to determine when to save data.
+            You can specify one of the parameters *num_steps* and `total_time`.
+            If both are used, it depends on which one arrives first.
         model_update: bool, default False
             whether to update the model domain data at each analysis step,
             this will be useful if model data has changed.
@@ -471,13 +495,12 @@ class GetFEMdata:
         None
 
         Note
-        ----
+        -----
         You need to call this function at each analysis step in OpenSees.
         The advantage is that you can modify the iterative algorithm at each analysis step to facilitate convergence.
         """
-
         if model_update:
-            self.get_model_data()
+            self.get_model_data(save_file=False)
         else:
             if not self.get_model_data_finished:
                 self.get_model_data()
@@ -506,13 +529,22 @@ class GetFEMdata:
                 vel.extend([0, 0])
                 accel.extend([0, 0])
             elif len(coord) == 2:
-                coord.extend([0])
-                disp = disp[:2]
-                disp.extend([0])
-                vel = vel[:2]
-                vel.extend([0])
-                accel = accel[:2]
-                accel.extend([0])
+                if len(disp) in [2, 3]:
+                    coord.extend([0])
+                    disp = disp[:2]
+                    disp.extend([0])
+                    vel = vel[:2]
+                    vel.extend([0])
+                    accel = accel[:2]
+                    accel.extend([0])
+                else:
+                    coord.extend([0])
+                    disp = disp[:2]
+                    disp.extend([0, 0])
+                    vel = vel[:2]
+                    vel.extend([0, 0])
+                    accel = accel[:2]
+                    accel.extend([0, 0])
             else:
                 disp = disp[:3]  # ignore the rotation
                 vel = vel[:3]
@@ -538,7 +570,7 @@ class GetFEMdata:
 
         # ----------------------------------------------------------------
         self.step_node_track += 1
-        if self.step_node_track == num_steps:
+        if self.step_node_track >= num_steps or ops.getTime() >= total_time:
             if not os.path.exists(self.out_dir):
                 os.makedirs(self.out_dir)
             output_filename = self.out_dir + f'/NodeRespStepData-{analysis_tag}'
@@ -546,17 +578,23 @@ class GetFEMdata:
                 db["ModelInfoSteps"] = self.model_info_steps
                 db["CellSteps"] = self.cells_steps
                 db["NodeRespSteps"] = self.node_resp_steps
+            print(f"Node response data saved in {output_filename}!")
 
-    def get_frame_resp_step(self, analysis_tag: int, num_steps: int):
+    def get_frame_resp_step(self, analysis_tag: int,
+                            num_steps: int = 10000000000,
+                            total_time: float = 10000000000):
         """Get the response data step by step. The data will saved to file ``BeamRespStepData-{analysis_tag}.dat``.
 
         Parameters
         ----------
         analysis_tag: int
             Analysis tag used to assign the analysis data.
-
-        num_steps: int
-            Total number of steps, must be set to determine when to save data.
+        num_steps: int, default=10000000000
+            Total number of steps, set to determine when to save data.
+        total_time: float, default=10000000000
+            Total analysis time, set to determine when to save data.
+            You can specify one of the parameters *num_steps* and `total_time`.
+            If both are used, it depends on which one arrives first.
 
         Returns
         -------
@@ -637,13 +675,14 @@ class GetFEMdata:
 
         # ----------------------------------------------------------------
         self.step_beam_track += 1
-        if self.step_beam_track == num_steps:
+        if self.step_beam_track >= num_steps or ops.getTime() >= total_time:
             if not os.path.exists(self.out_dir):
                 os.makedirs(self.out_dir)
             output_filename = self.out_dir + f'/BeamRespStepData-{analysis_tag}'
             with shelve.open(output_filename) as db:
                 db["BeamInfos"] = self.beam_infos
                 db["BeamRespSteps"] = self.beam_resp_step
+            print(f"Frame elements responses data saved in {output_filename}!")
 
     def get_fiber_data(self, ele_sec: list[tuple[int, int]]):
         """Get data from the section assigned by parameter ele_sec.
@@ -677,9 +716,11 @@ class GetFEMdata:
         output_filename = self.out_dir + '/FiberData'
         with shelve.open(output_filename) as db:
             db["Fiber"] = self.fiber_sec_data
-        return None
+        print(f"Fiber section data saved in {output_filename}!")
 
-    def get_fiber_resp_step(self, analysis_tag: int, num_steps: int):
+    def get_fiber_resp_step(self, analysis_tag: int,
+                            num_steps: int = 10000000000,
+                            total_time: float = 10000000000):
         """Get analysis step data for fiber section.
         The data will saved to file ``FiberRespStepData-{analysis_tag}.dat``.
 
@@ -687,8 +728,12 @@ class GetFEMdata:
         ----------
         analysis_tag: int
 
-        num_steps: int
-            Total number of steps, must be set after output_file is set to determine when to save data.
+        num_steps: int, default=10000000000
+            Total number of steps, set to determine when to save data.
+        total_time: float, default=10000000000
+            Total analysis time, set to determine when to save data.
+            You can specify one of the parameters *num_steps* and `total_time`.
+            If both are used, it depends on which one arrives first.
 
         Returns
         -------
@@ -717,12 +762,13 @@ class GetFEMdata:
             self.fiber_sec_step_data[key].append(data)
         # ----------------------------------------------------------------
         self.step_fiber_track += 1
-        if self.step_fiber_track == num_steps:
+        if self.step_fiber_track >= num_steps or ops.getTime() >= total_time:
             if not os.path.exists(self.out_dir):
                 os.makedirs(self.out_dir)
             output_filename = self.out_dir + f'/FiberRespStepData-{analysis_tag}'
             with shelve.open(output_filename) as db:
                 db["FiberRespSteps"] = self.fiber_sec_step_data
+            print(f"Fiber section responses data saved in {output_filename}!")
 
 
 def _get_fiber_sec_data(ele_tag: int, sec_tag: int = 1) -> ArrayLike:
@@ -800,7 +846,7 @@ def counter_clockwise(points, tag):
     return sorted_tag
 
 
-def lines_angle(v1, v2):
+def _lines_angle(v1, v2):
     # return np.arctan2(np.linalg.norm(np.cross(v1, v2)), np.dot(v1, v2))
     x = np.array(v1)
     y = np.array(v2)

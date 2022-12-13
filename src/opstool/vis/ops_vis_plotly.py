@@ -81,8 +81,8 @@ class OpsVisPlotly:
         # -------------------------------------------------
         self.theme = theme
         self.color_map = color_map
-        if on_notebook:
-            self.notebook = on_notebook
+
+        self.notebook = on_notebook
         # -------------------------------------------------
         self.out_dir = results_dir
         # -------------------------------------------------
@@ -170,18 +170,6 @@ class OpsVisPlotly:
                 face_points = np.array(face_points)
                 face_mid_points = np.array(face_mid_points)
                 plotter.append(
-                    go.Scatter3d(   # face lines
-                        x=face_line_points[:, 0],
-                        y=face_line_points[:, 1],
-                        z=face_line_points[:, 2],
-                        line=dict(color="black", width=self.line_width / 5),
-                        mode="lines",
-                        name=names[ii],
-                        connectgaps=False,
-                        hoverinfo="skip",
-                    )
-                )
-                plotter.append(
                     go.Mesh3d(
                         x=face_points[:, 0],
                         y=face_points[:, 1],
@@ -192,6 +180,18 @@ class OpsVisPlotly:
                         name=names[ii],
                         color=face_colors[ii],
                         opacity=opacity,
+                        hoverinfo="skip",
+                    )
+                )
+                plotter.append(
+                    go.Scatter3d(   # face lines
+                        x=face_line_points[:, 0],
+                        y=face_line_points[:, 1],
+                        z=face_line_points[:, 2],
+                        line=dict(color="black", width=self.line_width / 2),
+                        mode="lines",
+                        name=names[ii],
+                        connectgaps=False,
                         hoverinfo="skip",
                     )
                 )
@@ -1605,18 +1605,6 @@ def _generate_face_mesh(points, cells, line_width=1,
     face_points = np.array(face_points)
     face_scalars = np.array(face_scalars)
     # plot new
-    if show_face_line:
-        plotter.append(
-            go.Scatter3d(
-                x=face_line_points[:, 0],
-                y=face_line_points[:, 1],
-                z=face_line_points[:, 2],
-                line=dict(color='black', width=line_width),
-                mode="lines",
-                connectgaps=False,
-                hoverinfo="skip",
-            )
-        )
     if use_cmap:
         kargs = dict(text=face_scalars,
                      intensity=face_scalars,
@@ -1638,6 +1626,19 @@ def _generate_face_mesh(points, cells, line_width=1,
             **kargs
         )
     )
+    # face lines
+    if show_face_line:
+        plotter.append(
+            go.Scatter3d(
+                x=face_line_points[:, 0],
+                y=face_line_points[:, 1],
+                z=face_line_points[:, 2],
+                line=dict(color='black', width=line_width / 2),
+                mode="lines",
+                connectgaps=False,
+                hoverinfo="skip",
+            )
+        )
     return plotter
 
 
@@ -1700,18 +1701,6 @@ def _generate_all_mesh(points, scalars, opacity, lines_cells, face_cells, point_
                 )
             )
         # plot new
-        if show_face_line:
-            plotter.append(
-                go.Scatter3d(
-                    x=face_line_points[:, 0],
-                    y=face_line_points[:, 1],
-                    z=face_line_points[:, 2],
-                    line=dict(color='black', width=line_width / 3),
-                    mode="lines",
-                    connectgaps=False,
-                    hoverinfo="skip",
-                )
-            )
         plotter.append(
             go.Mesh3d(
                 x=face_points[:, 0],
@@ -1729,6 +1718,18 @@ def _generate_all_mesh(points, scalars, opacity, lines_cells, face_cells, point_
                 hoverinfo="skip",
             )
         )
+        if show_face_line:
+            plotter.append(
+                go.Scatter3d(
+                    x=face_line_points[:, 0],
+                    y=face_line_points[:, 1],
+                    z=face_line_points[:, 2],
+                    line=dict(color='black', width=line_width / 2),
+                    mode="lines",
+                    connectgaps=False,
+                    hoverinfo="skip",
+                )
+            )
     # ----------------------------
     # line plot
     if len(lines_cells) > 0:

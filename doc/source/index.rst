@@ -16,6 +16,8 @@ To use, install `opstool` from
 
    pip install --upgrade opstool
 
+It is recommended that you use `Anaconda <https://www.anaconda.com/>`_ to avoid library version incompatibilities.
+
 .. toctree::
    :maxdepth: 3
    :caption: Here are some instructions:

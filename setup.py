@@ -16,7 +16,7 @@ setup(
     author_email='yexiang_yan@outlook.com',
     url='https://github.com/yexiang1992',
     license='GPL Licence',
-    keywords='opensees seismic',
+    keywords='OpenSees seismic visualization',
     platforms='any',
     python_requires='>=3.9.*',
     package_dir={'': 'src'},

@@ -234,17 +234,20 @@ class OpsVisPyvista:
                 # color="black",
             )
         if show_node_label:
-            node_labels = [str(i) for i in model_info["NodeTags"]]
+            node_labels = ["N" + str(i) for i in model_info["NodeTags"]]
             plotter.add_point_labels(
                 model_info["coord_no_deform"],
                 node_labels,
                 text_color="white",
                 font_size=label_size,
+                point_color=self.color_point,
+                render_points_as_spheres=True,
+                point_size=1e-5,
                 bold=False,
                 always_visible=True,
             )
         if show_ele_label:
-            ele_labels = [str(i) for i in model_info["EleTags"]]
+            ele_labels = ["E" + str(i) for i in model_info["EleTags"]]
             plotter.add_point_labels(
                 model_info["coord_ele_midpoints"],
                 ele_labels,
@@ -265,6 +268,36 @@ class OpsVisPyvista:
                                    color="orange")
             _ = plotter.add_arrows(beam_midpoints, beam_zlocal, mag=length,
                                    color="green")
+            plotter.add_point_labels(
+                beam_midpoints + length * beam_xlocal,
+                ['x'] * beam_midpoints.shape[0],
+                text_color="red",
+                bold=False,
+                shape=None,
+                render_points_as_spheres=True,
+                point_size=1.e-5,
+                always_visible=True,
+            )
+            plotter.add_point_labels(
+                beam_midpoints + length * beam_ylocal,
+                ['y'] * beam_midpoints.shape[0],
+                text_color="orange",
+                bold=False,
+                shape=None,
+                render_points_as_spheres=True,
+                point_size=1.e-5,
+                always_visible=True,
+            )
+            plotter.add_point_labels(
+                beam_midpoints + length * beam_zlocal,
+                ['z'] * beam_midpoints.shape[0],
+                text_color="green",
+                bold=False,
+                shape=None,
+                render_points_as_spheres=True,
+                point_size=1.e-5,
+                always_visible=True,
+            )
         plotter.add_axes()
         plotter.view_isometric()
         if np.max(model_info["model_dims"]) <= 2:
@@ -604,9 +637,11 @@ class OpsVisPyvista:
             points = plt_points[idx]
             xyz = (eigen_data["coord_no_deform"] - points) / alpha_
             xyz_eigen = np.sqrt(np.sum(xyz**2, axis=1))
-            plotter.update_coordinates(points, mesh=point_plot, render=render)
-            plotter.update_scalars(
-                scalars=xyz_eigen, mesh=point_plot, render=render)
+            if point_plot:
+                plotter.update_coordinates(
+                    points, mesh=point_plot, render=render)
+                plotter.update_scalars(
+                    scalars=xyz_eigen, mesh=point_plot, render=render)
             if line_plot:
                 plotter.update_scalars(
                     scalars=xyz_eigen, mesh=line_plot, render=render)
@@ -960,10 +995,11 @@ class OpsVisPyvista:
             node_resp = node_resp_steps[resp_type][step]
             node_deform_coords = alpha_ * node_resp + node_nodeform_coords
             scalars = np.sqrt(np.sum(node_resp ** 2, axis=1))
-            if resp_type == "disp":
-                plotter.update_coordinates(
-                    node_deform_coords, mesh=point_plot, render=False
-                )
+            if point_plot:
+                if resp_type == "disp":
+                    plotter.update_coordinates(
+                        node_deform_coords, mesh=point_plot, render=False
+                    )
             if line_plot is not None:
                 if resp_type == "disp":
                     plotter.update_coordinates(
@@ -1293,19 +1329,20 @@ def _generate_all_mesh(
         font_family="arial",
     )
 
-    point_plot = pv.PolyData(points)
-    point_plot.point_data["data0"] = scalars
-    plotter.add_mesh(
-        point_plot,
-        colormap=colormap,
-        scalars=scalars,
-        clim=clim,
-        interpolate_before_map=True,
-        point_size=point_size,
-        render_points_as_spheres=True,
-        show_scalar_bar=show_scalar_bar,
-        scalar_bar_args=sargs,
-    )
+    # point_plot = pv.PolyData(points)
+    # point_plot.point_data["data0"] = scalars
+    # plotter.add_mesh(
+    #     point_plot,
+    #     colormap=colormap,
+    #     scalars=scalars,
+    #     clim=clim,
+    #     interpolate_before_map=True,
+    #     point_size=point_size,
+    #     render_points_as_spheres=True,
+    #     show_scalar_bar=show_scalar_bar,
+    #     scalar_bar_args=sargs,
+    # )
+    point_plot = None
     if len(lines_cells) > 0:
         if show_origin:
             line_plot_origin = _generate_mesh(

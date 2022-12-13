@@ -1,6 +1,7 @@
 from typing import Union
 
 # The element class Tag in OpenSees, which is used to determine the element type
+# see ...\SRC\classTags.h
 ELE_TAG_Truss = (12, 13, 14, 15, 16, 17, 18, 169)  # 169 is CatenaryCable
 ELE_TAG_Link = (19, 20, 21, 22, 23, 24, 25, 26, 260, 27,  # zeroLength
                 86,  # 86-twoNodeLink
@@ -65,7 +66,8 @@ def load_ops_examples(name: str):
     Parameters:
     -----------
     name: str,
-        Optional, "ArchBridge", "CableStayedBridge", "Dam", "Frame3D", "Igloo", "Pier", "SuspensionBridge", "SDOF".
+        Optional, "ArchBridge", "CableStayedBridge", "Dam", "Frame3D", "Igloo", "Pier", "SuspensionBridge", "SDOF",
+        "DamBreak",
 
     Returns:
     --------
@@ -87,5 +89,7 @@ def load_ops_examples(name: str):
         exec("from opstool.examples.SuspensionBridge import *")
     elif name.lower() == "sdof":
         exec("from opstool.examples.SDOF import *")
+    elif name.lower() == "dambreak":
+        exec("from opstool.examples.DamBreak import *")
     else:
-        raise ValueError("not supported example {name}!")
+        raise ValueError(f"not supported example {name}!")

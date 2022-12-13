@@ -12,6 +12,7 @@ src/opstool.egg-info/top_level.txt
 src/opstool/examples/ArchBridge.py
 src/opstool/examples/CableStayedBridge.py
 src/opstool/examples/Dam.py
+src/opstool/examples/DamBreak.py
 src/opstool/examples/Frame3D.py
 src/opstool/examples/Igloo.py
 src/opstool/examples/Pier.py

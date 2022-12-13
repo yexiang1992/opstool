@@ -18,16 +18,16 @@ load_ops_examples("ArchBridge")
 ModelData = GetFEMdata()
 ModelData.get_model_data()
 ModelData.get_eigen_data(mode_tag=15)
-opsv = OpsVisPyvista(point_size=2, line_width=2, colors_dict=None, theme="document",
+opsv = OpsVisPlotly(point_size=2, line_width=2, colors_dict=None, theme="plotly",
                     color_map="jet", on_notebook=False, results_dir="opstool_output")
-opsv.model_vis(show_node_label=False, show_ele_label=False,
-               show_local_crd=True, label_size=8,
+opsv.model_vis(show_node_label=True, show_ele_label=True,
+               show_local_crd=False, label_size=8,
                show_outline=True,
                opacity=1.0,)
-# opsv.eigen_vis(mode_tags=[2, 15], subplots=False,
-#                alpha=None, show_outline=True,
-#                show_origin=True, opacity=1.0,
-#                show_face_line=True)
+opsv.eigen_vis(mode_tags=[2, 15], subplots=False,
+               alpha=None, show_outline=True,
+               show_origin=True, opacity=1.0,
+               show_face_line=True)
 
 # opsv.eigen_anim(mode_tag=4, alpha=None, show_outline=False,
 #                 opacity=1, framerate=3,

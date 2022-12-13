@@ -263,7 +263,7 @@ class SecMesh:
             * Effective Material Properties (Effective elastic modulus: E_eff; Effective shear modulus: G_eff;
               Effective Poisson’s ratio: Nu_eff)
 
-            If materials are specified for the cross-section, the area, second moments of area and torsion constant are 
+            If materials are specified for the cross-section, the area, second moments of area and torsion constant are
             elastic modulus weighted.
         """
 
