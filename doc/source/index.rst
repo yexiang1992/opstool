@@ -21,12 +21,22 @@ It is recommended that you use `Anaconda <https://www.anaconda.com/>`_ to avoid 
 
 .. toctree::
    :maxdepth: 3
-   :caption: Here are some instructions:
+   :caption: Instructions
 
    src/installation
    CHANGELOG
    src/mod_vis2
    src/mod_secmesh
+
+.. toctree::
+   :maxdepth: 3
+   :caption: Demos
+
    src/demos
+
+.. toctree::
+   :maxdepth: 3
+   :caption: Opstool Package Index
+
    src/opstool.rst
 
