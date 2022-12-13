@@ -24,6 +24,7 @@ To use, install `opstool` from [opstool-PyPI](https://pypi.org/project/opstool/)
 pip install --upgrade opstool
 ```
 
+Python 3.9 is required.
 It is recommended that you use [Anaconda](https://www.anaconda.com/) to avoid library version incompatibilities.
 
 ### Document
