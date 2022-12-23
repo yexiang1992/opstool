@@ -16,3 +16,4 @@ cad_to_shapely
 jinja2==3.0.3
 jupyter-sphinx
 pythreejs
+setuptools>=65.5.1 # not directly required, pinned by Snyk to avoid a vulnerability
