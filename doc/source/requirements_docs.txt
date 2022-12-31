@@ -6,6 +6,7 @@ plotly
 matplotlib
 openseespy
 sectionproperties
+h5py
 Sphinx
 sphinx-rtd-theme
 sphinx-gallery

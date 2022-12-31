@@ -43,13 +43,13 @@ ops.analysis('Transient')
 
 for i in range(npts):
     ops.analyze(1, dt)
-    FEMdata.get_fiber_resp_step(analysis_tag=1, num_steps=npts)
+    FEMdata.get_fiber_resp_step(num_steps=npts)
 
-vis.resp_vis(analysis_tag=1, step=None,
+vis.resp_vis(step=None,
              show_variable='strain',
              show_mats=[1, 2, 3],)
-vis.animation(analysis_tag=1,
-              output_file='yan.gif',
-              show_variable='strain',
-              show_mats=[1, 2, 3],
-              framerate=10)
+vis.animation(
+    output_file='yan.gif',
+    show_variable='strain',
+    show_mats=[1, 2, 3],
+    framerate=10)

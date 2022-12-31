@@ -10,6 +10,7 @@ src/opstool.egg-info/dependency_links.txt
 src/opstool.egg-info/requires.txt
 src/opstool.egg-info/top_level.txt
 src/opstool/examples/ArchBridge.py
+src/opstool/examples/ArchBridge2.py
 src/opstool/examples/CableStayedBridge.py
 src/opstool/examples/Dam.py
 src/opstool/examples/DamBreak.py
@@ -22,7 +23,10 @@ src/opstool/examples/__init__.py
 src/opstool/preprocessing/__init__.py
 src/opstool/preprocessing/load.py
 src/opstool/preprocessing/sec_mesh.py
+src/opstool/preprocessing/tcl2py.py
 src/opstool/vis/__init__.py
+src/opstool/vis/_plotly_base.py
+src/opstool/vis/_pyvista_base.py
 src/opstool/vis/fiber_sec_vis.py
 src/opstool/vis/get_model_data.py
 src/opstool/vis/ops_vis_plotly.py

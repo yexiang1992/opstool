@@ -2,7 +2,7 @@
 Visualizing OpenSeesPy Fiber Section.
 """
 
-import shelve
+import h5py
 import numpy as np
 import matplotlib
 import matplotlib.animation as animation
@@ -50,12 +50,20 @@ class FiberSecVis:
         self.out_dir = results_dir
 
     def sec_vis(self,
+                input_file: str = 'FiberData.hdf5',
                 mat_color: dict = None,
                 ):
         """plot the fiber section.
 
         Parameters
         ------------
+        input_file: str, default='FiberData.hdf5'
+            The file name that fiber section data saved.
+
+            .. warning::
+                Be careful not to include any path, only filename,
+                the file will be saved to the directory ``results_dir``.
+
         mat_color: dict
             Dict for assign color by matTag, {matTag1:color1,matTag2:color2, and so on}
             matTag is the material tag defined in openseespy, bu it must in the section.
@@ -64,9 +72,11 @@ class FiberSecVis:
         ----------
         None
         """
-        filename = self.out_dir + '/FiberData'
-        with shelve.open(filename) as db:
-            fiber_sec_data = db["Fiber"]
+        filename = self.out_dir + '/' + input_file
+        fiber_sec_data = {}
+        with h5py.File(filename, "r") as f:
+            for name, value in f.items():
+                fiber_sec_data[name] = value[...]
         if self.key not in fiber_sec_data.keys():
             raise ValueError("ele_tag and sec_tag not in set_fiber_secs()!")
         fiber_data = fiber_sec_data[self.key]
@@ -132,14 +142,21 @@ class FiberSecVis:
         plt.show()
 
     def _get_fiber_data(self,
-                        analysis_tag: int,
+                        input_file: str = "FiberRespStepData-1.hdf5",
                         step: int = None,
                         show_variable: str = "strain",
                         show_mats: Union[int, list[int], tuple[int]] = None,
                         ):
-        filename = self.out_dir + f'/FiberRespStepData-{analysis_tag}'
-        with shelve.open(filename) as db:
-            fiber_sec_step_data = db["FiberRespSteps"]
+        filename = self.out_dir + '/' + input_file
+        fiber_sec_step_data = dict()
+        with h5py.File(filename, "r") as f:
+            n = f["Nsteps"][...]
+            grp = f["FiberRespSteps"]
+            for name in grp.keys():
+                temp = []
+                for i in range(n):
+                    temp.append(grp[name][f"step{i+1}"][...])
+                fiber_sec_step_data[name] = temp
 
         if self.key not in fiber_sec_step_data.keys():
             raise ValueError("ele_tag and sec_tag not in set_fiber_secs()!")
@@ -200,7 +217,7 @@ class FiberSecVis:
         return fiber_data, step_, matidx, vmin, vmax, ylocs, zlocs, areas
 
     def resp_vis(self,
-                 analysis_tag: int,
+                 input_file: str = "FiberRespStepData-1.hdf5",
                  step: int = None,
                  show_variable: str = "strain",
                  show_mats: Union[int, list[int], tuple[int]] = None,
@@ -209,8 +226,8 @@ class FiberSecVis:
 
         Parameters
         -----------
-        analysis_tag: int
-            Analysis tag.
+        input_file: str, default='FiberRespStepData-1.hdf5'
+            The file name that fiber section responses saved.
         step: int, default = None
             Analysis step to display. If None, the step that max response; If -1, the final step; Else, the other step.
         show_variable: str, default = 'srain'
@@ -223,9 +240,16 @@ class FiberSecVis:
         --------
         None
         """
-        filename = self.out_dir + f'/FiberRespStepData-{analysis_tag}'
-        with shelve.open(filename) as db:
-            fiber_sec_step_data = db["FiberRespSteps"]
+        filename = self.out_dir + '/' + input_file
+        fiber_sec_step_data = dict()
+        with h5py.File(filename, "r") as f:
+            n = f["Nsteps"][...]
+            grp = f["FiberRespSteps"]
+            for name in grp.keys():
+                temp = []
+                for i in range(n):
+                    temp.append(grp[name][f"step{i+1}"][...])
+                fiber_sec_step_data[name] = temp
 
         if self.key not in fiber_sec_step_data.keys():
             raise ValueError("ele_tag and sec_tag not in set_fiber_secs()!")
@@ -233,7 +257,7 @@ class FiberSecVis:
         fiber_step_data = np.array(fiber_step_data)
 
         fiber_data, step_, matidx, vmin, vmax, ylocs, zlocs, areas = self._get_fiber_data(
-            analysis_tag, step, show_variable, show_mats)
+            input_file, step, show_variable, show_mats)
         ymin, ymax = np.min(ylocs), np.max(ylocs)
         zmin, zmax = np.min(zlocs), np.max(zlocs)
         space_y = (ymax - ymin) / 10
@@ -293,8 +317,8 @@ class FiberSecVis:
         plt.show()
 
     def animation(self,
-                  analysis_tag: int,
                   output_file: str,
+                  input_file: str = "FiberRespStepData-1.hdf5",
                   show_variable: str = "strain",
                   show_mats: Union[int, list[int], tuple[int]] = None,
                   framerate: int = 24,
@@ -303,10 +327,10 @@ class FiberSecVis:
 
         Parameters
         ----------
-        analysis_tag: int
-            Analysis tag.
         output_file: str
             The output file name, must end with .gif.
+        input_file: str, default='FiberRespStepData-1.hdf5'
+            The file name that fiber section responses saved.
         show_variable: str, default='strain
             Response type to display, optional "stress" or "strain".
         show_mats: Union[int, list[int], tuple[int]], default=None
@@ -318,18 +342,25 @@ class FiberSecVis:
         -------
         None
         """
-        filename = self.out_dir + f'/FiberRespStepData-{analysis_tag}'
-        with shelve.open(filename) as db:
-            fiber_sec_step_data = db["FiberRespSteps"]
+        filename = self.out_dir + '/' + input_file
+        fiber_sec_step_data = dict()
+        with h5py.File(filename, "r") as f:
+            n = f["Nsteps"][...]
+            grp = f["FiberRespSteps"]
+            for name in grp.keys():
+                temp = []
+                for i in range(n):
+                    temp.append(grp[name][f"step{i+1}"][...])
+                fiber_sec_step_data[name] = temp
         if self.key not in fiber_sec_step_data.keys():
             raise ValueError("ele_tag and sec_tag not in set_fiber_secs()!")
         fiber_step_data = fiber_sec_step_data[self.key]
         fiber_step_data = np.array(fiber_step_data)
 
         fiber_data, step_max, matidx, vmin, vmax, ylocs, zlocs, areas = self._get_fiber_data(
-            analysis_tag, None, show_variable, show_mats)
+            input_file, None, show_variable, show_mats)
         fiber_data, step0, matidx, vmin0, vmax0, ylocs, zlocs, areas = self._get_fiber_data(
-            analysis_tag, 1, show_variable, show_mats)
+            input_file, 1, show_variable, show_mats)
         ymin, ymax = np.min(ylocs), np.max(ylocs)
         zmin, zmax = np.min(zlocs), np.max(zlocs)
         space_y = (ymax - ymin) / 10
@@ -378,34 +409,34 @@ class FiberSecVis:
         title = ax.set_title(txt, fontsize=12)
 
         # --------------------------------------------
-        def animate(i):
-            fiber_data = fiber_step_data[i]
-            mat_tagsi = np.array(fiber_data[:, 3], dtype=int)
+        def animate(step):
+            fiber_data_i = fiber_step_data[step]
+            mat_tagsi = np.array(fiber_data_i[:, 3], dtype=int)
             if show_mats is not None:
-                matidx = []
+                matidx_i = []
                 for mat_ in show_mats:
-                    matidx.append(np.argwhere(np.abs(mat_tagsi - mat_) < 1e-8))
-                matidx = np.vstack(matidx)
+                    matidx_i.append(np.argwhere(np.abs(mat_tagsi - mat_) < 1e-8))
+                matidx_i = np.vstack(matidx_i)
             else:
-                matidx = np.argwhere(np.abs(mat_tagsi - mat_tagsi) < 1e-8)
+                matidx_i = np.argwhere(np.abs(mat_tagsi - mat_tagsi) < 1e-8)
 
             if show_variable == "stress":
-                vmini = np.min(fiber_data[matidx, 4])
-                vmaxi = np.max(fiber_data[matidx, 4])
+                vmini = np.min(fiber_data_i[matidx_i, 4])
+                vmaxi = np.max(fiber_data_i[matidx_i, 4])
             elif show_variable == "strain":
-                vmini = np.min(fiber_data[matidx, 5])
-                vmaxi = np.max(fiber_data[matidx, 5])
+                vmini = np.min(fiber_data_i[matidx_i, 5])
+                vmaxi = np.max(fiber_data_i[matidx_i, 5])
             else:
                 raise ValueError("")
 
-            stressi, straini = fiber_data[matidx, 4].ravel(
-            ), fiber_data[matidx, 5].ravel()
-            myi = fiber_data[matidx, 12][0, 0]
-            mzi = fiber_data[matidx, 11][0, 0]
-            pi = fiber_data[matidx, 10][0, 0]
-            eyi = fiber_data[matidx, 8][0, 0]
-            ezi = fiber_data[matidx, 7][0, 0]
-            epsi = fiber_data[matidx, 6][0, 0]
+            stressi, straini = fiber_data_i[matidx_i, 4].ravel(
+            ), fiber_data_i[matidx_i, 5].ravel()
+            myi = fiber_data_i[matidx_i, 12][0, 0]
+            mzi = fiber_data_i[matidx_i, 11][0, 0]
+            pi = fiber_data_i[matidx_i, 10][0, 0]
+            eyi = fiber_data_i[matidx_i, 8][0, 0]
+            ezi = fiber_data_i[matidx_i, 7][0, 0]
+            epsi = fiber_data_i[matidx_i, 6][0, 0]
             colors = stressi if show_variable == "stress" else straini
             coll.set_array(colors)
             coll.set_clim(vmin, vmax)

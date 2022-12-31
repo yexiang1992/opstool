@@ -177,7 +177,7 @@ class SecMesh:
 
         Returns
         ----------
-        mesh_obj : mesh object.
+        None
         """
         geoms = []
         mesh_sizes = []
@@ -219,7 +219,7 @@ class SecMesh:
         return None
 
     def add_rebars(self, rebars_obj):
-        """Assign the mesh size dict for each mesh
+        """Add rebars.
 
         Parameters
         ----------
@@ -231,6 +231,16 @@ class SecMesh:
         None
         """
         self.rebar_data = rebars_obj.rebar_data
+
+    def get_fiber_data(self):
+        """Return fiber data.
+
+        Returns
+        -------
+        Tuple(dict, dict)
+            fiber center dict, fiber area dict
+        """
+        return self.centers_map, self.areas_map
 
     def get_sec_props(self, Eref: float = 1.0,
                       display_results: bool = False,
@@ -332,11 +342,15 @@ class SecMesh:
         ---------
          None
         """
-        if self.sec_props == dict():
-            sec_props = self.get_sec_props()
-        else:
-            sec_props = self.sec_props
-        center = np.array(sec_props["centroid"])
+        centers_map, areas_map = self.get_fiber_data()
+        centers = []
+        areas = []
+        for name in self.cells_map.keys():
+            centers.append(centers_map[name])
+            areas.append(areas_map[name])
+        centers = np.vstack(centers)
+        areas = np.hstack(areas)
+        center = areas @ centers / np.sum(areas)
         self.points -= center
         names = self.centers_map.keys()
         for name in names:

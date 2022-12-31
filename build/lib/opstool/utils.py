@@ -66,7 +66,8 @@ def load_ops_examples(name: str):
     Parameters:
     -----------
     name: str,
-        Optional, "ArchBridge", "CableStayedBridge", "Dam", "Frame3D", "Igloo", "Pier", "SuspensionBridge", "SDOF",
+        Optional, "ArchBridge", "ArchBridge2", "CableStayedBridge", "Dam",
+        "Frame3D", "Igloo", "Pier", "SuspensionBridge", "SDOF",
         "DamBreak",
 
     Returns:
@@ -74,22 +75,44 @@ def load_ops_examples(name: str):
     None
     """
     if name.lower() == "archbridge":
-        exec("from opstool.examples.ArchBridge import *")
+        from opstool.examples.ArchBridge import ArchBridge
+        ArchBridge()
+        # exec("from opstool.examples.ArchBridge import *")
+    elif name.lower() == "archbridge2":
+        from opstool.examples.ArchBridge2 import ArchBridge2
+        ArchBridge2()
+        # exec("from opstool.examples.ArchBridge2 import *")
     elif name.lower() == "cablestayedbridge":
-        exec("from opstool.examples.CableStayedBridge import *")
+        from opstool.examples.CableStayedBridge import CableStayedBridge
+        CableStayedBridge()
+        # exec("from opstool.examples.CableStayedBridge import *")
     elif name.lower() == "dam":
-        exec("from opstool.examples.Dam import *")
+        from opstool.examples.Dam import Dam
+        Dam()
+        # exec("from opstool.examples.Dam import *")
     elif name.lower() == "frame3d":
-        exec("from opstool.examples.Frame3D import *")
+        from opstool.examples.Frame3D import Frame3D
+        Frame3D()
+        # exec("from opstool.examples.Frame3D import *")
     elif name.lower() == "igloo":
-        exec("from opstool.examples.Igloo import *")
+        from opstool.examples.Igloo import Igloo
+        Igloo()
+        # exec("from opstool.examples.Igloo import *")
     elif name.lower() == "pier":
-        exec("from opstool.examples.Pier import *")
+        from opstool.examples.Pier import Pier
+        Pier()
+        # exec("from opstool.examples.Pier import *")
     elif name.lower() == "suspensionbridge":
-        exec("from opstool.examples.SuspensionBridge import *")
+        from opstool.examples.SuspensionBridge import SuspensionBridge
+        SuspensionBridge()
+        # exec("from opstool.examples.SuspensionBridge import *")
     elif name.lower() == "sdof":
-        exec("from opstool.examples.SDOF import *")
+        from opstool.examples.SDOF import SDOF
+        SDOF()
+        # exec("from opstool.examples.SDOF import *")
     elif name.lower() == "dambreak":
-        exec("from opstool.examples.DamBreak import *")
+        from opstool.examples.DamBreak import DamBreak
+        DamBreak()
+        # exec("from opstool.examples.DamBreak import *")
     else:
         raise ValueError(f"not supported example {name}!")

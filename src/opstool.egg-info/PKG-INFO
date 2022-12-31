@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: opstool
-Version: 0.0.7
+Version: 0.1.0
 Summary: opensees toolbox
 Home-page: https://github.com/yexiang1992
 Author: Yexiang Yan
@@ -39,6 +39,7 @@ To use, install `opstool` from [opstool-PyPI](https://pypi.org/project/opstool/)
 pip install --upgrade opstool
 ```
 
+Python 3.9 is required.
 It is recommended that you use [Anaconda](https://www.anaconda.com/) to avoid library version incompatibilities.
 
 ### Document
