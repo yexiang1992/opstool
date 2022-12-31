@@ -16,7 +16,7 @@ To use, install `opstool` from
 
    pip install --upgrade opstool
 
-Python 3.9 is required.
+Python 3.9 is required for windows.
 It is recommended that you use `Anaconda <https://www.anaconda.com/>`_ to avoid library version incompatibilities.
 
 .. toctree::
@@ -27,6 +27,7 @@ It is recommended that you use `Anaconda <https://www.anaconda.com/>`_ to avoid 
    CHANGELOG
    src/mod_vis2
    src/mod_secmesh
+   src/tcl2py
 
 .. toctree::
    :maxdepth: 3
@@ -35,7 +36,7 @@ It is recommended that you use `Anaconda <https://www.anaconda.com/>`_ to avoid 
    src/demos
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 4
    :caption: Opstool Package Index
 
    src/opstool.rst
