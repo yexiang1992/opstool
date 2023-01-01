@@ -29,7 +29,9 @@ setup(
         'numpy',
         'openseespy',
         'plotly',
+        'pyvista',
         'sectionproperties',
-        'Shapely'
+        'shapely>=2.0.0',
+        'h5py'
     ],
 )
