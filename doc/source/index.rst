@@ -20,7 +20,7 @@ Python 3.9 is required for windows.
 It is recommended that you use `Anaconda <https://www.anaconda.com/>`_ to avoid library version incompatibilities.
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 5
    :caption: Instructions
 
    src/installation
@@ -30,13 +30,13 @@ It is recommended that you use `Anaconda <https://www.anaconda.com/>`_ to avoid 
    src/tcl2py
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 5
    :caption: Demos
 
    src/demos
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 5
    :caption: Opstool Package Index
 
    src/opstool.rst

@@ -17,6 +17,14 @@ opstool.preprocessing module
    :undoc-members:
    :show-inheritance:
 
+opstool.preprocessing.section module
+--------------------------------------
+
+.. automodule:: opstool.preprocessing.section
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 opstool module contents
 --------------------------
 

@@ -1,5 +1,5 @@
 import numpy as np
-from opstool.preprocessing import SecMesh, add_material, add_polygon, add_circle, offset, Rebars
+from opstool.preprocessing.sec import SecMesh, add_material, add_polygon, add_circle, offset, Rebars
 
 
 # case 1
