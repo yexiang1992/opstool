@@ -5,21 +5,21 @@ import plotly.graph_objs as go
 import plotly.io as pio
 from plotly.subplots import make_subplots
 
-from ..utils import check_file, shape_dict
+from ..utils import shape_dict
 
 
 def _model_vis(
-    obj,
-    input_file: str = "ModelData.hdf5",
-    show_node_label: bool = False,
-    show_ele_label: bool = False,
-    show_local_crd: bool = False,
-    label_size: float = 8,
-    show_outline: bool = True,
-    opacity: float = 1.0,
-    save_html: str = 'ModelVis.html'
+        obj,
+        input_file: str = "ModelData.hdf5",
+        show_node_label: bool = False,
+        show_ele_label: bool = False,
+        show_local_crd: bool = False,
+        label_size: float = 8,
+        show_outline: bool = True,
+        opacity: float = 1.0,
+        save_html: str = 'ModelVis.html'
 ):
-
+    # read
     filename = obj.out_dir + '/' + input_file
     model_info = dict()
     cells = dict()
@@ -207,7 +207,7 @@ def _model_vis(
         fig.add_trace(txt_plot)
 
     if np.max(np.abs(points_no_deform[:, -1])) < 1e-5:
-        eye = dict(x=0, y=-1e-5, z=1.5)  # for 2D camera
+        eye = dict(x=0, y=0, z=1.5)  # for 2D camera
     else:
         eye = dict(x=-3.5, y=-3.5, z=3.5)  # for 3D camera
 
@@ -297,18 +297,18 @@ def _model_vis(
 
 
 def _eigen_vis(
-    obj,
-    mode_tags: list[int],
-    input_file: str = 'EigenData.hdf5',
-    subplots: bool = False,
-    alpha: float = None,
-    show_outline: bool = False,
-    show_origin: bool = False,
-    opacity: float = 1.0,
-    show_face_line: bool = True,
-    save_html: str = "EigenVis"
+        obj,
+        mode_tags: list[int],
+        input_file: str = 'EigenData.hdf5',
+        subplots: bool = False,
+        alpha: float = None,
+        show_outline: bool = False,
+        show_origin: bool = False,
+        opacity: float = 1.0,
+        show_face_line: bool = True,
+        save_html: str = "EigenVis"
 ):
-
+    # read
     filename = obj.out_dir + '/' + input_file
     eigen_data = dict()
     with h5py.File(filename, "r") as f:
@@ -359,13 +359,12 @@ def _eigen_vis(
             eigen_vec = eigenvector[idx - 1]
             if alpha is None:
                 alpha_ = (
-                    eigen_data["max_bound"] / obj.bound_fact /
-                    np.max(np.sqrt(np.sum(eigen_vec ** 2, axis=1)))
+                        eigen_data["max_bound"] / obj.bound_fact /
+                        np.max(np.sqrt(np.sum(eigen_vec ** 2, axis=1)))
                 )
             else:
                 alpha_ = alpha
-            eigen_points = eigen_data["coord_no_deform"] + \
-                eigen_vec * alpha_
+            eigen_points = eigen_data["coord_no_deform"] + eigen_vec * alpha_
             scalars = np.sqrt(np.sum(eigen_vec ** 2, axis=1))
 
             idxi = int(np.ceil((i + 1) / shape[1]) - 1)
@@ -386,7 +385,7 @@ def _eigen_vis(
             fig.add_traces(plotter, rows=idxi + 1, cols=idxj + 1)
         scenes = dict()
         coloraxiss = dict()
-        if np.max(np.abs(eigen_points[:, -1])) < 1e-8:
+        if np.max(np.abs(eigen_data["coord_no_deform"][:, -1])) < 1e-8:
             eye = dict(x=0, y=-1e-5, z=1.5)
         else:
             eye = dict(x=-1.5, y=-1.5, z=1.5)
@@ -441,13 +440,12 @@ def _eigen_vis(
             eigen_vec = eigenvector[step]
             if alpha is None:
                 alpha_ = (
-                    eigen_data["max_bound"] / obj.bound_fact /
-                    np.max(np.sqrt(np.sum(eigen_vec ** 2, axis=1)))
+                        eigen_data["max_bound"] / obj.bound_fact /
+                        np.max(np.sqrt(np.sum(eigen_vec ** 2, axis=1)))
                 )
             else:
                 alpha_ = alpha
-            eigen_points = eigen_data["coord_no_deform"] + \
-                eigen_vec * alpha_
+            eigen_points = eigen_data["coord_no_deform"] + eigen_vec * alpha_
             scalars = np.sqrt(np.sum(eigen_vec ** 2, axis=1))
             cmins.append(np.min(scalars))
             cmaxs.append(np.max(scalars))
@@ -497,7 +495,7 @@ def _eigen_vis(
                                                    cmax=cmaxs[i],
                                                    colorbar=dict(tickfont=dict(size=15)))
 
-        if np.max(np.abs(eigen_points[:, -1])) < 1e-8:
+        if np.max(np.abs(eigen_data["coord_no_deform"][:, -1])) < 1e-8:
             eye = dict(x=0, y=-1e-5, z=1.5)
         else:
             eye = dict(x=-1.5, y=-1.5, z=1.5)
@@ -525,15 +523,15 @@ def _eigen_vis(
 
 
 def _eigen_anim(
-    obj,
-    mode_tag: int = 1,
-    input_file: str = 'EigenData.hdf5',
-    alpha: float = None,
-    show_outline: bool = False,
-    opacity: float = 1,
-    framerate: int = 3,
-    show_face_line: bool = True,
-    save_html: str = "EigenAnimation"
+        obj,
+        mode_tag: int = 1,
+        input_file: str = 'EigenData.hdf5',
+        alpha: float = None,
+        show_outline: bool = False,
+        opacity: float = 1,
+        framerate: int = 3,
+        show_face_line: bool = True,
+        save_html: str = "EigenAnimation"
 ):
     filename = obj.out_dir + '/' + input_file
     eigen_data = dict()
@@ -553,9 +551,9 @@ def _eigen_anim(
     f_ = f[mode_tag - 1]
     if alpha is None:
         alpha_ = (
-            eigen_data["max_bound"]
-            / obj.bound_fact
-            / np.max(np.sqrt(np.sum(eigen_vec ** 2, axis=1)))
+                eigen_data["max_bound"]
+                / obj.bound_fact
+                / np.max(np.sqrt(np.sum(eigen_vec ** 2, axis=1)))
         )
     else:
         alpha_ = alpha
@@ -678,19 +676,18 @@ def _eigen_anim(
 
 
 def _deform_vis(
-    obj,
-    input_file: str = "NodeRespStepData-1.hdf5",
-    slider: bool = False,
-    response: str = "disp",
-    alpha: float = None,
-    show_outline: bool = False,
-    show_origin: bool = False,
-    show_face_line: bool = True,
-    opacity: float = 1,
-    save_html: str = "DefoVis",
-    model_update: bool = False
+        obj,
+        input_file: str = "NodeRespStepData-1.hdf5",
+        slider: bool = False,
+        response: str = "disp",
+        alpha: float = None,
+        show_outline: bool = False,
+        show_origin: bool = False,
+        show_face_line: bool = True,
+        opacity: float = 1,
+        save_html: str = "DefoVis",
+        model_update: bool = False
 ):
-
     resp_type = response.lower()
     if resp_type not in ['disp', 'vel', 'accel']:
         raise ValueError("response must be 'disp', 'vel', or 'accel'!")
@@ -760,12 +757,10 @@ def _deform_vis(
         for step in range(num_steps):
             if model_update:
                 node_nodeform_coords = model_info_steps["coord_no_deform"][step]
-                bounds = model_info_steps["bound"][step]
                 lines_cells = _reshape_cell(cell_steps["all_lines"][step])
                 faces_cells = _reshape_cell(cell_steps["all_faces"][step])
             else:
                 node_nodeform_coords = model_info_steps["coord_no_deform"]
-                bounds = model_info_steps["bound"]
                 lines_cells = _reshape_cell(cell_steps["all_lines"])
                 faces_cells = _reshape_cell(cell_steps["all_faces"])
             node_resp = node_resp_steps[resp_type][step]
@@ -820,7 +815,7 @@ def _deform_vis(
                                                    cmax=cmax,
                                                    colorbar=dict(tickfont=dict(size=15)))
 
-        if np.max(np.abs(node_deform_coords[:, -1])) < 1e-5:
+        if np.max(model_dims) <= 2:
             eye = dict(x=0, y=-1e-5, z=1.5)
         else:
             eye = dict(x=-1.5, y=-1.5, z=1.5)
@@ -842,12 +837,10 @@ def _deform_vis(
         step = max_step
         if model_update:
             node_nodeform_coords = model_info_steps["coord_no_deform"][step]
-            bounds = model_info_steps["bound"][step]
             lines_cells = _reshape_cell(cell_steps["all_lines"][step])
             faces_cells = _reshape_cell(cell_steps["all_faces"][step])
         else:
             node_nodeform_coords = model_info_steps["coord_no_deform"]
-            bounds = model_info_steps["bound"]
             lines_cells = _reshape_cell(cell_steps["all_lines"])
             faces_cells = _reshape_cell(cell_steps["all_faces"])
         node_resp = node_resp_steps[resp_type][step]
@@ -905,18 +898,17 @@ def _deform_vis(
 
 
 def _deform_anim(
-    obj,
-    input_file: str = "NodeRespStepData-1.hdf5",
-    response: str = "disp",
-    alpha: float = None,
-    show_outline: bool = False,
-    opacity: float = 1,
-    framerate: int = 24,
-    show_face_line: bool = True,
-    save_html: str = "DefoAnimation",
-    model_update: bool = False
+        obj,
+        input_file: str = "NodeRespStepData-1.hdf5",
+        response: str = "disp",
+        alpha: float = None,
+        show_outline: bool = False,
+        opacity: float = 1,
+        framerate: int = 24,
+        show_face_line: bool = True,
+        save_html: str = "DefoAnimation",
+        model_update: bool = False
 ):
-
     resp_type = response.lower()
     if resp_type not in ['disp', 'vel', 'accel']:
         raise ValueError("response must be 'disp', 'vel', or 'accel'!")
@@ -964,10 +956,10 @@ def _deform_anim(
     cmin, cmax = np.min(scalars), np.max(scalars)
     if model_update:
         bounds = model_info_steps["bound"][0]
-        # model_dims = model_info_steps["model_dims"][0]
+        model_dims = model_info_steps["model_dims"][0]
     else:
         bounds = model_info_steps["bound"]
-        # model_dims = model_info_steps["model_dims"]
+        model_dims = model_info_steps["model_dims"]
     # scale factor
     if resp_type == "disp":
         if alpha is None:
@@ -982,39 +974,35 @@ def _deform_anim(
 
     # -----------------------------------------------------------------------------
     # start plot
+    def create_mesh(stepi):
+        if model_update:
+            node_nodeform_coords_ = model_info_steps["coord_no_deform"][stepi]
+            lines_cells_ = _reshape_cell(cell_steps["all_lines"][stepi])
+            faces_cells_ = _reshape_cell(cell_steps["all_faces"][stepi])
+        else:
+            node_nodeform_coords_ = model_info_steps["coord_no_deform"]
+            lines_cells_ = _reshape_cell(cell_steps["all_lines"])
+            faces_cells_ = _reshape_cell(cell_steps["all_faces"])
+        node_resp_ = node_resp_steps[resp_type][stepi]
+        node_deform_coords_ = alpha_ * node_resp_ + node_nodeform_coords_
+        scalars_ = np.sqrt(np.sum(node_resp_ ** 2, axis=1))
+        plotter_ = _generate_all_mesh(points=node_deform_coords_, scalars=scalars_,
+                                      point_size=obj.point_size, line_width=obj.line_width,
+                                      opacity=opacity,
+                                      lines_cells=lines_cells_,
+                                      face_cells=faces_cells_,
+                                      coloraxis="coloraxis",
+                                      show_face_line=show_face_line)
+        return plotter_
+
     frames = []
     for step in range(num_steps):
-        if model_update:
-            node_nodeform_coords = model_info_steps["coord_no_deform"][step]
-            bounds = model_info_steps["bound"][step]
-            lines_cells = _reshape_cell(cell_steps["all_lines"][step])
-            faces_cells = _reshape_cell(cell_steps["all_faces"][step])
-        else:
-            node_nodeform_coords = model_info_steps["coord_no_deform"]
-            bounds = model_info_steps["bound"]
-            lines_cells = _reshape_cell(cell_steps["all_lines"])
-            faces_cells = _reshape_cell(cell_steps["all_faces"])
-        node_resp = node_resp_steps[resp_type][step]
-        node_deform_coords = alpha_ * node_resp + node_nodeform_coords
-        scalars = np.sqrt(np.sum(node_resp ** 2, axis=1))
-        plotter = _generate_all_mesh(points=node_deform_coords, scalars=scalars,
-                                     point_size=obj.point_size, line_width=obj.line_width,
-                                     opacity=opacity,
-                                     lines_cells=lines_cells,
-                                     face_cells=faces_cells,
-                                     coloraxis="coloraxis",
-                                     show_face_line=show_face_line)
+        plotter = create_mesh(step)
         frames.append(go.Frame(data=plotter, name="step:" + str(step + 1)))
 
     fig = go.Figure(frames=frames)
     # Add data to be displayed before animation starts
-    plotter0 = _generate_all_mesh(points=node_nodeform_coords, scalars=scalars * 0,
-                                  point_size=obj.point_size, line_width=obj.line_width,
-                                  opacity=opacity,
-                                  lines_cells=lines_cells,
-                                  face_cells=faces_cells,
-                                  coloraxis="coloraxis",
-                                  show_face_line=show_face_line)
+    plotter0 = create_mesh(num_steps-1)
     fig.add_traces(plotter0)
 
     def frame_args(duration):
@@ -1051,8 +1039,8 @@ def _deform_anim(
                f"<br>max.y={maxy:.2E} | min.y={miny:.2E}"
                f"<br>max.z={maxz:.2E} | min.z={minz:.2E}")
         fig.frames[i]['layout'].update(title_text=txt)
-    if np.max(np.abs(node_deform_coords[:, -1])) < 1e-8:
-        eye = dict(x=0, y=-1e-5, z=1.5)
+    if np.max(model_dims) < 3:
+        eye = dict(x=0, y=0, z=1.5)
     else:
         eye = dict(x=-1.5, y=-1.5, z=1.5)
 
@@ -1119,7 +1107,6 @@ def _frame_resp_vis(obj,
                     opacity: float = 1,
                     save_html: str = "FrameRespVis"
                     ):
-
     filename = obj.out_dir + '/' + input_file
     beam_infos = dict()
     beam_resp_step = dict()

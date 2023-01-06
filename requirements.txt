@@ -6,3 +6,4 @@ pyvista
 sectionproperties
 Shapely
 h5py
+rich

@@ -2,7 +2,9 @@ import numpy as np
 import openseespy.opensees as ops
 
 
-def gen_grav_load(ts_tag: int, pattern_tag: int,
+def gen_grav_load(ts_tag: int,
+                  pattern_tag: int,
+                  exclude_nodes: list = None,
                   direction: str = "Z",
                   factor: float = -9.81):
     """Applying the gravity loads.
@@ -17,6 +19,8 @@ def gen_grav_load(ts_tag: int, pattern_tag: int,
         The timeSeries tag you must assign.
     pattern_tag: int
         The pattern tag you must assign.
+    exclude_nodes: list, default=None
+        Excluded node tags, whose masses will not be used to generate gravity loads.
     direction: str, default="Z"
         The gravity load direction.
     factor: float, default=-9.81
@@ -35,6 +39,8 @@ def gen_grav_load(ts_tag: int, pattern_tag: int,
     ops.timeSeries('Linear', int(ts_tag))
     ops.pattern('Plain', int(pattern_tag), int(ts_tag))
     node_tags = ops.getNodeTags()
+    if exclude_nodes is not None:
+        node_tags = [tag for tag in node_tags if tag not in exclude_nodes]
     load_fact_6d = dict(Z=np.array([0.0, 0.0, factor, 0.0, 0.0, 0.0]),
                         Y=np.array([0.0, factor, 0.0, 0.0, 0.0, 0.0]),
                         X=np.array([factor, 0.0, 0.0, 0.0, 0.0, 0.0]),

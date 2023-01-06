@@ -1,5 +1,5 @@
 import numpy as np
-from opstool.preprocessing.sec import SecMesh, add_material, add_polygon, add_circle, offset, Rebars
+from opstool.preprocessing.section import SecMesh, add_material, add_polygon, add_circle, offset, Rebars
 
 
 # case 1
@@ -9,7 +9,7 @@ sec = SecMesh()
 sec.assign_group(dict(sec=obj))
 sec.assign_mesh_size(dict(sec=0.1))
 sec.mesh()
-# sec.get_sec_props(display_results=True, plot_centroids=False)
+sec.get_sec_props(display_results=True, plot_centroids=False)
 sec.centring()
 # sec.rotate(45)
 sec.view(fill=True, engine='plotly', save_html="SecMesh.html")
@@ -19,7 +19,6 @@ outlines = [[0, 0], [2, 0], [2, 2], [0, 2]]
 coverlines = offset(outlines, d=0.05)
 cover = add_polygon(outlines, holes=[coverlines])
 core = add_polygon(coverlines)
-sec = SecMesh()
 sec = SecMesh()
 sec.assign_group(dict(cover=cover, core=core))
 sec.assign_mesh_size(dict(cover=0.02, core=0.05))

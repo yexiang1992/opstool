@@ -1,6 +1,10 @@
 Changelog
 ==========
 
+v0.1.1
+--------
+- Moved the fiber section mesh commands to :mod:`opstool.preprocessing.section`
+
 v0.1.0
 --------
 - Added the function :func:`opstool.preprocessing.tcl2py` to convert tcl code to openseespy code

@@ -3,7 +3,6 @@ Visualizing OpenSeesPy model
 """
 
 from ._plotly_base import _model_vis, _eigen_vis, _eigen_anim, _deform_vis, _deform_anim, _frame_resp_vis
-from ..utils import check_file
 
 
 class OpsVisPlotly:
@@ -287,6 +286,11 @@ class OpsVisPlotly:
             Plane and solid element transparency.
         save_html: str, default='DefoVis.html'
             The html file name to output. If False, the html file will not be generated.
+        model_update: bool, default False
+            whether to update the model domain data at each analysis step,
+            this will be useful if model data has changed.
+            For example, some elements and nodes were removed.
+            This parameter must same as that in :py:meth:`opstool.vis.GetFEMdata.get_node_resp_step`.
 
         Returns
         -------
@@ -343,6 +347,11 @@ class OpsVisPlotly:
             Plane and solid element transparency.
         save_html: str, default='DefoAnimation.html'
             The html file name to output. If False, the html file will not be generated.
+        model_update: bool, default False
+            whether to update the model domain data at each analysis step,
+            this will be useful if model data has changed.
+            For example, some elements and nodes were removed.
+            This parameter must same as that in :py:meth:`opstool.vis.GetFEMdata.get_node_resp_step`.
 
         Returns
         -------

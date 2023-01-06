@@ -4,7 +4,7 @@
 </p>
 
 [![pypi](https://img.shields.io/pypi/v/opstool)](https://pypi.org/project/opstool/)
-[![pypi downloads](https://img.shields.io/pypi/dm/opstool)](https://pypi.org/project/opstool/)
+[![Downloads](https://static.pepy.tech/badge/opstool)](https://pepy.tech/project/opstool)
 [![Documentation Status](https://readthedocs.org/projects/opstool/badge/?version=latest)](https://opstool.readthedocs.io/en/latest/?badge=latest)
 [![github stars](https://img.shields.io/github/stars/yexiang1992/opstool?style=social)](https://github.com/yexiang1992/opstool)
 ![license](https://img.shields.io/github/license/yexiang1992/opstool)

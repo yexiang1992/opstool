@@ -2,23 +2,25 @@
 # sys.path.append(r'E:\_WorkSpace\opstool\src')
 
 import openseespy.opensees as ops
+from opstool import load_ops_examples
 from opstool.preprocessing import gen_grav_load
 from opstool.vis import GetFEMdata, OpsVisPlotly, OpsVisPyvista
-from opstool import load_ops_examples
 
-# load_ops_examples("ArchBridge")
-load_ops_examples("CableStayedBridge")
+load_ops_examples("ArchBridge2")
+#load_ops_examples("CableStayedBridge")
 # load_ops_examples("Dam")
 # load_ops_examples("Frame3D")
 # load_ops_examples("Igloo")
 # load_ops_examples("Pier")
-# load_ops_examples("SuspensionBridge")
+#load_ops_examples("SuspensionBridge")
+# bz.PlotModel(plotmode=6)
+# bz.PlotModeShape(plotmode=6, mode_number=1, sacle_factor=100)
 
 ModelData = GetFEMdata()
 ModelData.get_model_data()
 ModelData.get_eigen_data(mode_tag=15)
-opsv = OpsVisPlotly(point_size=2, line_width=2, colors_dict=None, theme="plotly",
-                     color_map="jet", on_notebook=False, results_dir="opstool_output")
+opsv = OpsVisPyvista(point_size=2, line_width=2, colors_dict=None, theme="paraview",
+                     color_map="coolwarm", on_notebook=False, results_dir="opstool_output")
 opsv.model_vis(show_node_label=False, show_ele_label=False,
                show_local_crd=True, label_size=8,
                show_outline=True,
@@ -36,6 +38,11 @@ opsv.eigen_vis(mode_tags=[1, 15], subplots=False,
 # responses
 gen_grav_load(ts_tag=1, pattern_tag=1,
               factor=-9.81, direction="Z")
+# nodeTags = ops.getNodeTags()
+# ops.recorder('Node', '-file', 'Node_displacements.out', '-time', '-node', *nodeTags, '-dof', 1, 2, 3, 'disp')
+# import numpy as np
+# data = np.loadtxt('Node_displacements.out')
+# data[:, 0]
 # 分析参数设置
 Nsteps = 10  # 分析10步
 ops.wipeAnalysis()
@@ -67,7 +74,7 @@ opsv.deform_anim(
                  model_update=False)
 opsv.frame_resp_vis(ele_tags=None,
                     slider=True,
-                    response="my",
+                    response="mz",
                     show_values=False,
                     alpha=None,
                     opacity=1)

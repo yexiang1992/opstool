@@ -188,7 +188,9 @@ class SecMesh:
         mesh_obj = geom_obj.create_mesh(mesh_sizes=mesh_sizes)
         self.section = _to_section(geom_obj, time_info=False)
         self.mesh_obj = mesh_obj.mesh
+        self._get_mesh_data()
 
+    def _get_mesh_data(self):
         # * mesh data
         vertices = self.mesh_obj["vertices"]
         self.points = vertices
@@ -216,7 +218,6 @@ class SecMesh:
                 areas.append(area_)
             self.areas_map[name] = np.array(areas)
             self.centers_map[name] = np.array(centers)
-        return None
 
     def add_rebars(self, rebars_obj):
         """Add rebars.
@@ -242,54 +243,11 @@ class SecMesh:
         """
         return self.centers_map, self.areas_map
 
-    def get_sec_props(self, Eref: float = 1.0,
-                      display_results: bool = False,
-                      plot_centroids: bool = False):
-        """
-        Solving Section Geometry Properties by Finite Element Method, by `sectionproperties` pacakge.
-
-        Parameters
-        -----------
-        Eref: float, default=1.0
-            Reference modulus of elasticity, it is important to analyze the composite section.
-            See `sectionproperties doc <https://sectionproperties.readthedocs.io/en/latest/rst/post.html>`_
-        display_results : bool, default=True
-            whether to display the results.
-        plot_centroids : bool, default=False
-            whether to plot centroids
-
-        Returns
-        -----------
-        sec_props: dict
-            section props dict, including:
-
-            * Cross-sectional area (A)
-            * Shear area (Asy, Asz)
-            * Elastic centroid (centroid)
-            * Second moments of area about the centroidal axis (Iy, Iz, Iyz)
-            * Torsion constant (J)
-            * Principal axis angle (phi)
-            * ratio of reinforcement (rho_rebar)
-            * Effective Material Properties (Effective elastic modulus: E_eff; Effective shear modulus: G_eff;
-              Effective Poisson’s ratio: Nu_eff)
-
-            If materials are specified for the cross-section, the area, second moments of area and torsion constant are
-            elastic modulus weighted.
-        """
-
-        section = self.section
-        section.calculate_geometric_properties()
-        section.calculate_warping_properties()
+    def _run_sec_props(self, Eref, section):
         if Eref == 1:
             area = section.get_area()
         else:
             area = section.get_ea() / Eref
-        # area, ixx_c, iyy_c, ixy_c, j, phi = section.calculate_frame_properties(
-        #    solver_type='direct')
-        if display_results:
-            section.display_results()
-        if plot_centroids:
-            section.plot_centroids()
         # Second moments of area centroidal axis (ixx_c, iyy_c, ixy_c)
         ixx_c, iyy_c, ixy_c = section.get_ic()
         cx, cy = section.get_c()  # Elastic centroid (cx, cy)
@@ -332,7 +290,53 @@ class SecMesh:
             Nu_eff=Nu_eff
         )
         self.sec_props = sec_props
-        return sec_props
+
+    def get_sec_props(self, Eref: float = 1.0,
+                      display_results: bool = False,
+                      plot_centroids: bool = False):
+        """
+        Solving Section Geometry Properties by Finite Element Method, by `sectionproperties` pacakge.
+
+        Parameters
+        -----------
+        Eref: float, default=1.0
+            Reference modulus of elasticity, it is important to analyze the composite section.
+            See `sectionproperties doc <https://sectionproperties.readthedocs.io/en/latest/rst/post.html>`_
+        display_results : bool, default=True
+            whether to display the results.
+        plot_centroids : bool, default=False
+            whether to plot centroids
+
+        Returns
+        -----------
+        sec_props: dict
+            section props dict, including:
+
+            * Cross-sectional area (A)
+            * Shear area (Asy, Asz)
+            * Elastic centroid (centroid)
+            * Second moments of area about the centroidal axis (Iy, Iz, Iyz)
+            * Torsion constant (J)
+            * Principal axis angle (phi)
+            * ratio of reinforcement (rho_rebar)
+            * Effective Material Properties (Effective elastic modulus: E_eff; Effective shear modulus: G_eff;
+              Effective Poisson’s ratio: Nu_eff)
+
+            If materials are specified for the cross-section, the area, second moments of area and torsion constant are
+            elastic modulus weighted.
+        """
+
+        section = self.section
+        section.calculate_geometric_properties()
+        section.calculate_warping_properties()
+        # area, ixx_c, iyy_c, ixy_c, j, phi = section.calculate_frame_properties(
+        #    solver_type='direct')
+        if display_results:
+            section.display_results()
+        if plot_centroids:
+            section.plot_centroids()
+        self._run_sec_props(Eref, section)
+        return self.sec_props
 
     def centring(self):
         """
@@ -385,10 +389,10 @@ class SecMesh:
         for name in names:
             x_rot, y_rot = sec_rotation(
                 self.centers_map[name][:,
-                                       0], self.centers_map[name][:, 1], theta
+                0], self.centers_map[name][:, 1], theta
             )
             self.centers_map[name][:,
-                                   0], self.centers_map[name][:, 1] = x_rot, y_rot
+            0], self.centers_map[name][:, 1] = x_rot, y_rot
         # rebar
         for i, data in enumerate(self.rebar_data):
             rebar_xy = self.rebar_data[i]["rebar_xy"]
@@ -450,64 +454,71 @@ class SecMesh:
         -----
         Notes that output_path must be endswith .py or .tcl, function will create the file by a right style.
         """
-
-        if not (output_path.endswith(".tcl") or output_path.endswith(".py")):
+        names = self.centers_map.keys()
+        if output_path.endswith(".tcl"):
+            self._to_tcl(output_path, names, secTag, GJ)
+        elif output_path.endswith(".py"):
+            self._to_py(output_path, names, secTag, GJ)
+        else:
             raise ValueError("output_path must endwith .tcl or .py!")
 
-        names = self.centers_map.keys()
+    def _to_tcl(self, output_path, names, sec_tag, gj):
         with open(output_path, "w+") as output:
             output.write("# This document was created from SecMesh\n")
             output.write("# Author: Yexiang Yan  yexiang_yan@outlook.com\n\n")
-            if output_path.endswith(".tcl"):
-                output.write(f"set secTag {secTag}\n")
-                temp = "{"
-                output.write(
-                    f"section fiberSec $secTag -GJ {GJ}{temp};    # Define the fiber section\n"
-                )
-                for name in names:
-                    centers = self.centers_map[name]
-                    areas = self.areas_map[name]
-                    matTag = self.mat_ops_map[name]
-                    for center, area in zip(centers, areas):
-                        output.write(
-                            f"    fiber  {center[0]:.3E}  {center[1]:.3E}  {area:.3E}  {matTag}\n"
-                        )
-                # rebar
-                for data in self.rebar_data:
-                    output.write("    # Define Rebar\n")
-                    rebar_xy = data["rebar_xy"]
-                    dia = data["dia"]
-                    matTag = data["matTag"]
-                    for xy in rebar_xy:
-                        area = np.pi / 4 * dia ** 2
-                        output.write(
-                            f"    fiber {xy[0]:.3E} {xy[1]:.3E} {area:.3E} {matTag}\n"
-                        )
-                output.write("};    # end of fibersection definition")
-            elif output_path.endswith(".py"):
-                output.write("import openseespy.opensees as ops\n\n\n")
-                output.write(
-                    f"ops.section('Fiber', {secTag}, '-GJ', {GJ})  # Define the fiber section\n"
-                )
-                for name in names:
-                    centers = self.centers_map[name]
-                    areas = self.areas_map[name]
-                    matTag = self.mat_ops_map[name]
-                    for center, area in zip(centers, areas):
-                        output.write(
-                            f"ops.fiber({center[0]:.3E}, {center[1]:.3E}, {area:.3E}, {matTag})\n"
-                        )
-                # rebar
-                for data in self.rebar_data:
-                    output.write("# Define Rebar\n")
-                    rebar_xy = data["rebar_xy"]
-                    dia = data["dia"]
-                    matTag = data["matTag"]
-                    for xy in rebar_xy:
-                        area = np.pi / 4 * dia ** 2
-                        output.write(
-                            f"ops.fiber({xy[0]:.3E}, {xy[1]:.3E}, {area:.3E}, {matTag})\n"
-                        )
+            output.write(f"set secTag {sec_tag}\n")
+            temp = "{"
+            output.write(
+                f"section fiberSec $secTag -GJ {gj}{temp};    # Define the fiber section\n"
+            )
+            for name in names:
+                centers = self.centers_map[name]
+                areas = self.areas_map[name]
+                mat_tag = self.mat_ops_map[name]
+                for center, area in zip(centers, areas):
+                    output.write(
+                        f"    fiber  {center[0]:.3E}  {center[1]:.3E}  {area:.3E}  {mat_tag}\n"
+                    )
+            # rebar
+            for data in self.rebar_data:
+                output.write("    # Define Rebar\n")
+                rebar_xy = data["rebar_xy"]
+                dia = data["dia"]
+                mat_tag = data["matTag"]
+                for xy in rebar_xy:
+                    area = np.pi / 4 * dia ** 2
+                    output.write(
+                        f"    fiber {xy[0]:.3E} {xy[1]:.3E} {area:.3E} {mat_tag}\n"
+                    )
+            output.write("};    # end of fibersection definition")
+
+    def _to_py(self, output_path, names, sec_tag, gj):
+        with open(output_path, "w+") as output:
+            output.write("# This document was created from SecMesh\n")
+            output.write("# Author: Yexiang Yan  yexiang_yan@outlook.com\n\n")
+            output.write("import openseespy.opensees as ops\n\n\n")
+            output.write(
+                f"ops.section('Fiber', {sec_tag}, '-GJ', {gj})  # Define the fiber section\n"
+            )
+            for name in names:
+                centers = self.centers_map[name]
+                areas = self.areas_map[name]
+                mat_tag = self.mat_ops_map[name]
+                for center, area in zip(centers, areas):
+                    output.write(
+                        f"ops.fiber({center[0]:.3E}, {center[1]:.3E}, {area:.3E}, {mat_tag})\n"
+                    )
+            # rebar
+            for data in self.rebar_data:
+                output.write("# Define Rebar\n")
+                rebar_xy = data["rebar_xy"]
+                dia = data["dia"]
+                mat_tag = data["matTag"]
+                for xy in rebar_xy:
+                    area = np.pi / 4 * dia ** 2
+                    output.write(
+                        f"ops.fiber({xy[0]:.3E}, {xy[1]:.3E}, {area:.3E}, {mat_tag})\n"
+                    )
 
     def view(self, fill: bool = True, engine: str = "plotly",
              save_html: str = "SecMesh.html",
@@ -541,170 +552,175 @@ class SecMesh:
         y = vertices[:, 1]
         aspect_ratio = (np.max(y) - np.min(y)) / (np.max(x) - np.min(x))
         if engine.lower().startswith("m"):
-            # matplotlib plot
-            fig, ax = plt.subplots(figsize=(6, 6 * aspect_ratio))
-            # ax.set_facecolor("#efefef")
-            # view the mesh
-            vertices = self.points  # the coords of each triangle vertex
-            for name, faces in self.cells_map.items():
-                # faces = faces.astype(np.int64)
-                if not fill:
-                    x = vertices[:, 0]
-                    y = vertices[:, 1]
-                    ax.triplot(
-                        x, y, triangles=faces, color=self.color_map[name], lw=1, zorder=-10
-                    )
-                    ax.plot(
-                        [], [], "^", label=name, mec=self.color_map[name], mfc="white"
-                    )  # for legend illustration only
-                else:
-                    x = vertices[:, 0]
-                    y = vertices[:, 1]
-                    ax.triplot(x, y, triangles=faces, lw=0.75, color="#516572")
-                    patches = [
-                        plt.Polygon(vertices[face_link, :2], True) for face_link in faces
-                    ]
-                    coll = PatchCollection(
-                        patches,
-                        facecolors=self.color_map[name],
-                        edgecolors="#516572",
-                        linewidths=0.75,
-                        zorder=-10,
-                    )
-                    ax.add_collection(coll)
-                    ax.plot([], [], "^", label=name,
-                            color=self.color_map[name])
-
-            for data in self.rebar_data:
-                color = data["color"]
-                rebar_xy = data["rebar_xy"]
-                dia = data["dia"]
-                rebar_coords = []
-                rebar_areas = []
-                for xy in rebar_xy:
-                    rebar_coords.append(xy)
-                    rebar_areas.append(np.pi / 4 * dia ** 2)
-                patches = [
-                    plt.Circle((xy[0], xy[1]), np.sqrt(area / np.pi))
-                    for xy, area in zip(rebar_coords, rebar_areas)
-                ]
-                coll = PatchCollection(patches, facecolors=color)
-                ax.add_collection(coll)
-
-            # ax.set_aspect("equal")
-            ax.set_title(self.sec_name, fontsize=26, fontfamily="SimSun")
-            ax.legend(
-                fontsize=18,
-                shadow=False,
-                markerscale=3,
-                loc=10,
-                ncol=len(self.group_map),
-                bbox_to_anchor=(0.5, -0.2),
-                bbox_transform=ax.transAxes,
-            )
-            ax.tick_params(labelsize=18)
-            plt.show()
+            self._plot_mpl(fill, aspect_ratio)
         elif engine.lower().startswith("p"):
-            vertices = self.points  # the coords of each triangle vertex
-            n_cells = 0
-            n_cells_map = dict()
-            fig = go.Figure()
-            tplot = []
-            for name, faces in self.cells_map.items():
-                if not self.mat_ops_map:
-                    label = f"<b>{name}</b>"
-                else:
-                    label = f"<b>{name}</b><br>matTag:{self.mat_ops_map[name]}"
-                face_points = []
-                areas = []
-                centers = []
-                for i, cell in enumerate(faces):
-                    n_cells += 1
-                    points0 = vertices[cell]
-                    x1, y1 = points0[0, :2]
-                    x2, y2 = points0[1, :2]
-                    x3, y3 = points0[2, :2]
-                    area_ = 0.5 * np.abs(
-                        x2 * y3 + x1 * y2 + x3 * y1 - x3 * y2 - x2 * y1 - x1 * y3
-                    )
-                    areas.append(area_)
-                    centers.append(np.mean(points0, axis=0))
-                    points = np.vstack(
-                        [points0, [points0[0]], [[np.NAN, np.NAN]]])
-                    face_points.append(points)
-                face_points = np.vstack(face_points)
-                areas = np.array(areas).reshape((len(areas), 1))
-                center_areas = np.hstack([centers, areas])
-                center_areas_labels = [f"<b>xo:{d[0]:.2e}</b><br>yo:{d[1]:.2e}<br>area:{d[2]:.2e}"
-                                       for d in center_areas]
-                n_cells_map[name] = len(center_areas_labels)
-                if fill:
-                    tplot.append(go.Scatter(x=face_points[:, 0], y=face_points[:, 1],
-                                            fill="toself", fillcolor=self.color_map[name],
-                                            line=dict(
-                                                color='black', width=0.75),
-                                            connectgaps=False, opacity=0.75,
-                                            hoverinfo="skip", ))
-                else:
-                    tplot.append(go.Scatter(x=face_points[:, 0], y=face_points[:, 1],
-                                            mode='lines',
-                                            line=dict(
-                                                color=self.color_map[name], width=1.2),
-                                            connectgaps=False,
-                                            hoverinfo="skip", ))
-                # hover label
-                tplot.append(
-                    go.Scatter(
-                        x=center_areas[:, 0],
-                        y=center_areas[:, 1],
-                        marker=dict(size=0, color=self.color_map[name],
-                                    symbol='diamond-open'),
-                        mode="markers",
-                        name=label,
-                        customdata=center_areas_labels,
-                        hovertemplate='%{customdata}',
-                    )
-                )
-            fig.add_traces(tplot)
-            # rebars
-            shapes = []
-            for data in self.rebar_data:
-                color = data["color"]
-                rebar_xy = data["rebar_xy"]
-                r = data["dia"] / 2
-                for xo, yo in rebar_xy:
-                    shapes.append(dict(type="circle",
-                                       xref="x", yref="y",
-                                       x0=xo - r, y0=yo - r, x1=xo + r, y1=yo + r,
-                                       line_color=color,
-                                       fillcolor=color,
-                                       ))
-            # -------------------------------------
-            txt = "Num. of Mesh: "
-            for k, v in n_cells_map.items():
-                txt += f"| {k}--{v} "
-            txt += f"| total--{n_cells}"
-            fig.update_layout(
-                shapes=shapes,
-                width=800,
-                height=800 * aspect_ratio,
-                template="plotly",
-                autosize=True,
-                showlegend=False,
-                scene=dict(aspectratio=dict(
-                    x=1, y=aspect_ratio), aspectmode="data"),
-                title=dict(font=dict(family="courier", color='black', size=20),
-                           text=f"<b>{self.sec_name}</b> <br>" + f"{txt}")
-            )
-            fig.update_xaxes(tickfont_size=18, ticks="outside")
-            fig.update_yaxes(tickfont_size=18, ticks="outside")
-            if save_html:
-                pio.write_html(fig, file=save_html, auto_open=True)
-            if on_notebook:
-                fig.show()
+            self._plot_plotly(fill, aspect_ratio, save_html, on_notebook)
         else:
-            raise ValueError(
-                f"not supported engine {engine}! optional, 'plotly' or 'matplotlib'!")
+            raise ValueError(f"not supported engine {engine}! optional, 'plotly' or 'matplotlib'!")
+
+    def _plot_mpl(self, fill, aspect_ratio):
+        # matplotlib plot
+        fig, ax = plt.subplots(figsize=(6, 6 * aspect_ratio))
+        # ax.set_facecolor("#efefef")
+        # view the mesh
+        vertices = self.points  # the coords of each triangle vertex
+        for name, faces in self.cells_map.items():
+            # faces = faces.astype(np.int64)
+            if not fill:
+                x = vertices[:, 0]
+                y = vertices[:, 1]
+                ax.triplot(
+                    x, y, triangles=faces, color=self.color_map[name], lw=1, zorder=-10
+                )
+                ax.plot(
+                    [], [], "^", label=name, mec=self.color_map[name], mfc="white"
+                )  # for legend illustration only
+            else:
+                x = vertices[:, 0]
+                y = vertices[:, 1]
+                ax.triplot(x, y, triangles=faces, lw=0.75, color="#516572")
+                patches = [
+                    plt.Polygon(vertices[face_link, :2], True) for face_link in faces
+                ]
+                coll = PatchCollection(
+                    patches,
+                    facecolors=self.color_map[name],
+                    edgecolors="#516572",
+                    linewidths=0.75,
+                    zorder=-10,
+                )
+                ax.add_collection(coll)
+                ax.plot([], [], "^", label=name,
+                        color=self.color_map[name])
+
+        for data in self.rebar_data:
+            color = data["color"]
+            rebar_xy = data["rebar_xy"]
+            dia = data["dia"]
+            rebar_coords = []
+            rebar_areas = []
+            for xy in rebar_xy:
+                rebar_coords.append(xy)
+                rebar_areas.append(np.pi / 4 * dia ** 2)
+            patches = [
+                plt.Circle((xy[0], xy[1]), np.sqrt(area / np.pi))
+                for xy, area in zip(rebar_coords, rebar_areas)
+            ]
+            coll = PatchCollection(patches, facecolors=color)
+            ax.add_collection(coll)
+
+        # ax.set_aspect("equal")
+        ax.set_title(self.sec_name, fontsize=26, fontfamily="SimSun")
+        ax.legend(
+            fontsize=18,
+            shadow=False,
+            markerscale=3,
+            loc=10,
+            ncol=len(self.group_map),
+            bbox_to_anchor=(0.5, -0.2),
+            bbox_transform=ax.transAxes,
+        )
+        ax.tick_params(labelsize=18)
+        plt.show()
+
+    def _plot_plotly(self, fill, aspect_ratio, save_html, on_notebook):
+        vertices = self.points  # the coords of each triangle vertex
+        n_cells = 0
+        n_cells_map = dict()
+        fig = go.Figure()
+        tplot = []
+        for name, faces in self.cells_map.items():
+            if not self.mat_ops_map:
+                label = f"<b>{name}</b>"
+            else:
+                label = f"<b>{name}</b><br>matTag:{self.mat_ops_map[name]}"
+            face_points = []
+            areas = []
+            centers = []
+            for i, cell in enumerate(faces):
+                n_cells += 1
+                points0 = vertices[cell]
+                x1, y1 = points0[0, :2]
+                x2, y2 = points0[1, :2]
+                x3, y3 = points0[2, :2]
+                area_ = 0.5 * np.abs(
+                    x2 * y3 + x1 * y2 + x3 * y1 - x3 * y2 - x2 * y1 - x1 * y3
+                )
+                areas.append(area_)
+                centers.append(np.mean(points0, axis=0))
+                points = np.vstack(
+                    [points0, [points0[0]], [[np.NAN, np.NAN]]])
+                face_points.append(points)
+            face_points = np.vstack(face_points)
+            areas = np.array(areas).reshape((len(areas), 1))
+            center_areas = np.hstack([centers, areas])
+            center_areas_labels = [f"<b>xo:{d[0]:.2e}</b><br>yo:{d[1]:.2e}<br>area:{d[2]:.2e}"
+                                   for d in center_areas]
+            n_cells_map[name] = len(center_areas_labels)
+            if fill:
+                tplot.append(go.Scatter(x=face_points[:, 0], y=face_points[:, 1],
+                                        fill="toself", fillcolor=self.color_map[name],
+                                        line=dict(
+                                            color='black', width=0.75),
+                                        connectgaps=False, opacity=0.75,
+                                        hoverinfo="skip", ))
+            else:
+                tplot.append(go.Scatter(x=face_points[:, 0], y=face_points[:, 1],
+                                        mode='lines',
+                                        line=dict(
+                                            color=self.color_map[name], width=1.2),
+                                        connectgaps=False,
+                                        hoverinfo="skip", ))
+            # hover label
+            tplot.append(
+                go.Scatter(
+                    x=center_areas[:, 0],
+                    y=center_areas[:, 1],
+                    marker=dict(size=0, color=self.color_map[name],
+                                symbol='diamond-open'),
+                    mode="markers",
+                    name=label,
+                    customdata=center_areas_labels,
+                    hovertemplate='%{customdata}',
+                )
+            )
+        fig.add_traces(tplot)
+        # rebars
+        shapes = []
+        for data in self.rebar_data:
+            color = data["color"]
+            rebar_xy = data["rebar_xy"]
+            r = data["dia"] / 2
+            for xo, yo in rebar_xy:
+                shapes.append(dict(type="circle",
+                                   xref="x", yref="y",
+                                   x0=xo - r, y0=yo - r, x1=xo + r, y1=yo + r,
+                                   line_color=color,
+                                   fillcolor=color,
+                                   ))
+        # -------------------------------------
+        txt = "Num. of Mesh: "
+        for k, v in n_cells_map.items():
+            txt += f"| {k}--{v} "
+        txt += f"| total--{n_cells}"
+        fig.update_layout(
+            shapes=shapes,
+            width=800,
+            height=800 * aspect_ratio,
+            template="plotly",
+            autosize=True,
+            showlegend=False,
+            scene=dict(aspectratio=dict(
+                x=1, y=aspect_ratio), aspectmode="data"),
+            title=dict(font=dict(family="courier", color='black', size=20),
+                       text=f"<b>{self.sec_name}</b> <br>" + f"{txt}")
+        )
+        fig.update_xaxes(tickfont_size=18, ticks="outside")
+        fig.update_yaxes(tickfont_size=18, ticks="outside")
+        if save_html:
+            pio.write_html(fig, file=save_html, auto_open=True)
+        if on_notebook:
+            fig.show()
 
 
 class Rebars:
@@ -716,14 +732,14 @@ class Rebars:
         self.rebar_data = []
 
     def add_rebar_line(
-            self,
-            points: list[list[float, float]],
-            dia: float,
-            gap: float,
-            closure: bool = False,
-            matTag: int = None,
-            color: str = "black",
-            group_name: str = None,
+        self,
+        points: list[list[float, float]],
+        dia: float,
+        gap: float,
+        closure: bool = False,
+        matTag: int = None,
+        color: str = "black",
+        group_name: str = None,
     ):
         """Add rebar along a line, can be a line or polygon.
 
@@ -762,16 +778,16 @@ class Rebars:
         self.rebar_data.append(data)
 
     def add_rebar_circle(
-            self,
-            xo: list[float, float],
-            radius: float,
-            dia: float,
-            gap: float,
-            angle1=0.0,
-            angle2=360,
-            matTag: int = None,
-            color: str = "black",
-            group_name: str = None,
+        self,
+        xo: list[float, float],
+        radius: float,
+        dia: float,
+        gap: float,
+        angle1=0.0,
+        angle2=360,
+        matTag: int = None,
+        color: str = "black",
+        group_name: str = None,
     ):
         """Add the rebars along a circle.
 
@@ -820,12 +836,12 @@ class Rebars:
 
 
 def add_material(
-        name="default",
-        elastic_modulus=1,
-        poissons_ratio=0,
-        yield_strength=1,
-        density=1,
-        color="w",
+    name="default",
+    elastic_modulus=1,
+    poissons_ratio=0,
+    yield_strength=1,
+    density=1,
+    color="w",
 ):
     """Add a meterial.
 
@@ -859,9 +875,9 @@ def add_material(
 
 
 def add_polygon(
-        outline: list[list[float, float]],
-        holes: list[list[list[float, float]]] = None,
-        material=None,
+    outline: list[list[float, float]],
+    holes: list[list[list[float, float]]] = None,
+    material=None,
 ):
     """Add polygon plane geom obj.
 
@@ -889,13 +905,13 @@ def add_polygon(
 
 
 def add_circle(
-        xo: list[float, float],
-        radius: float,
-        holes=None,
-        angle1=0.0,
-        angle2=360,
-        n_sub=40,
-        material=None,
+    xo: list[float, float],
+    radius: float,
+    holes=None,
+    angle1=0.0,
+    angle2=360,
+    n_sub=40,
+    material=None,
 ):
     """Add the circle geom obj.
 

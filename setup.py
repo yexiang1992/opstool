@@ -32,6 +32,7 @@ setup(
         'pyvista',
         'sectionproperties',
         'shapely>=2.0.0',
-        'h5py'
+        'h5py',
+        'rich'
     ],
 )
