@@ -1,0 +1,9 @@
+matplotlib
+numpy
+openseespy
+plotly
+pyvista
+sectionproperties
+Shapely
+h5py
+rich
