@@ -1733,7 +1733,7 @@ def _generate_all_mesh(points, scalars, opacity, lines_cells, face_cells, point_
                 hoverinfo="skip",
             )
         )
-    # ------------------------------------------------------------------------
+    # ---------------------------------------
     # point plot
     point_plot = go.Scatter3d(
         x=points[:, 0],
