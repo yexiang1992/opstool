@@ -57,6 +57,9 @@ with open(this_dir / "src" / "opstool" / "__about__.py") as f:
 __version__ = about["__version__"]
 
 sys.path.insert(0, os.path.abspath('../../src'))
+package_path = os.path.abspath('../../src')
+os.environ['PYTHONPATH'] = ':'.join(
+    (package_path, os.environ.get('PYTHONPATH', '')))
 
 
 # -- Project information -----------------------------------------------------
@@ -76,6 +79,7 @@ release = __version__
 # ones.
 extensions = [
     "sphinx.ext.autodoc",
+    'sphinx_autodoc_typehints',
     "sphinx.ext.mathjax",
     "sphinx.ext.viewcode",
     "sphinx_gallery.load_style",
@@ -83,6 +87,7 @@ extensions = [
     'nbsphinx',
     "jupyter_sphinx",
     'sphinx_copybutton',
+    'jupyter_sphinx.execute'
 ]
 
 # The master toctree document.
