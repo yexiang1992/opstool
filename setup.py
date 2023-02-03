@@ -16,14 +16,11 @@ setup(
     author_email='yexiang_yan@outlook.com',
     url='https://github.com/yexiang1992',
     license='GPL Licence',
-    keywords='OpenSees seismic visualization',
+    keywords='OpenSees Visualization',
     platforms='any',
     python_requires='>=3.8.*',
     package_dir={'': 'src'},
-    packages=find_packages('src'),
-    classifiers=[
-        "Programming Language :: Python :: 3.9",
-    ],
+    packages=['opstool'],
     install_requires=[
         'matplotlib',
         'numpy',
