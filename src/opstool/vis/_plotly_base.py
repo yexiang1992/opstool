@@ -87,12 +87,36 @@ def _make_lines(points, cells):
     return line_points, line_mid_points
 
 
+def _make_fix_node(model_info):
+    fixed_dofs = model_info["FixNodeDofs"]
+    fixed_coords = model_info["FixNodeCoords"]
+    s = model_info["max_bound"] / 200
+    points = []
+    for coord, dof in zip(fixed_coords, fixed_dofs):
+        x, y, z = coord
+        if dof[0] == -1:
+            points.extend([[x, y - s / 2, z], [x, y + s / 2, z],
+                           [x, y + s / 2, z - s], [x, y - s / 2, z - s],
+                           [x, y - s / 2, z], [np.NAN, np.NAN, np.NAN]])
+        if dof[1] == -1:
+            points.extend([[x - s / 2, y, z], [x + s / 2, y, z],
+                           [x + s / 2, y, z - s], [x - s / 2, y, z - s],
+                           [x - s / 2, y, z], [np.NAN, np.NAN, np.NAN]])
+        if dof[2] == -1:
+            points.extend([[x - s / 2, y - s / 2, z - s / 2], [x + s / 2, y - s / 2, z - s / 2],
+                           [x + s / 2, y + s / 2, z - s / 2], [x - s / 2, y + s / 2, z - s / 2],
+                           [x - s / 2, y - s / 2, z - s / 2], [np.NAN, np.NAN, np.NAN]])
+    points = np.array(points)
+    return points
+
+
 def _model_vis(
         obj,
         input_file: str = "ModelData.hdf5",
         show_node_label: bool = False,
         show_ele_label: bool = False,
         show_local_crd: bool = False,
+        show_fix_node: bool = True,
         label_size: float = 8,
         show_outline: bool = True,
         opacity: float = 1.0,
@@ -127,7 +151,7 @@ def _model_vis(
     for ii in range(len(face_cells)):
         if len(face_cells[ii]) > 0:
             (face_points, face_line_points, face_mid_points,
-                veci, vecj, veck) = _make_faces(points_no_deform, face_cells[ii])
+             veci, vecj, veck) = _make_faces(points_no_deform, face_cells[ii])
             x, y, z = face_points[:, 0], face_points[:, 1], face_points[:, 2]
             plotter.append(go.Mesh3d(x=x, y=y, z=z, i=veci, j=vecj, k=veck,
                                      name=names[ii], color=face_colors[ii],
@@ -181,14 +205,13 @@ def _model_vis(
                                             color=obj.color_point),
                                 mode="markers", name="Node", customdata=node_labels,
                                 hovertemplate='<b>x: %{x}</b><br>y: %{y}<br>z: %{z} <br>tag: %{customdata}'))
-    fig.add_traces(plotter)
 
     if show_node_label:
         txt_plot = go.Scatter3d(x=x, y=y, z=z, text=node_labels,
                                 textfont=dict(color="#6e750e",
                                               size=label_size),
                                 mode="text", name="Node Label")
-        fig.add_trace(txt_plot)
+        plotter.append(txt_plot)
 
     if show_ele_label:
         ele_labels = [str(i) for i in model_info["EleTags"]]
@@ -201,12 +224,20 @@ def _model_vis(
             mode="text",
             name="Ele Label",
         )
-        fig.add_trace(txt_plot)
+        plotter.append(txt_plot)
 
     if np.max(np.abs(points_no_deform[:, -1])) < 1e-5:
         eye = dict(x=0, y=0, z=1.5)  # for 2D camera
     else:
         eye = dict(x=-3.5, y=-3.5, z=3.5)  # for 3D camera
+
+    if show_fix_node:
+        fix_points = _make_fix_node(model_info)
+        x, y, z = fix_points[:, 0], fix_points[:, 1], fix_points[:, 2]
+        fix_plot = go.Scatter3d(x=x, y=y, z=z,
+                                line=dict(color="#01ff07", width=1),
+                                mode="lines", connectgaps=False, hoverinfo="skip")
+        plotter.append(fix_plot)
 
     # local axes
     beam_midpoints = model_info["beam_midpoints"]
@@ -265,7 +296,9 @@ def _model_vis(
             connectgaps=False,
             name='',
             hovertemplate='<b>z</b>')
-        fig.add_traces([plotter1, plotter2, plotter3])
+        plotter.extend([plotter1, plotter2, plotter3])
+
+    fig.add_traces(plotter)
 
     fig.update_layout(
         template=obj.theme,
@@ -357,7 +390,7 @@ def _eigen_vis(
             if alpha is None:
                 value_ = np.max(np.sqrt(np.sum(eigen_vec ** 2, axis=1)))
                 alpha_ = (
-                    eigen_data["max_bound"] / obj.bound_fact / value_
+                        eigen_data["max_bound"] / obj.bound_fact / value_
                 )
             else:
                 alpha_ = alpha
@@ -438,7 +471,7 @@ def _eigen_vis(
             if alpha is None:
                 value_ = np.max(np.sqrt(np.sum(eigen_vec ** 2, axis=1)))
                 alpha_ = (
-                    eigen_data["max_bound"] / obj.bound_fact / value_
+                        eigen_data["max_bound"] / obj.bound_fact / value_
                 )
             else:
                 alpha_ = alpha
@@ -549,7 +582,7 @@ def _eigen_anim(
     if alpha is None:
         value_ = np.max(np.sqrt(np.sum(eigen_vec ** 2, axis=1)))
         alpha_ = (
-            eigen_data["max_bound"] / obj.bound_fact / value_
+                eigen_data["max_bound"] / obj.bound_fact / value_
         )
     else:
         alpha_ = alpha
@@ -1438,7 +1471,6 @@ def _generate_line_mesh(points, cells, line_width=1, color='blue', scalars=None,
             line_scalars.extend(list(scalars[cell[1:]]) + [np.NAN])
     line_points = np.array(line_points)
     line_scalars = np.array(line_scalars)
-    line_dict = dict()
     if use_cmap:
         line_dict = dict(color=line_scalars, width=line_width,
                          cmin=np.min(line_scalars), cmax=np.max(line_scalars),

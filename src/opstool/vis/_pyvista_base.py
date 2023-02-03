@@ -7,15 +7,16 @@ from ..utils import check_file, shape_dict
 
 
 def _model_vis(
-    obj,
-    input_file: str = "ModelData.hdf5",
-    show_node_label: bool = False,
-    show_ele_label: bool = False,
-    show_local_crd: bool = False,
-    label_size: float = 8,
-    show_outline: bool = True,
-    opacity: float = 1.0,
-    save_fig: str = 'ModelVis.svg'
+        obj,
+        input_file: str = "ModelData.hdf5",
+        show_node_label: bool = False,
+        show_ele_label: bool = False,
+        show_local_crd: bool = False,
+        show_fix_node: bool = True,
+        label_size: float = 8,
+        show_outline: bool = True,
+        opacity: float = 1.0,
+        save_fig: str = 'ModelVis.svg'
 ):
     filename = obj.out_dir + '/' + input_file
     model_info = dict()
@@ -31,100 +32,29 @@ def _model_vis(
     plotter = pv.Plotter(notebook=obj.notebook)
     plotter = _plot_model(obj, plotter, model_info, cells, opacity)
 
-    plotter.add_text(
-        "OpenSees 3D View",
-        position="upper_left",
-        font_size=15,
-        # color="black",
-        font="courier",
-        viewport=True,
-    )
-    plotter.add_text(
-        "Num. of Node: {0} \n Num. of Ele:{1}".format(
-            model_info["num_node"], model_info["num_ele"]
-        ),
-        position="upper_right",
-        font_size=10,
-        # color="black",
-        font="courier",
-    )
+    txt = f"OpenSees 3D View\nNum. of Node:{model_info['num_node']}\nNum. of Ele:{model_info['num_ele']}"
+    plotter.add_text(txt, position="upper_right", font_size=10, font="courier")
     if show_outline:
-        plotter.show_bounds(
-            grid=False,
-            location="outer",
-            bounds=model_info["bound"],
-            show_zaxis=True,
-            # color="black",
-        )
+        plotter.show_bounds(grid=False, location="outer",
+                            bounds=model_info["bound"], show_zaxis=True)
     if show_node_label:
         node_labels = ["N" + str(i) for i in model_info["NodeTags"]]
-        plotter.add_point_labels(
-            model_info["coord_no_deform"],
-            node_labels,
-            text_color="white",
-            font_size=label_size,
-            point_color=obj.color_point,
-            render_points_as_spheres=True,
-            point_size=1e-5,
-            bold=False,
-            always_visible=True,
-        )
+        plotter.add_point_labels(model_info["coord_no_deform"], node_labels, text_color="white",
+                                 font_size=label_size, point_color=obj.color_point, bold=False,
+                                 render_points_as_spheres=True, point_size=1e-5, always_visible=True)
     if show_ele_label:
         ele_labels = ["E" + str(i) for i in model_info["EleTags"]]
-        plotter.add_point_labels(
-            model_info["coord_ele_midpoints"],
-            ele_labels,
-            text_color="#ff796c",
-            font_size=label_size,
-            bold=False,
-            always_visible=True,
-        )
+        plotter.add_point_labels(model_info["coord_ele_midpoints"], ele_labels, text_color="#ff796c",
+                                 font_size=label_size, bold=False, always_visible=True)
     # local axes
     beam_midpoints = model_info["beam_midpoints"]
     if show_local_crd and len(beam_midpoints) == 0:
         warnings.warn("Model has no frame elements!")
         show_local_crd = False
     if show_local_crd:
-        beam_xlocal = model_info["beam_xlocal"]
-        beam_ylocal = model_info["beam_ylocal"]
-        beam_zlocal = model_info["beam_zlocal"]
-        length = model_info["max_bound"] / 250
-        _ = plotter.add_arrows(beam_midpoints, beam_xlocal, mag=length,
-                               color="red")
-        _ = plotter.add_arrows(beam_midpoints, beam_ylocal, mag=length,
-                               color="orange")
-        _ = plotter.add_arrows(beam_midpoints, beam_zlocal, mag=length,
-                               color="green")
-        plotter.add_point_labels(
-            beam_midpoints + length * beam_xlocal,
-            ['x'] * beam_midpoints.shape[0],
-            text_color="red",
-            bold=False,
-            shape=None,
-            render_points_as_spheres=True,
-            point_size=1.e-5,
-            always_visible=True,
-        )
-        plotter.add_point_labels(
-            beam_midpoints + length * beam_ylocal,
-            ['y'] * beam_midpoints.shape[0],
-            text_color="orange",
-            bold=False,
-            shape=None,
-            render_points_as_spheres=True,
-            point_size=1.e-5,
-            always_visible=True,
-        )
-        plotter.add_point_labels(
-            beam_midpoints + length * beam_zlocal,
-            ['z'] * beam_midpoints.shape[0],
-            text_color="green",
-            bold=False,
-            shape=None,
-            render_points_as_spheres=True,
-            point_size=1.e-5,
-            always_visible=True,
-        )
+        plotter = _show_local_axes(plotter, model_info, beam_midpoints)
+    if show_fix_node:
+        plotter = _show_fix_node(plotter, model_info)
     plotter.add_axes()
     plotter.view_isometric()
     if np.max(model_info["model_dims"]) <= 2:
@@ -135,17 +65,93 @@ def _model_vis(
     plotter.close()
 
 
+def _show_local_axes(plotter, model_info, beam_midpoints):
+    beam_xlocal = model_info["beam_xlocal"]
+    beam_ylocal = model_info["beam_ylocal"]
+    beam_zlocal = model_info["beam_zlocal"]
+    length = model_info["max_bound"] / 250
+    _ = plotter.add_arrows(beam_midpoints, beam_xlocal,
+                           mag=length, color="red")
+    _ = plotter.add_arrows(beam_midpoints, beam_ylocal,
+                           mag=length, color="orange")
+    _ = plotter.add_arrows(beam_midpoints, beam_zlocal,
+                           mag=length, color="green")
+    plotter.add_point_labels(
+        beam_midpoints + length * beam_xlocal,
+        ['x'] * beam_midpoints.shape[0],
+        text_color="red",
+        bold=False,
+        shape=None,
+        render_points_as_spheres=True,
+        point_size=1.e-5,
+        always_visible=True,
+    )
+    plotter.add_point_labels(
+        beam_midpoints + length * beam_ylocal,
+        ['y'] * beam_midpoints.shape[0],
+        text_color="orange",
+        bold=False,
+        shape=None,
+        render_points_as_spheres=True,
+        point_size=1.e-5,
+        always_visible=True,
+    )
+    plotter.add_point_labels(
+        beam_midpoints + length * beam_zlocal,
+        ['z'] * beam_midpoints.shape[0],
+        text_color="green",
+        bold=False,
+        shape=None,
+        render_points_as_spheres=True,
+        point_size=1.e-5,
+        always_visible=True,
+    )
+    return plotter
+
+
+def _show_fix_node(plotter, model_info):
+    fixed_dofs = model_info["FixNodeDofs"]
+    fixed_coords = model_info["FixNodeCoords"]
+    s = model_info["max_bound"] / 200
+    points, cells = [], []
+    for coord, dof in zip(fixed_coords, fixed_dofs):
+        x, y, z = coord
+        if dof[0] == -1:
+            idx = len(points)
+            points.extend([[x, y - s / 2, z], [x, y + s / 2, z],
+                           [x, y + s / 2, z - s], [x, y - s / 2, z - s]])
+            cells.extend([2, idx, idx + 1, 2, idx + 1, idx + 2,
+                         2, idx + 2, idx + 3, 2, idx + 3, idx])
+        if dof[1] == -1:
+            idx = len(points)
+            points.extend([[x - s / 2, y, z], [x + s / 2, y, z],
+                           [x + s / 2, y, z - s], [x - s / 2, y, z - s]])
+            cells.extend([2, idx, idx + 1, 2, idx + 1, idx + 2,
+                         2, idx + 2, idx + 3, 2, idx + 3, idx])
+        if dof[2] == -1:
+            idx = len(points)
+            points.extend([[x - s / 2, y - s / 2, z - s / 2], [x + s / 2, y - s / 2, z - s / 2],
+                           [x + s / 2, y + s / 2, z - s / 2], [x - s / 2, y + s / 2, z - s / 2]])
+            cells.extend([2, idx, idx + 1, 2, idx + 1, idx + 2,
+                         2, idx + 2, idx + 3, 2, idx + 3, idx])
+    fix_plot = _generate_mesh(points, cells, kind="line")
+    plotter.add_mesh(fix_plot, color="#01ff07",
+                     render_lines_as_tubes=False, line_width=1)
+    return plotter
+
+
 def _eigen_vis(
-    obj,
-    mode_tags: list[int],
-    input_file: str = 'EigenData.hdf5',
-    subplots: bool = False,
-    alpha: float = None,
-    show_outline: bool = False,
-    show_origin: bool = False,
-    opacity: float = 1.0,
-    show_face_line: bool = True,
-    save_fig: str = "EigenVis.svg"
+        obj,
+        mode_tags: list[int],
+        input_file: str = 'EigenData.hdf5',
+        subplots: bool = False,
+        link_views: bool = True,
+        alpha: float = None,
+        show_outline: bool = False,
+        show_origin: bool = False,
+        opacity: float = 1.0,
+        show_face_line: bool = True,
+        save_fig: str = "EigenVis.svg"
 ):
     filename = obj.out_dir + '/' + input_file
     eigen_data = dict()
@@ -187,8 +193,7 @@ def _eigen_vis(
                 )
             else:
                 alpha_ = alpha
-            eigen_points = eigen_data["coord_no_deform"] + \
-                eigen_vec * alpha_
+            eigen_points = eigen_data["coord_no_deform"] + eigen_vec * alpha_
             scalars = np.sqrt(np.sum(eigen_vec ** 2, axis=1))
 
             idxi = int(np.ceil((i + 1) / shape[1]) - 1)
@@ -232,7 +237,7 @@ def _eigen_vis(
                     font_size=10,
                 )
             plotter.add_axes(color="black")
-
+        if link_views:
             plotter.link_views()
     # !slide style
     else:
@@ -248,8 +253,7 @@ def _eigen_vis(
                 )
             else:
                 alpha_ = alpha
-            eigen_points = eigen_data["coord_no_deform"] + \
-                eigen_vec * alpha_
+            eigen_points = eigen_data["coord_no_deform"] + eigen_vec * alpha_
             scalars = np.sqrt(np.sum(eigen_vec ** 2, axis=1))
             cmin = np.min(scalars)
             cmax = np.max(scalars)
@@ -312,15 +316,15 @@ def _eigen_vis(
 
 
 def _eigen_anim(
-    obj,
-    mode_tag: int = 1,
-    input_file: str = 'EigenData.hdf5',
-    alpha: float = None,
-    show_outline: bool = False,
-    opacity: float = 1,
-    framerate: int = 3,
-    show_face_line: bool = True,
-    save_fig: str = "EigenAnimation.gif"
+        obj,
+        mode_tag: int = 1,
+        input_file: str = 'EigenData.hdf5',
+        alpha: float = None,
+        show_outline: bool = False,
+        opacity: float = 1,
+        framerate: int = 3,
+        show_face_line: bool = True,
+        save_fig: str = "EigenAnimation.gif"
 ):
     filename = obj.out_dir + '/' + input_file
     eigen_data = dict()
@@ -443,17 +447,17 @@ def _eigen_anim(
 
 
 def _deform_vis(
-    obj,
-    input_file: str = "NodeRespStepData-1.hdf5",
-    slider: bool = False,
-    response: str = "disp",
-    alpha: float = None,
-    show_outline: bool = False,
-    show_origin: bool = False,
-    show_face_line: bool = True,
-    opacity: float = 1,
-    save_fig: str = "DefoVis.svg",
-    model_update: bool = False
+        obj,
+        input_file: str = "NodeRespStepData-1.hdf5",
+        slider: bool = False,
+        response: str = "disp",
+        alpha: float = None,
+        show_outline: bool = False,
+        show_origin: bool = False,
+        show_face_line: bool = True,
+        opacity: float = 1,
+        save_fig: str = "DefoVis.svg",
+        model_update: bool = False
 ):
     resp_type = response.lower()
     if resp_type not in ['disp', 'vel', 'accel']:
@@ -629,16 +633,16 @@ def _deform_vis(
 
 
 def _deform_anim(
-    obj,
-    input_file: str = "NodeRespStepData-1.hdf5",
-    response: str = "disp",
-    alpha: float = None,
-    show_outline: bool = False,
-    opacity: float = 1,
-    framerate: int = 24,
-    show_face_line: bool = True,
-    save_fig: str = "DefoAnimation.gif",
-    model_update: bool = False
+        obj,
+        input_file: str = "NodeRespStepData-1.hdf5",
+        response: str = "disp",
+        alpha: float = None,
+        show_outline: bool = False,
+        opacity: float = 1,
+        framerate: int = 24,
+        show_face_line: bool = True,
+        save_fig: str = "DefoAnimation.gif",
+        model_update: bool = False
 ):
     resp_type = response.lower()
     if resp_type not in ['disp', 'vel', 'accel']:
@@ -780,40 +784,10 @@ def _deform_anim(
     else:
         plotter.open_movie(save_fig, framerate=framerate)
     # plotter.write_frame()  # write initial data
-    if model_update:
-        for step in range(num_steps):
-            point_plot, line_plot, face_plot, txt = creat_mesh(step)
-            plotter.write_frame()
-    else:
-        point_plot, line_plot, face_plot, txt = creat_mesh(0)
-        for step in range(num_steps):
-            node_nodeform_coords = model_info_steps["coord_no_deform"]
-            node_resp = node_resp_steps[resp_type][step]
-            node_deform_coords = alpha_ * node_resp + node_nodeform_coords
-            scalars = np.sqrt(np.sum(node_resp ** 2, axis=1))
-            if point_plot:
-                if resp_type == "disp":
-                    plotter.update_coordinates(
-                        node_deform_coords, mesh=point_plot, render=False
-                    )
-            if line_plot is not None:
-                if resp_type == "disp":
-                    plotter.update_coordinates(
-                        node_deform_coords, mesh=line_plot, render=False
-                    )
-                plotter.update_scalars(
-                    scalars, mesh=line_plot, render=False)
-            if face_plot is not None:
-                if resp_type == "disp":
-                    plotter.update_coordinates(
-                        node_deform_coords, mesh=face_plot, render=False
-                    )
-                plotter.update_scalars(
-                    scalars, mesh=face_plot, render=False)
-            # plotter.update_scalar_bar_range(clim=[np.min(scalars), np.max(scalars)])
-            plotter.write_frame()
-            if step < num_steps - 1:
-                plotter.remove_actor(txt)
+    for step in range(num_steps):
+        _ = creat_mesh(step)
+        plotter.write_frame()
+
     # ----------------------------------------------------------------------------------
     plotter.show(title=obj.title)
     plotter.close()
@@ -1061,20 +1035,20 @@ def _generate_mesh(points, cells, kind="line"):
 
 
 def _generate_all_mesh(
-    plotter,
-    points,
-    scalars,
-    opacity,
-    colormap,
-    lines_cells,
-    face_cells,
-    show_origin=False,
-    points_origin=None,
-    show_scalar_bar=False,
-    point_size=1,
-    line_width=1,
-    show_face_line=True,
-    clim=None
+        plotter,
+        points,
+        scalars,
+        opacity,
+        colormap,
+        lines_cells,
+        face_cells,
+        show_origin=False,
+        points_origin=None,
+        show_scalar_bar=False,
+        point_size=1,
+        line_width=1,
+        show_face_line=True,
+        clim=None
 ):
     """
     Auxiliary function for generating all meshes

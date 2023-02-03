@@ -5,11 +5,11 @@ For details of the parameters see :func:`opstool.preprocessing.tcl2py`.
 
 .. code-block:: python
 
-    from opstool.preprocessing import tcl2py
+    import opstool as opst
 
-    tcl2py(input_file='mycode.tcl',
-           output_file='mycode.py',
-           prefix="ops")
+    opst.tcl2py(input_file='mycode.tcl',
+                output_file='mycode.py',
+                prefix="ops")
 
 .. tip::
     * This function will flatten your `tcl` code, including loops, judgments, assignments, proc, etc.

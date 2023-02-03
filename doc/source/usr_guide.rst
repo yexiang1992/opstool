@@ -6,7 +6,7 @@ User Guide
    :caption: User Guide
 
    src/installation
-   src/mod_vis2
+   src/mod_vis
    src/mod_secmesh
    src/tcl2py
    CHANGELOG

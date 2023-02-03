@@ -33,7 +33,7 @@ It is recommended that you use `Anaconda <https://www.anaconda.com/>`_ to avoid 
 
 .. toctree::
    :maxdepth: 5
-   :caption: Opstool Package Index
+   :caption: API Reference
 
    src/opstool
 

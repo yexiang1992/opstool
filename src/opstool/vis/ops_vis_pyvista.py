@@ -86,6 +86,7 @@ class OpsVisPyvista:
         show_node_label: bool = False,
         show_ele_label: bool = False,
         show_local_crd: bool = False,
+        show_fix_node: bool = True,
         label_size: float = 8,
         show_outline: bool = True,
         opacity: float = 1.0,
@@ -109,7 +110,9 @@ class OpsVisPyvista:
         show_ele_label: bool, default=False
             Whether to display the ele label.
         show_local_crd: bool, default=False
-            Whether to display the local coordinate system.
+            Whether to display the local axes of beam elements.
+        show_fix_node: bool, default=True
+            Whether to display the fix nodes.
         label_size: float, default=8
             The foontsize of node and ele label.
         show_outline: bool, default=True
@@ -136,6 +139,7 @@ class OpsVisPyvista:
                    show_node_label=show_node_label,
                    show_ele_label=show_ele_label,
                    show_local_crd=show_local_crd,
+                   show_fix_node=show_fix_node,
                    label_size=label_size,
                    show_outline=show_outline,
                    opacity=opacity,
@@ -147,6 +151,7 @@ class OpsVisPyvista:
         mode_tags: list[int],
         input_file: str = 'EigenData.hdf5',
         subplots: bool = False,
+        link_views: bool = True,
         alpha: float = None,
         show_outline: bool = False,
         show_origin: bool = False,
@@ -170,6 +175,8 @@ class OpsVisPyvista:
 
         subplots: bool, default=False
             If True, subplots in a figure. If False, plot in a slider style.
+        link_views: bool, default=True
+            If True, link the views’ cameras, only usefuly when subplots is True.
         alpha: float, default=None
             Model scaling factor, the default value is 1/5 of the model boundary according to the maximum deformation.
         show_outline: bool, default=True
@@ -200,6 +207,7 @@ class OpsVisPyvista:
             mode_tags=mode_tags,
             input_file=input_file,
             subplots=subplots,
+            link_views=link_views,
             alpha=alpha,
             show_outline=show_outline,
             show_origin=show_origin,

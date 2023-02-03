@@ -12,6 +12,8 @@ from sectionproperties.analysis.section import Section
 from sectionproperties.pre.geometry import CompoundGeometry, Geometry
 from sectionproperties.pre.pre import Material
 from shapely.geometry import LineString, Polygon
+from rich.console import Console
+from rich.table import Table
 
 
 def _to_section(geom_obj, time_info=False):
@@ -24,39 +26,11 @@ class SecMesh:
     Parameters
     --------------
     sec_name : str
-        Assign a name to the section
+        Assign a name to the section.
 
     Returns
     -----------
     None
-
-    Examples
-    --------
-    >>> outlines = [[0, 0], [-0.5, 1], [1.5, 1], [1, 0]]
-    >>> outlines2 = offset(outlines, d=0.05)
-    >>> holes1 = [[0.2, 0.2], [0.4, 0.2], [0.4, 0.4], [0.2, 0.4]]
-    >>> holes2 = [[0.6, 0.2], [0.8, 0.2], [0.8, 0.5], [0.6, 0.5]]
-    >>> cover = add_polygon(outlines, holes=[outlines2])
-    >>> core = add_polygon(outlines2, holes=[holes1, holes2])
-    >>> # create section obj
-    >>> sec = SecMesh(sec_name="My Section")
-    >>> sec.assign_group(dict(cover=cover, core=core))
-    >>> sec.assign_mesh_size(dict(cover=0.001, core=0.005))
-    >>> sec.assign_ops_matTag(dict(cover=1, core=2))
-    >>> sec.mesh()
-    >>> # create rebars data
-    >>> rebar_lines1 = offset(outlines, d=0.05 + 0.032 / 2)
-    >>> rebar_lines2 = [[0.2, 0.2], [0.8, 0.8]]
-    >>> rebars = Rebars()
-    >>> rebars.add_rebar_line(points=rebar_lines1, dia=0.032, gap=0.1, color="red", matTag=3)
-    >>> rebars.add_rebar_line(points=rebar_lines2, dia=0.020, gap=0.1, color="black", matTag=3)
-    >>> sec.add_rebars(rebars)
-    >>> # get section properties
-    >>> sec.get_sec_props(plot_centroids=False)
-    >>> sec.centring()
-    >>> # sec.rotate(45)
-    >>> sec.to_file("mysec.py", secTag=1, GJ=10000)
-    >>> sec.view()
     """
 
     def __init__(self, sec_name: str = "My Section"):
@@ -70,6 +44,7 @@ class SecMesh:
         self.cells_map = dict()
         self.centers_map = dict()
         self.areas_map = dict()
+        self.center = None
 
         # * data group
         self.group_map = dict()
@@ -101,7 +76,7 @@ class SecMesh:
         Parameters
         ------------
         group : dict
-            A dict of name as key, mesh obj as value.
+            A dict of name as key, geometry obj as value.
 
         Returns
         ----------
@@ -272,7 +247,7 @@ class SecMesh:
                 all_rebar_area += np.sum(rebar_areas)
             rho_rebar = all_rebar_area / area
         else:
-            rho_rebar = None
+            rho_rebar = 0
         # lump
         sec_props = dict(
             A=area,
@@ -319,11 +294,12 @@ class SecMesh:
             * Torsion constant (J)
             * Principal axis angle (phi)
             * ratio of reinforcement (rho_rebar)
-            * Effective Material Properties (Effective elastic modulus: E_eff; Effective shear modulus: G_eff;
-              Effective Poisson’s ratio: Nu_eff)
+            * Effective elastic modulus: E_eff;
+            * Effective shear modulus: G_eff;
+            * Effective Poisson’s ratio: Nu_eff.
 
-            If materials are specified for the cross-section, the area, second moments of area and torsion constant are
-            elastic modulus weighted.
+            If materials are specified for the cross-section, the area,
+            second moments of area and torsion constant are elastic modulus weighted.
         """
 
         section = self.section
@@ -331,11 +307,30 @@ class SecMesh:
         section.calculate_warping_properties()
         # area, ixx_c, iyy_c, ixy_c, j, phi = section.calculate_frame_properties(
         #    solver_type='direct')
+        self._run_sec_props(Eref, section)
         if display_results:
-            section.display_results()
+            # section.display_results()
+            syms = ["A", "Asy", "Asz", "centroid", "Iy", "Iz", "Iyz",
+                    "J", "phi", "rho_rebar", "E_eff", "G_eff", "Nu_eff"]
+            defs = ["Cross-sectional area", "Shear area y-axis", "Shear area z-axis", "Elastic centroid",
+                    "Moment of inertia y-axis", "Moment of inertia z-axis", "Product of inertia",
+                    "Torsion constant", "Principal axis angle", "Ratio of reinforcement", "Effective elastic modulus",
+                    "Effective shear modulus", "Effective Poisson’s ratio"]
+            table = Table(title="Section Properties")
+            table.add_column("Symbol", style="cyan", no_wrap=True)
+            table.add_column("Value", style="magenta")
+            table.add_column("Definition", style="green")
+            for sym_, def_ in zip(syms, defs):
+                if sym_ != "centroid":
+                    table.add_row(sym_, f"{self.sec_props[sym_]:.3f}", def_)
+                else:
+                    table.add_row(sym_,
+                                  f"({self.sec_props[sym_][0]:.3f}, {self.sec_props[sym_][1]:.3f})",
+                                  def_)
+            console = Console()
+            console.print(table)
         if plot_centroids:
             section.plot_centroids()
-        self._run_sec_props(Eref, section)
         return self.sec_props
 
     def centring(self):
@@ -355,6 +350,7 @@ class SecMesh:
         centers = np.vstack(centers)
         areas = np.hstack(areas)
         center = areas @ centers / np.sum(areas)
+        self.center = center
         self.points -= center
         names = self.centers_map.keys()
         for name in names:
@@ -391,8 +387,8 @@ class SecMesh:
                 self.centers_map[name][:, 0],
                 self.centers_map[name][:, 1], theta
             )
-            self.centers_map[name][:, 0],
-            self.centers_map[name][:, 1] = x_rot, y_rot
+            self.centers_map[name][:,
+                                   0], self.centers_map[name][:, 1] = x_rot, y_rot
         # rebar
         for i, data in enumerate(self.rebar_data):
             rebar_xy = self.rebar_data[i]["rebar_xy"]
@@ -452,7 +448,8 @@ class SecMesh:
 
         Notes
         -----
-        Notes that output_path must be endswith .py or .tcl, function will create the file by a right style.
+        Notes that output_path must be endswith ``.py`` or ``.tcl``,
+        function will create the file by a right style.
         """
         names = self.centers_map.keys()
         if output_path.endswith(".tcl"):
@@ -561,7 +558,7 @@ class SecMesh:
 
     def _plot_mpl(self, fill, aspect_ratio):
         # matplotlib plot
-        fig, ax = plt.subplots(figsize=(6, 6 * aspect_ratio))
+        fig, ax = plt.subplots(figsize=(8, 8 * aspect_ratio))
         # ax.set_facecolor("#efefef")
         # view the mesh
         vertices = self.points  # the coords of each triangle vertex
@@ -579,15 +576,15 @@ class SecMesh:
             else:
                 x = vertices[:, 0]
                 y = vertices[:, 1]
-                ax.triplot(x, y, triangles=faces, lw=0.75, color="#516572")
+                ax.triplot(x, y, triangles=faces, lw=0.25, color="k")
                 patches = [
                     plt.Polygon(vertices[face_link, :2], True) for face_link in faces
                 ]
                 coll = PatchCollection(
                     patches,
                     facecolors=self.color_map[name],
-                    edgecolors="#516572",
-                    linewidths=0.75,
+                    edgecolors="k",
+                    linewidths=0.25,
                     zorder=-10,
                 )
                 ax.add_collection(coll)
@@ -599,13 +596,11 @@ class SecMesh:
             rebar_xy = data["rebar_xy"]
             dia = data["dia"]
             rebar_coords = []
-            rebar_areas = []
             for xy in rebar_xy:
                 rebar_coords.append(xy)
-                rebar_areas.append(np.pi / 4 * dia ** 2)
             patches = [
-                plt.Circle((xy[0], xy[1]), np.sqrt(area / np.pi))
-                for xy, area in zip(rebar_coords, rebar_areas)
+                plt.Circle((xy[0], xy[1]), dia / 2)
+                for xy in rebar_coords
             ]
             coll = PatchCollection(patches, facecolors=color)
             ax.add_collection(coll)
@@ -737,6 +732,7 @@ class Rebars:
         points: list[list[float, float]],
         dia: float,
         gap: float,
+        n: int = None,
         closure: bool = False,
         matTag: int = None,
         color: str = "black",
@@ -752,6 +748,9 @@ class Rebars:
             Rebar dia.
         gap : float
             Rebar space.
+        n : None
+            The number of rebars, if not None,
+            update the Arg `gap` according to `n`.
         closure: bool, default=False
             If True, the rebar line is a closed loop.
         matTag : int
@@ -771,6 +770,8 @@ class Rebars:
                 points.append(points[0])
         rebar_lines = LineString(points)
         x, y = rebar_lines.xy
+        if n:
+            gap = rebar_lines.length / (n - 1)
         # mesh rebar points based on spacing
         rebar_xy = _lines_subdivide(x, y, gap)
         data = dict(
@@ -784,8 +785,9 @@ class Rebars:
         radius: float,
         dia: float,
         gap: float,
-        angle1=0.0,
-        angle2=360,
+        n: int = None,
+        angle1: float = 0.0,
+        angle2: float = 360,
         matTag: int = None,
         color: str = "black",
         group_name: str = None,
@@ -800,12 +802,15 @@ class Rebars:
             radius.
         dia : float
             rebar dia.
+        gap : float
+            Rebar space
+        n : None
+            The number of rebars, if not None,
+            update the Arg `gap` according to `n`.
         angle1 : float
             The start angle, degree
         angle2 : float
             The end angle, deree
-        gap : float
-            Rebar space
         matTag : int
             OpenSees mat Tag for rebar previously defined.
         color : str or rgb tuple.
@@ -820,20 +825,37 @@ class Rebars:
         angle1 = angle1 / 180 * np.pi
         angle2 = angle2 / 180 * np.pi
         arc_len = (angle2 - angle1) * radius
-        n_sub = int(arc_len / gap)
+        if n:
+            n_sub = n - 1
+        else:
+            n_sub = int(arc_len / gap)
         xc, yc = xo[0], xo[1]
         angles = np.linspace(angle1, angle2, n_sub + 1)
         points = [
             [xc + radius * np.cos(ang), yc + radius * np.sin(ang)] for ang in angles
         ]
-        if np.abs(angle2 - angle1 - 2 * np.pi) < 1e-6:
-            rebar_xy = points[:-1]
-        else:
-            rebar_xy = points
+        # if np.abs(angle2 - angle1 - 2 * np.pi) < 1e-6:
+        #     rebar_xy = points[:-1]
+        # else:
+        #     rebar_xy = points
+        rebar_xy = points
         data = dict(
             rebar_xy=rebar_xy, color=color, name=group_name, dia=dia, matTag=matTag
         )
         self.rebar_data.append(data)
+
+    def get_rebars_num(self):
+        """Returns the number of rebars in each layer.
+
+        Returns
+        -------
+        list[int]
+            The number of rebars in each layer.
+        """
+        nums = []
+        for data in self.rebar_data:
+            nums.append(len(data['rebar_xy']))
+        return nums
 
 
 def add_material(

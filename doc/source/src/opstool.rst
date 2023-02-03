@@ -1,34 +1,29 @@
-opstool package index
-======================
+API Reference
+==============
 
-opstool.vis module
+Model Visualization
 ------------------------
 
-.. automodule:: opstool.vis
-   :members:
-   :undoc-members:
-   :show-inheritance:
+.. toctree::
+    :maxdepth: 1
 
-opstool.preprocessing module
----------------------------------
+    api/vis.GetFEMdata
+    api/vis.OpsVisPlotly
+    api/vis.OpsVisPyvista
+    api/vis.FiberSecVis
 
-.. automodule:: opstool.preprocessing
-   :members:
-   :undoc-members:
-   :show-inheritance:
+Section Fiber Mesh
+-------------------
 
-opstool.preprocessing.section module
---------------------------------------
+.. toctree::
+    :maxdepth: 1
 
-.. automodule:: opstool.preprocessing.section
-   :members:
-   :undoc-members:
-   :show-inheritance:
+    api/sec.SecMesh
+    api/sec.Rebars
+    api/sec.offset
+    api/sec.add_material
+    api/sec.add_polygon
+    api/sec.add_circle
+    api/sec.var_line_string
+    api/sec.vis_var_sec
 
-opstool module contents
---------------------------
-
-.. automodule:: opstool
-   :members:
-   :undoc-members:
-   :show-inheritance:

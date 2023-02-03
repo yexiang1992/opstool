@@ -8,20 +8,17 @@ from itertools import cycle
 from rich import print
 
 from ..utils import check_file
-from ._get_model_base import (get_truss_info, get_beam_info, get_beam_info2, get_link_info,
-                              get_other_line_info, get_all_line_info, get_plane_info, get_all_face_info,
-                              get_tet_info, get_bri_info, get_node_coords, get_ele_mid, get_bounds,
-                              get_node_fix, get_beam_resp, get_node_resp)
+from ._get_model_base import (get_model_info, get_beam_info2, get_beam_resp, get_node_resp)
 
 
 class GetFEMdata:
     """
-    Get the data in the openseespy model domain.
+    Get the data in the ``openseespy`` current domain.
 
     Parameters
     ----------
     results_dir: str, default="opstool_output"
-        The dir that results saved.
+        The directory that results to save.
     """
 
     def __init__(self, results_dir: str = "opstool_output"):
@@ -37,7 +34,7 @@ class GetFEMdata:
         self.cells = dict()
 
         # Initialize eigenvalue data
-        self.eigen = None
+        self.eigen = dict()
 
         # Analysis step model update data
         self.model_info_steps = dict()
@@ -84,7 +81,6 @@ class GetFEMdata:
 
     def reset_eigen_state(self):
         """Reset the state of results extract of eigen data."""
-        self.eigen = dict()
         for name in self.eigen.keys():
             self.eigen[name] = None
 
@@ -147,70 +143,7 @@ class GetFEMdata:
         if save_file:
             check_file(save_file, ['.hdf5', '.h5', '.he5'])
         # --------------------------------
-        # print(ops.constrainedDOFs())   constrainedDOFs
-        node_coords, node_index, model_dims, node_tags = get_node_coords()
-        fixed_nodes, fixed_dofs = get_node_fix()
-        ele_tags = ops.getEleTags()
-        num_ele = len(ele_tags)
-        truss_cells, truss_cells_tags = get_truss_info(ele_tags, node_index)
-        (link_cells, link_cells_tags, link_midpoints,
-         link_xlocal, link_ylocal, link_zlocal) = get_link_info(ele_tags, node_coords, node_index)
-        (beam_cells, beam_cells_tags, beam_midpoints,
-         beam_xlocal, beam_ylocal, beam_zlocal) = get_beam_info(ele_tags, node_coords, node_index)
-        other_line_cells, other_line_cells_tags = get_other_line_info(ele_tags, node_index)
-        all_lines_cells, all_lines_cells_tags = get_all_line_info(ele_tags, node_index)
-        plane_cells, plane_cells_tags = get_plane_info(ele_tags, node_index)
-        tetrahedron_cells, tetrahedron_cells_tags = get_tet_info(ele_tags, node_index)
-        brick_cells, brick_cells_tags = get_bri_info(ele_tags, node_coords, node_index)
-        all_faces_cells = plane_cells + tetrahedron_cells + brick_cells
-        all_faces_cells_tags = plane_cells_tags + tetrahedron_cells_tags + brick_cells_tags
-        ele_midpoints = get_ele_mid(ele_tags, node_coords, node_index)
-        bounds, max_bound = get_bounds(node_coords)
-        # -------------------------------------
-        model_info = dict()
-        model_info["coord_no_deform"] = node_coords
-        model_info["coord_ele_midpoints"] = ele_midpoints
-        model_info["bound"] = bounds
-        model_info["max_bound"] = max_bound
-        model_info["num_ele"] = num_ele
-        model_info["NodeTags"] = node_tags
-        model_info["num_node"] = len(node_tags)
-        model_info["FixNodeTags"] = fixed_nodes
-        model_info["FixNodeDofs"] = fixed_dofs
-        model_info["EleTags"] = ele_tags
-        model_info["model_dims"] = model_dims
-        model_info["coord_ele_midpoints"] = ele_midpoints
-        model_info["beam_midpoints"] = beam_midpoints
-        model_info["beam_xlocal"] = beam_xlocal
-        model_info["beam_ylocal"] = beam_ylocal
-        model_info["beam_zlocal"] = beam_zlocal
-        model_info["link_midpoints"] = link_midpoints
-        model_info["link_xlocal"] = link_xlocal
-        model_info["link_ylocal"] = link_ylocal
-        model_info["link_zlocal"] = link_zlocal
-
-        cells = dict()
-        cells["all_lines"] = all_lines_cells
-        cells['all_lines_tags'] = all_lines_cells_tags
-        cells["all_faces"] = all_faces_cells
-        cells["all_faces_tags"] = all_faces_cells_tags
-        cells["plane"] = plane_cells
-        cells["plane_tags"] = plane_cells_tags
-        cells["tetrahedron"] = tetrahedron_cells
-        cells["tetrahedron_tags"] = tetrahedron_cells_tags
-        cells["brick"] = brick_cells
-        cells["brick_tags"] = brick_cells_tags
-        cells["truss"] = truss_cells
-        cells["truss_tags"] = truss_cells_tags
-        cells["link"] = link_cells
-        cells["link_tags"] = link_cells_tags
-        cells["beam"] = beam_cells
-        cells["beam_tags"] = beam_cells_tags
-        cells["other_line"] = other_line_cells
-        cells["other_line_tags"] = other_line_cells_tags
-        for key, value in cells.items():
-            cells[key] = np.array(value)
-
+        model_info, cells = get_model_info()
         self.model_info.update(model_info)
         self.cells.update(cells)
         self.get_model_data_finished = True
@@ -223,7 +156,7 @@ class GetFEMdata:
                 grp2 = f.create_group("Cell")
                 for name, value in self.cells.items():
                     grp2.create_dataset(name, data=value)
-            print(f"Model data saved in [bold {next(self.colors_cycle)}]{output_filename}[/] !")
+            print(f"Model data saved in [bold {next(self.colors_cycle)}]{output_filename}[/]!")
 
     def get_eigen_data(
         self,
@@ -269,7 +202,6 @@ class GetFEMdata:
         self.eigen["f"] = f
         eigenvectors = []
         for mode_tag in range(1, mode_tag + 1):
-            # ------------------------------------------
             eigen_vector = np.zeros((self.model_info["num_node"], 3))
             for i, Tag in enumerate(self.model_info["NodeTags"]):
                 coord = ops.nodeCoord(Tag)
@@ -293,9 +225,6 @@ class GetFEMdata:
         self.eigen.update(self.model_info)
         self.eigen.update(self.cells)
         # ----------------------------------------------------------------
-        # output_filename = self.out_dir + '/EigenData'
-        # with shelve.open(output_filename) as db:
-        #     db["EigenInfo"] = self.eigen
         if save_file:
             output_filename = self.out_dir + '/' + save_file
             with h5py.File(output_filename, "w") as f:
@@ -419,6 +348,7 @@ class GetFEMdata:
                             save_file: str = "BeamRespStepData-1.hdf5"
                             ):
         """Get the response data step by step.
+
         .. note::
             You need to call this function at each analysis step in OpenSees.
             The advantage is that you can modify the iterative algorithm at
