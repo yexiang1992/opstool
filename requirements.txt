@@ -7,4 +7,3 @@ sectionproperties
 Shapely
 h5py
 rich
-tkinter
