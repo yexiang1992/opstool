@@ -1,6 +1,12 @@
 Changelog
 ==========
 
+v0.3.0
+--------
+- Added the class :class:`opstool.analysis.SmartAnalyze`
+- Added the functions :func:`opstool.preprocessing.var_line_string` and :func:`opstool.preprocessing.vis_var_sec`
+  to create variable fiber cross-section meshes.
+
 v0.2.0
 --------
 - Moved the fiber section mesh commands to :mod:`opstool.preprocessing.section`

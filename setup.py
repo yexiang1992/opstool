@@ -20,7 +20,7 @@ setup(
     platforms='any',
     python_requires='>=3.8.*',
     package_dir={'': 'src'},
-    packages=['opstool'],
+    packages=find_packages('src'),
     install_requires=[
         'matplotlib',
         'numpy',

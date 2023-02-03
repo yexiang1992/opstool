@@ -4,8 +4,6 @@ import time
 import numpy as np
 import openseespy.opensees as ops
 from rich import print
-from rich.traceback import install
-install(show_locals=True)
 
 
 class SmartAnalyze:
@@ -121,13 +119,6 @@ class SmartAnalyze:
         * 80:  PeriodicNewton
         * 90:  User-defined0
 
-        About User-defined algoType
-        ++++++++++++++++++++++++++++++++++
-        If special algorithm is to be used, SmartAyalize provides 3 user-defined algorithms.
-        The script author should specify the algorithm as a procedure in the script.
-        The script name must be `UserAlgorithm0`, `UserAlgorithm1`, `UserAlgorithm2`.
-        Example see section Example No. 4.
-
     Examples
     ---------
     .. note::
@@ -137,35 +128,35 @@ class SmartAnalyze:
 
     Example 1: Basic usage for Transient
     ++++++++++++++++++++++++++++++++++++++
-    >>> from opstool.analysis import SmartAnalyze
+    >>> import opstool as opst
     >>> ops.constraints('Transformation')
     >>> ops.numberer('Plain')
     >>> ops.system('BandGeneral')
     >>> ops.integrator('Newmark', 0.5, 0.25)
-    >>> analysis = SmartAnalyze(analysis_type="Transient")
+    >>> analysis = opst.SmartAnalyze(analysis_type="Transient")
     >>> segs = analysis.transient_split(npts)
     >>> for seg in segs:
     >>>     analysis.TransientAnalyze(dt)
 
     Example 2: Basic usage for Static
     +++++++++++++++++++++++++++++++++++++
-    >>> from opstool.analysis import SmartAnalyze
+    >>> import opstool as opst
     >>> ops.constraints('Transformation')
     >>> ops.numberer('Plain')
     >>> ops.system('BandGeneral')
     >>> protocol=[1, -1, 1, -1, 0]
-    >>> analysis = SmartAnalyze(analysis_type="Static")
+    >>> analysis = opst.SmartAnalyze(analysis_type="Static")
     >>> segs = analysis.static_split(protocol, 0.01)
     >>> for seg in segs:
     >>>     analysis.StaticAnalyze(1, 1, seg)
 
     Example 3: change control parameters
     ++++++++++++++++++++++++++++++++++++++
-    >>> analysis = SmartAnalyze(analysis_type="Transient",
-    >>>                         algoTypes=[20, 30],
-    >>>                         printPer=20,
-    >>>                         tryAlterAlgoTypes=True,
-    >>>                        )
+    >>> analysis = opst.SmartAnalyze(analysis_type="Transient",
+    >>>                              algoTypes=[20, 30],
+    >>>                              printPer=20,
+    >>>                              tryAlterAlgoTypes=True,
+    >>>                             )
     """
 
     def __init__(self, analysis_type="Transient", **kargs):

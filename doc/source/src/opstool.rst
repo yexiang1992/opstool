@@ -27,3 +27,25 @@ Section Fiber Mesh
     api/sec.var_line_string
     api/sec.vis_var_sec
 
+Preprocessing
+--------------
+.. toctree::
+    :maxdepth: 1
+
+    api/pre.tcl2py
+    api/pre.gen_grav_load
+
+Analysis
+--------------
+.. toctree::
+    :maxdepth: 1
+
+    api/ana.SmartAnalyze
+
+OpenSeesPy Examples
+--------------------
+.. toctree::
+    :maxdepth: 1
+
+    api/exa.load_ops_examples
+
