@@ -1,4 +1,3 @@
-
 from setuptools import find_packages, setup
 
 from src.opstool import __version__
@@ -16,11 +15,14 @@ setup(
     author_email='yexiang_yan@outlook.com',
     url='https://github.com/yexiang1992',
     license='GPL Licence',
-    keywords='OpenSees Visualization',
+    keywords='OpenSees seismic visualization',
     platforms='any',
     python_requires='>=3.8.*',
     package_dir={'': 'src'},
     packages=find_packages('src'),
+    classifiers=[
+        "Programming Language :: Python :: 3",
+    ],
     install_requires=[
         'matplotlib',
         'numpy',
