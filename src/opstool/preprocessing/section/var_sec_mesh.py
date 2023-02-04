@@ -74,7 +74,8 @@ def var_line_string(pointsi: list[list[float, float]],
     return cum_points
 
 
-def vis_var_sec(sec_meshes: list, path: list, n_sec: float, on_notebook: bool = False):
+def vis_var_sec(sec_meshes: list, path: list, n_sec: float,
+                on_notebook: bool = False, show_outline: bool = True):
     """Visualize varied section meshes.
 
     Parameters
@@ -88,6 +89,8 @@ def vis_var_sec(sec_meshes: list, path: list, n_sec: float, on_notebook: bool = 
         The number of sections within each line segment between two coords in Arg `path`.
     on_notebook : bool, optional, by default False
         If True, display on the notebook.
+    show_outline: bool, optional, by default False
+        If True, display bound outline.
     """
     _, _, cum_coord = _get_path_len(path, n_sec)
     plotter = pv.Plotter(notebook=on_notebook)
@@ -139,6 +142,13 @@ def vis_var_sec(sec_meshes: list, path: list, n_sec: float, on_notebook: bool = 
                 spheres.append(pv.Sphere(radius=r, center=coord))
             merged = pv.MultiBlock(spheres)
             plotter.add_mesh(merged, color=color)
+    if show_outline:
+        plotter.show_bounds(
+            grid=False,
+            location="outer",
+            show_zaxis=True,
+            # color="black",
+        )
     plotter.add_axes()
     plotter.view_isometric()
     plotter.show(title="opstool")
