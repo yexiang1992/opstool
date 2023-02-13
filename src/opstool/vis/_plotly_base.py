@@ -90,7 +90,7 @@ def _make_lines(points, cells):
 def _make_fix_node(model_info):
     fixed_dofs = model_info["FixNodeDofs"]
     fixed_coords = model_info["FixNodeCoords"]
-    s = model_info["max_bound"] / 200
+    s = model_info["max_bound"] / 150
     points = []
     for coord, dof in zip(fixed_coords, fixed_dofs):
         x, y, z = coord
@@ -104,7 +104,8 @@ def _make_fix_node(model_info):
                            [x - s / 2, y, z], [np.NAN, np.NAN, np.NAN]])
         if dof[2] == -1:
             points.extend([[x - s / 2, y - s / 2, z - s / 2], [x + s / 2, y - s / 2, z - s / 2],
-                           [x + s / 2, y + s / 2, z - s / 2], [x - s / 2, y + s / 2, z - s / 2],
+                           [x + s / 2, y + s / 2, z - s / 2], [x -
+                                                               s / 2, y + s / 2, z - s / 2],
                            [x - s / 2, y - s / 2, z - s / 2], [np.NAN, np.NAN, np.NAN]])
     points = np.array(points)
     return points
@@ -390,7 +391,7 @@ def _eigen_vis(
             if alpha is None:
                 value_ = np.max(np.sqrt(np.sum(eigen_vec ** 2, axis=1)))
                 alpha_ = (
-                        eigen_data["max_bound"] / obj.bound_fact / value_
+                    eigen_data["max_bound"] / obj.bound_fact / value_
                 )
             else:
                 alpha_ = alpha
@@ -471,7 +472,7 @@ def _eigen_vis(
             if alpha is None:
                 value_ = np.max(np.sqrt(np.sum(eigen_vec ** 2, axis=1)))
                 alpha_ = (
-                        eigen_data["max_bound"] / obj.bound_fact / value_
+                    eigen_data["max_bound"] / obj.bound_fact / value_
                 )
             else:
                 alpha_ = alpha
@@ -582,7 +583,7 @@ def _eigen_anim(
     if alpha is None:
         value_ = np.max(np.sqrt(np.sum(eigen_vec ** 2, axis=1)))
         alpha_ = (
-                eigen_data["max_bound"] / obj.bound_fact / value_
+            eigen_data["max_bound"] / obj.bound_fact / value_
         )
     else:
         alpha_ = alpha

@@ -112,7 +112,7 @@ def _show_local_axes(plotter, model_info, beam_midpoints):
 def _show_fix_node(plotter, model_info):
     fixed_dofs = model_info["FixNodeDofs"]
     fixed_coords = model_info["FixNodeCoords"]
-    s = model_info["max_bound"] / 200
+    s = model_info["max_bound"] / 150
     points, cells = [], []
     for coord, dof in zip(fixed_coords, fixed_dofs):
         x, y, z = coord
