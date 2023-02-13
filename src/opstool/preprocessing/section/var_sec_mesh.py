@@ -1,8 +1,9 @@
 import re
+
 import numpy as np
 import pyvista as pv
-from shapely import LineString
 from sectionproperties.pre.geometry import Geometry
+from shapely import LineString
 
 pv.set_plot_theme("document")
 

@@ -17,7 +17,7 @@ setup(
     license='GPL Licence',
     keywords='OpenSees seismic visualization',
     platforms='any',
-    python_requires='>=3.8.*',
+    python_requires='>=3.9.*',
     package_dir={'': 'src'},
     packages=find_packages('src'),
     classifiers=[

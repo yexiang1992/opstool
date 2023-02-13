@@ -158,7 +158,7 @@ class SecMesh:
         mesh_sizes = []
         for name, geom in self.group_map.items():
             geoms.append(geom)
-            mesh_sizes.append(self.mesh_size_map[name] / 10)
+            mesh_sizes.append(self.mesh_size_map[name])
         geom_obj = CompoundGeometry(geoms)
         mesh_obj = geom_obj.create_mesh(mesh_sizes=mesh_sizes)
         self.section = _to_section(geom_obj, time_info=False)
