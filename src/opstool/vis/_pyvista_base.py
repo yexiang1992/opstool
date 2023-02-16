@@ -113,30 +113,33 @@ def _show_fix_node(plotter, model_info):
     fixed_dofs = model_info["FixNodeDofs"]
     fixed_coords = model_info["FixNodeCoords"]
     s = model_info["max_bound"] / 150
-    points, cells = [], []
-    for coord, dof in zip(fixed_coords, fixed_dofs):
-        x, y, z = coord
-        if dof[0] == -1:
-            idx = len(points)
-            points.extend([[x, y - s / 2, z], [x, y + s / 2, z],
-                           [x, y + s / 2, z - s], [x, y - s / 2, z - s]])
-            cells.extend([2, idx, idx + 1, 2, idx + 1, idx + 2,
-                         2, idx + 2, idx + 3, 2, idx + 3, idx])
-        if dof[1] == -1:
-            idx = len(points)
-            points.extend([[x - s / 2, y, z], [x + s / 2, y, z],
-                           [x + s / 2, y, z - s], [x - s / 2, y, z - s]])
-            cells.extend([2, idx, idx + 1, 2, idx + 1, idx + 2,
-                         2, idx + 2, idx + 3, 2, idx + 3, idx])
-        if dof[2] == -1:
-            idx = len(points)
-            points.extend([[x - s / 2, y - s / 2, z - s / 2], [x + s / 2, y - s / 2, z - s / 2],
-                           [x + s / 2, y + s / 2, z - s / 2], [x - s / 2, y + s / 2, z - s / 2]])
-            cells.extend([2, idx, idx + 1, 2, idx + 1, idx + 2,
-                         2, idx + 2, idx + 3, 2, idx + 3, idx])
-    fix_plot = _generate_mesh(points, cells, kind="line")
-    plotter.add_mesh(fix_plot, color="#01ff07",
-                     render_lines_as_tubes=False, line_width=1)
+    if len(fixed_coords) > 0:
+        points, cells = [], []
+        for coord, dof in zip(fixed_coords, fixed_dofs):
+            x, y, z = coord
+            if dof[0] == -1:
+                idx = len(points)
+                points.extend([[x, y - s / 2, z], [x, y + s / 2, z],
+                               [x, y + s / 2, z - s], [x, y - s / 2, z - s]])
+                cells.extend([2, idx, idx + 1, 2, idx + 1, idx + 2,
+                              2, idx + 2, idx + 3, 2, idx + 3, idx])
+            if dof[1] == -1:
+                idx = len(points)
+                points.extend([[x - s / 2, y, z], [x + s / 2, y, z],
+                               [x + s / 2, y, z - s], [x - s / 2, y, z - s]])
+                cells.extend([2, idx, idx + 1, 2, idx + 1, idx + 2,
+                              2, idx + 2, idx + 3, 2, idx + 3, idx])
+            if dof[2] == -1:
+                idx = len(points)
+                points.extend([[x - s / 2, y - s / 2, z - s / 2], [x + s / 2, y - s / 2, z - s / 2],
+                               [x + s / 2, y + s / 2, z - s / 2], [x - s / 2, y + s / 2, z - s / 2]])
+                cells.extend([2, idx, idx + 1, 2, idx + 1, idx + 2,
+                              2, idx + 2, idx + 3, 2, idx + 3, idx])
+        fix_plot = _generate_mesh(points, cells, kind="line")
+        plotter.add_mesh(fix_plot, color="#01ff07",
+                         render_lines_as_tubes=False, line_width=1)
+    else:
+        warnings.warn("Model has no fix nodes!")
     return plotter
 
 

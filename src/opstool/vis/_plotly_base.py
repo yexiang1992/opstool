@@ -234,11 +234,14 @@ def _model_vis(
 
     if show_fix_node:
         fix_points = _make_fix_node(model_info)
-        x, y, z = fix_points[:, 0], fix_points[:, 1], fix_points[:, 2]
-        fix_plot = go.Scatter3d(x=x, y=y, z=z,
-                                line=dict(color="#01ff07", width=1),
-                                mode="lines", connectgaps=False, hoverinfo="skip")
-        plotter.append(fix_plot)
+        if len(fix_points) > 0:
+            x, y, z = fix_points[:, 0], fix_points[:, 1], fix_points[:, 2]
+            fix_plot = go.Scatter3d(x=x, y=y, z=z,
+                                    line=dict(color="#01ff07", width=1),
+                                    mode="lines", connectgaps=False, hoverinfo="skip")
+            plotter.append(fix_plot)
+        else:
+            warnings.warn("Model has no fix nodes!")
 
     # local axes
     beam_midpoints = model_info["beam_midpoints"]
