@@ -55,12 +55,13 @@ class OpsVisPlotly:
         self.title = "OpenSeesVispy"
         # Initialize the color dict
         colors = dict(
-            point="#003666",
+            point="#610023",
             line="#037ef3",
-            face="#0cb9c1",
-            solid="#7552cc",
-            truss="#00a4e4",
+            face="#00c16e",
+            solid="#0cb9c1",
+            truss="#7552cc",
             link="#f48924",
+            constraint="#f85a40",
         )
         if colors_dict is not None:
             colors.update(colors_dict)
@@ -70,6 +71,7 @@ class OpsVisPlotly:
         self.color_solid = colors["solid"]
         self.color_truss = colors["truss"]
         self.color_link = colors["link"]
+        self.color_constraint = colors['constraint']
         # -------------------------------------------------
         self.theme = theme
         self.color_map = color_map

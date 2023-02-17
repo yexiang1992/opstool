@@ -40,6 +40,25 @@ def get_node_fix(node_coords, node_index):
     return fixed_nodes, fixed_coords, fixed_dofs
 
 
+def get_mp_constraint(node_coords, node_index):
+    retained_nodes = ops.getRetainedNodes()
+    points = []
+    midpoints = []
+    cells = []
+    dofs = []
+    for i, tag in enumerate(retained_nodes):
+        constrained_nodes = ops.getConstrainedNodes(tag)
+        for tag2 in constrained_nodes:
+            points.append(node_coords[node_index[tag]])
+            points.append(node_coords[node_index[tag2]])
+            midpoints.append(
+                (node_coords[node_index[tag]] + node_coords[node_index[tag2]]) / 2)
+            cells.extend([2, 2 * i, 2 * i + 1])
+            dof = ops.getRetainedDOFs(tag, tag2)
+            dofs.append(dof)
+    return np.array(points), np.array(midpoints), dofs, cells
+
+
 def get_truss_info(ele_tags, node_index):
     truss_cells = []
     truss_cells_tags = []
@@ -87,6 +106,7 @@ def get_beam_info(ele_tags, node_coords, node_index):
     beam_cells = []
     beam_cells_tags = []
     beam_midpoints = []
+    beam_lengths = []
     beam_xlocal = []
     beam_ylocal = []
     beam_zlocal = []
@@ -99,6 +119,8 @@ def get_beam_info(ele_tags, node_coords, node_index):
             beam_cells_tags.append(ele)
             beam_midpoints.append(
                 (node_coords[idx_i] + node_coords[idx_j]) / 2)
+            beam_lengths.append(
+                np.sqrt(np.sum((node_coords[idx_i] - node_coords[idx_j])**2)))
             xlocal = ops.eleResponse(ele, "xlocal")
             ylocal = ops.eleResponse(ele, "ylocal")
             zlocal = ops.eleResponse(ele, "zlocal")
@@ -106,10 +128,11 @@ def get_beam_info(ele_tags, node_coords, node_index):
             beam_ylocal.append(np.array(ylocal) / np.linalg.norm(ylocal))
             beam_zlocal.append(np.array(zlocal) / np.linalg.norm(zlocal))
     beam_midpoints = np.array(beam_midpoints)
+    beam_lengths = np.array(beam_lengths)
     beam_xlocal = np.array(beam_xlocal)
     beam_ylocal = np.array(beam_ylocal)
     beam_zlocal = np.array(beam_zlocal)
-    return (beam_cells, beam_cells_tags, beam_midpoints,
+    return (beam_cells, beam_cells_tags, beam_midpoints, beam_lengths,
             beam_xlocal, beam_ylocal, beam_zlocal)
 
 
@@ -249,9 +272,9 @@ def get_ele_mid(ele_tags, node_coords, node_index):
 def get_bounds(node_coords):
     min_node = np.min(node_coords, axis=0)
     max_node = np.max(node_coords, axis=0)
-    space = (max_node - min_node) / 10
-    min_node = min_node - 2 * space
-    max_node = max_node + 2 * space
+    space = (max_node - min_node) / 5
+    min_node = min_node - space
+    max_node = max_node + space
     bounds = [
         min_node[0],
         max_node[0],
@@ -261,44 +284,58 @@ def get_bounds(node_coords):
         max_node[2],
     ]
     max_bound = np.max(max_node - min_node)
-    return bounds, max_bound
+    min_bound = np.min(max_node - min_node)
+    return bounds, max_bound, min_bound
 
 
 def get_model_info():
     # print(ops.constrainedDOFs())   constrainedDOFs
     node_coords, node_index, model_dims, node_tags = get_node_coords()
-    fixed_nodes, fixed_coords, fixed_dofs = get_node_fix(node_coords, node_index)
+    fixed_nodes, fixed_coords, fixed_dofs = get_node_fix(
+        node_coords, node_index)
+    ctra_coords, ctra_midcoords, ctra_dofs, ctra_cells = get_mp_constraint(
+        node_coords, node_index)
     ele_tags = ops.getEleTags()
     num_ele = len(ele_tags)
     truss_cells, truss_cells_tags = get_truss_info(ele_tags, node_index)
     (link_cells, link_cells_tags, link_midpoints,
      link_xlocal, link_ylocal, link_zlocal) = get_link_info(ele_tags, node_coords, node_index)
-    (beam_cells, beam_cells_tags, beam_midpoints,
+    (beam_cells, beam_cells_tags, beam_midpoints, beam_lengths,
      beam_xlocal, beam_ylocal, beam_zlocal) = get_beam_info(ele_tags, node_coords, node_index)
-    other_line_cells, other_line_cells_tags = get_other_line_info(ele_tags, node_index)
-    all_lines_cells, all_lines_cells_tags = get_all_line_info(ele_tags, node_index)
+    other_line_cells, other_line_cells_tags = get_other_line_info(
+        ele_tags, node_index)
+    all_lines_cells, all_lines_cells_tags = get_all_line_info(
+        ele_tags, node_index)
     plane_cells, plane_cells_tags = get_plane_info(ele_tags, node_index)
-    tetrahedron_cells, tetrahedron_cells_tags = get_tet_info(ele_tags, node_index)
+    tetrahedron_cells, tetrahedron_cells_tags = get_tet_info(
+        ele_tags, node_index)
     brick_cells, brick_cells_tags = get_bri_info(ele_tags, node_index)
     all_faces_cells = plane_cells + tetrahedron_cells + brick_cells
-    all_faces_cells_tags = plane_cells_tags + tetrahedron_cells_tags + brick_cells_tags
+    all_faces_cells_tags = plane_cells_tags + \
+        tetrahedron_cells_tags + brick_cells_tags
     ele_midpoints = get_ele_mid(ele_tags, node_coords, node_index)
-    bounds, max_bound = get_bounds(node_coords)
+    bounds, max_bound, min_bound = get_bounds(node_coords)
     model_info = dict()
     model_info["coord_no_deform"] = node_coords
     model_info["coord_ele_midpoints"] = ele_midpoints
     model_info["bound"] = bounds
     model_info["max_bound"] = max_bound
+    model_info["min_bound"] = min_bound
     model_info["num_ele"] = num_ele
     model_info["NodeTags"] = node_tags
     model_info["num_node"] = len(node_tags)
     model_info["FixNodeTags"] = fixed_nodes
     model_info["FixNodeDofs"] = fixed_dofs
     model_info["FixNodeCoords"] = fixed_coords
+    model_info["ConstrainedCoords"] = ctra_coords
+    model_info["ConstrainedMidCoords"] = ctra_midcoords
+    model_info["ConstrainedDofs"] = ctra_dofs
+    model_info["ConstrainedCells"] = ctra_cells
     model_info["EleTags"] = ele_tags
     model_info["model_dims"] = model_dims
     model_info["coord_ele_midpoints"] = ele_midpoints
     model_info["beam_midpoints"] = beam_midpoints
+    model_info["beam_lengths"] = beam_lengths
     model_info["beam_xlocal"] = beam_xlocal
     model_info["beam_ylocal"] = beam_ylocal
     model_info["beam_zlocal"] = beam_zlocal

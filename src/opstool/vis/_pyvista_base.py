@@ -35,8 +35,12 @@ def _model_vis(
     txt = f"OpenSees 3D View\nNum. of Node:{model_info['num_node']}\nNum. of Ele:{model_info['num_ele']}"
     plotter.add_text(txt, position="upper_right", font_size=10, font="courier")
     if show_outline:
+        if np.max(model_info["model_dims"]) <= 2:
+            show_zaxis = False
+        else:
+            show_zaxis = True
         plotter.show_bounds(grid=False, location="outer",
-                            bounds=model_info["bound"], show_zaxis=True)
+                            bounds=model_info["bound"], show_zaxis=show_zaxis)
     if show_node_label:
         node_labels = ["N" + str(i) for i in model_info["NodeTags"]]
         plotter.add_point_labels(model_info["coord_no_deform"], node_labels, text_color="white",
@@ -53,8 +57,11 @@ def _model_vis(
         show_local_crd = False
     if show_local_crd:
         plotter = _show_local_axes(plotter, model_info, beam_midpoints)
+    # fix nodes
     if show_fix_node:
         plotter = _show_fix_node(plotter, model_info)
+    # mp constraint lines
+    plotter = _show_mp_constraint(obj, plotter, model_info)
     plotter.add_axes()
     plotter.view_isometric()
     if np.max(model_info["model_dims"]) <= 2:
@@ -65,21 +72,38 @@ def _model_vis(
     plotter.close()
 
 
+def _show_mp_constraint(obj, plotter, model_info):
+    points = model_info["ConstrainedCoords"]
+    cells = model_info["ConstrainedCells"]
+    midcoords = model_info["ConstrainedMidCoords"]
+    dofs = model_info["ConstrainedDofs"]
+    dofs = ["".join([str(k) for k in dof]) for dof in dofs]
+    if len(cells) > 0:
+        mesh = _generate_mesh(points, cells, kind="line")
+        plotter.add_mesh(mesh, color=obj.color_constraint,
+                         render_lines_as_tubes=False, line_width=obj.line_width / 3)
+        plotter.add_point_labels(midcoords, dofs, text_color=obj.color_constraint,
+                                 font_size=12, bold=True, show_points=False,
+                                 always_visible=True, shape_opacity=0)
+    return plotter
+
+
 def _show_local_axes(plotter, model_info, beam_midpoints):
     beam_xlocal = model_info["beam_xlocal"]
     beam_ylocal = model_info["beam_ylocal"]
     beam_zlocal = model_info["beam_zlocal"]
-    length = model_info["max_bound"] / 250
+    beam_lengths = model_info["beam_lengths"]
+    length = (np.max(beam_lengths) + np.min(beam_lengths)) / 20
     _ = plotter.add_arrows(beam_midpoints, beam_xlocal,
-                           mag=length, color="red")
+                           mag=length, color="#cf6275")
     _ = plotter.add_arrows(beam_midpoints, beam_ylocal,
-                           mag=length, color="orange")
+                           mag=length, color="#04d8b2")
     _ = plotter.add_arrows(beam_midpoints, beam_zlocal,
-                           mag=length, color="green")
+                           mag=length, color="#9aae07")
     plotter.add_point_labels(
         beam_midpoints + length * beam_xlocal,
         ['x'] * beam_midpoints.shape[0],
-        text_color="red",
+        text_color="#cf6275",
         bold=False,
         shape=None,
         render_points_as_spheres=True,
@@ -89,7 +113,7 @@ def _show_local_axes(plotter, model_info, beam_midpoints):
     plotter.add_point_labels(
         beam_midpoints + length * beam_ylocal,
         ['y'] * beam_midpoints.shape[0],
-        text_color="orange",
+        text_color="#04d8b2",
         bold=False,
         shape=None,
         render_points_as_spheres=True,
@@ -99,7 +123,7 @@ def _show_local_axes(plotter, model_info, beam_midpoints):
     plotter.add_point_labels(
         beam_midpoints + length * beam_zlocal,
         ['z'] * beam_midpoints.shape[0],
-        text_color="green",
+        text_color="#9aae07",
         bold=False,
         shape=None,
         render_points_as_spheres=True,
@@ -112,7 +136,8 @@ def _show_local_axes(plotter, model_info, beam_midpoints):
 def _show_fix_node(plotter, model_info):
     fixed_dofs = model_info["FixNodeDofs"]
     fixed_coords = model_info["FixNodeCoords"]
-    s = model_info["max_bound"] / 150
+    beam_lengths = model_info["beam_lengths"]
+    s = (np.max(beam_lengths) + np.min(beam_lengths)) / 20
     if len(fixed_coords) > 0:
         points, cells = [], []
         for coord, dof in zip(fixed_coords, fixed_dofs):
@@ -137,7 +162,7 @@ def _show_fix_node(plotter, model_info):
                               2, idx + 2, idx + 3, 2, idx + 3, idx])
         fix_plot = _generate_mesh(points, cells, kind="line")
         plotter.add_mesh(fix_plot, color="#01ff07",
-                         render_lines_as_tubes=False, line_width=1)
+                         render_lines_as_tubes=False, line_width=2)
     else:
         warnings.warn("Model has no fix nodes!")
     return plotter
@@ -1090,7 +1115,7 @@ def _generate_all_mesh(
             plotter.add_mesh(
                 line_plot_origin,
                 color="gray",
-                line_width=line_width / 3,
+                line_width=line_width / 2,
                 show_scalar_bar=False,
             )
         line_plot = _generate_mesh(points, lines_cells, kind="line")
@@ -1167,7 +1192,7 @@ def _plot_model(obj, plotter, model_info, cells, opacity):
             link_plot,
             color=obj.color_link,
             render_lines_as_tubes=False,
-            line_width=obj.line_width / 5,
+            line_width=obj.line_width / 2,
         )
 
     if len(cells["beam"]) > 0:
@@ -1177,7 +1202,7 @@ def _plot_model(obj, plotter, model_info, cells, opacity):
         plotter.add_mesh(
             beam_plot,
             color=obj.color_line,
-            render_lines_as_tubes=False,
+            render_lines_as_tubes=True,
             line_width=obj.line_width,
         )
 

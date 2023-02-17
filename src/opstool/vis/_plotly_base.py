@@ -90,7 +90,8 @@ def _make_lines(points, cells):
 def _make_fix_node(model_info):
     fixed_dofs = model_info["FixNodeDofs"]
     fixed_coords = model_info["FixNodeCoords"]
-    s = model_info["max_bound"] / 150
+    beam_lengths = model_info["beam_lengths"]
+    s = (np.max(beam_lengths) + np.min(beam_lengths)) / 20
     points = []
     for coord, dof in zip(fixed_coords, fixed_dofs):
         x, y, z = coord
@@ -227,17 +228,12 @@ def _model_vis(
         )
         plotter.append(txt_plot)
 
-    if np.max(np.abs(points_no_deform[:, -1])) < 1e-5:
-        eye = dict(x=0, y=0, z=1.5)  # for 2D camera
-    else:
-        eye = dict(x=-3.5, y=-3.5, z=3.5)  # for 3D camera
-
     if show_fix_node:
         fix_points = _make_fix_node(model_info)
         if len(fix_points) > 0:
             x, y, z = fix_points[:, 0], fix_points[:, 1], fix_points[:, 2]
             fix_plot = go.Scatter3d(x=x, y=y, z=z,
-                                    line=dict(color="#01ff07", width=1),
+                                    line=dict(color="#01ff07", width=2),
                                     mode="lines", connectgaps=False, hoverinfo="skip")
             plotter.append(fix_plot)
         else:
@@ -245,6 +241,7 @@ def _model_vis(
 
     # local axes
     beam_midpoints = model_info["beam_midpoints"]
+    beam_lengths = model_info["beam_lengths"]
     if show_local_crd and len(beam_midpoints) == 0:
         warnings.warn("Model has no frame elements!")
         show_local_crd = False
@@ -252,7 +249,7 @@ def _model_vis(
         beam_xlocal = model_info["beam_xlocal"]
         beam_ylocal = model_info["beam_ylocal"]
         beam_zlocal = model_info["beam_zlocal"]
-        length = model_info["max_bound"] / 350
+        length = (np.max(beam_lengths) + np.min(beam_lengths)) / 20
         xcoords = beam_midpoints + length * beam_xlocal
         ycoords = beam_midpoints + length * beam_ylocal
         zcoords = beam_midpoints + length * beam_zlocal
@@ -276,7 +273,7 @@ def _model_vis(
             x=localx_points[:, 0],
             y=localx_points[:, 1],
             z=localx_points[:, 2],
-            line=dict(color="red", width=3.5),
+            line=dict(color="#cf6275", width=obj.line_width * 1.5),
             mode="lines",
             connectgaps=False,
             name='',
@@ -286,7 +283,7 @@ def _model_vis(
             x=localy_points[:, 0],
             y=localy_points[:, 1],
             z=localy_points[:, 2],
-            line=dict(color="orange", width=3.5),
+            line=dict(color="#04d8b2", width=obj.line_width * 1.5),
             mode="lines",
             connectgaps=False,
             name='',
@@ -295,21 +292,31 @@ def _model_vis(
             x=localz_points[:, 0],
             y=localz_points[:, 1],
             z=localz_points[:, 2],
-            line=dict(color="green", width=3.5),
+            line=dict(color="#9aae07", width=obj.line_width * 1.5),
             mode="lines",
             connectgaps=False,
             name='',
             hovertemplate='<b>z</b>')
         plotter.extend([plotter1, plotter2, plotter3])
+    # mp constraint lines
+    plotter = _show_mp_constraint(obj, plotter, model_info)
 
     fig.add_traces(plotter)
+
+    if np.max(np.abs(points_no_deform[:, -1])) < 1e-6:
+        eye = dict(x=0., y=-0.1, z=10)  # for 2D camera
+        scene = dict(camera=dict(
+            eye=eye, projection=dict(type="orthographic")))
+    else:
+        eye = dict(x=-3.5, y=-3.5, z=3.5)  # for 3D camera
+        scene = dict(aspectratio=dict(x=1, y=1, z=1), aspectmode="data",
+                     camera=dict(eye=eye, projection=dict(type="orthographic")))
 
     fig.update_layout(
         template=obj.theme,
         autosize=True,
         showlegend=False,
-        scene=dict(aspectratio=dict(x=1, y=1, z=1), aspectmode="data",
-                   camera=dict(eye=eye, projection=dict(type="orthographic"))),
+        scene=scene,
         title=dict(font=dict(family="courier", color='black', size=25),
                    text=("<b>OpenSeesPy 3D View</b> <br>"
                          f"Num. of Node: {model_info['num_node']} || Num. of Ele:{model_info['num_ele']}")
@@ -328,6 +335,30 @@ def _model_vis(
         pio.write_html(fig, file=save_html, auto_open=True)
     if obj.notebook:
         fig.show()
+
+
+def _show_mp_constraint(obj, plotter, model_info):
+    points = model_info["ConstrainedCoords"]
+    cells = model_info["ConstrainedCells"]
+    cells = _reshape_cell(cells)
+    dofs = model_info["ConstrainedDofs"]
+    dofs = ["".join([str(k) for k in dof]) for dof in dofs]
+    if len(cells) > 0:
+        line_points, line_mid_points = _make_lines(points, cells)
+        x, y, z = line_points[:, 0], line_points[:, 1], line_points[:, 2]
+        plotter.append(go.Scatter3d(x=x, y=y, z=z,
+                                    line=dict(
+                                        color=obj.color_constraint,
+                                        width=obj.line_width / 3),
+                                    mode="lines", name="mp constraint",
+                                    connectgaps=False, hoverinfo="skip"))
+        x, y, z = [line_mid_points[:, j] for j in range(3)]
+        txt_plot = go.Scatter3d(x=x, y=y, z=z, text=dofs,
+                                textfont=dict(color=obj.color_constraint,
+                                              size=12),
+                                mode="text", name="constraint dofs")
+        plotter.append(txt_plot)
+    return plotter
 
 
 def _eigen_vis(
@@ -362,10 +393,13 @@ def _eigen_vis(
             f"Insufficient number of modes in eigen file {filename}!")
 
     fig = go.Figure()
-    off_axis = {'showgrid': False, 'zeroline': False, 'visible': False}
     title = dict(font=dict(family="courier", color='black', size=25),
                  text="<b>OpenSeesPy Eigen 3D View</b>"
                  )
+    if show_outline:
+        off_axis = {'showgrid': True, 'zeroline': True, 'visible': True}
+    else:
+        off_axis = {'showgrid': False, 'zeroline': False, 'visible': False}
 
     # !subplots
     if subplots:
@@ -417,53 +451,42 @@ def _eigen_vis(
                                          line_width=obj.line_width,
                                          show_face_line=show_face_line)
             fig.add_traces(plotter, rows=idxi + 1, cols=idxj + 1)
+        if np.max(np.abs(eigen_data["coord_no_deform"][:, -1])) < 1e-8:
+            eye = dict(x=0., y=-0.1, z=10)  # for 2D camera
+            scene = dict(camera=dict(
+                eye=eye, projection=dict(type="orthographic")),
+                xaxis=off_axis, yaxis=off_axis, zaxis=off_axis)
+        else:
+            eye = dict(x=-3.5, y=-3.5, z=3.5)  # for 3D camera
+            scene = dict(aspectratio=dict(x=1, y=1, z=1), aspectmode="data",
+                         camera=dict(eye=eye, projection=dict(
+                             type="orthographic")),
+                         xaxis=off_axis, yaxis=off_axis, zaxis=off_axis)
         scenes = dict()
         coloraxiss = dict()
-        if np.max(np.abs(eigen_data["coord_no_deform"][:, -1])) < 1e-8:
-            eye = dict(x=0, y=-1e-5, z=1.5)
-        else:
-            eye = dict(x=-1.5, y=-1.5, z=1.5)
-        if show_outline:
-            for k in range(shape[0] * shape[1]):
-                coloraxiss[f"coloraxis{k + 1}"] = dict(
-                    showscale=False, colorscale=obj.color_map)
-                if k >= 1:
-                    scenes[f"scene{k + 1}"] = dict(aspectratio=dict(x=1, y=1, z=1), aspectmode="data",
-                                                   camera=dict(eye=eye, projection=dict(type="orthographic")))
-            fig.update_layout(
-                title=title,
-                template=obj.theme,
-                autosize=True,
-                showlegend=False,
-                coloraxis=dict(showscale=False, colorscale=obj.color_map),
-                scene=dict(aspectratio=dict(x=1, y=1, z=1), aspectmode="data",
-                           camera=dict(eye=eye, projection=dict(type="orthographic"))),
-                **scenes,
-                **coloraxiss
-            )
-        else:
-            for k in range(shape[0] * shape[1]):
-                coloraxiss[f"coloraxis{k + 1}"] = dict(
-                    showscale=False, colorscale=obj.color_map)
-                if k >= 1:
+        for k in range(shape[0] * shape[1]):
+            coloraxiss[f"coloraxis{k + 1}"] = dict(
+                showscale=False, colorscale=obj.color_map)
+            if k >= 1:
+                if np.max(np.abs(eigen_data["coord_no_deform"][:, -1])) < 1e-8:
+                    scenes[f"scene{k + 1}"] = dict(camera=dict(eye=eye,
+                                                               projection=dict(type="orthographic")),
+                                                   xaxis=off_axis, yaxis=off_axis, zaxis=off_axis)
+                else:
                     scenes[f"scene{k + 1}"] = dict(aspectratio=dict(x=1, y=1, z=1), aspectmode="data",
                                                    camera=dict(eye=eye,
                                                                projection=dict(type="orthographic")),
                                                    xaxis=off_axis, yaxis=off_axis, zaxis=off_axis)
-
-            fig.update_layout(
-                title=title,
-                template=obj.theme,
-                autosize=True,
-                showlegend=False,
-                coloraxis=dict(showscale=False, colorscale=obj.color_map),
-                scene=dict(aspectratio=dict(x=1, y=1, z=1), aspectmode="data",
-                           camera=dict(eye=eye, projection=dict(
-                               type="orthographic")),
-                           xaxis=off_axis, yaxis=off_axis, zaxis=off_axis),
-                **scenes,
-                **coloraxiss
-            )
+        fig.update_layout(
+            title=title,
+            template=obj.theme,
+            autosize=True,
+            showlegend=False,
+            coloraxis=dict(showscale=False, colorscale=obj.color_map),
+            scene=scene,
+            **scenes,
+            **coloraxiss
+        )
     # !slider style
     else:
         n_data = None
@@ -530,24 +553,25 @@ def _eigen_vis(
                                                    colorbar=dict(tickfont=dict(size=15)))
 
         if np.max(np.abs(eigen_data["coord_no_deform"][:, -1])) < 1e-8:
-            eye = dict(x=0, y=-1e-5, z=1.5)
+            eye = dict(x=0., y=-0.1, z=10)  # for 2D camera
+            scene = dict(camera=dict(
+                eye=eye, projection=dict(type="orthographic")),
+                xaxis=off_axis, yaxis=off_axis, zaxis=off_axis)
         else:
-            eye = dict(x=-1.5, y=-1.5, z=1.5)
+            eye = dict(x=-3.5, y=-3.5, z=3.5)  # for 3D camera
+            scene = dict(aspectratio=dict(x=1, y=1, z=1), aspectmode="data",
+                         camera=dict(eye=eye, projection=dict(
+                             type="orthographic")),
+                         xaxis=off_axis, yaxis=off_axis, zaxis=off_axis)
         fig.update_layout(
             template=obj.theme,
             autosize=True,
             showlegend=False,
-            scene=dict(aspectmode="data",
-                       camera=dict(eye=eye,
-                                   projection=dict(type="orthographic"))),  # orthographic,perspective
+            scene=scene,
             title=title,
             sliders=sliders,
             **coloraxiss
         )
-        if not show_outline:
-            fig.update_layout(
-                scene=dict(xaxis=off_axis, yaxis=off_axis, zaxis=off_axis),
-            )
     if save_html:
         if not save_html.endswith(".html"):
             save_html += ".html"
@@ -651,10 +675,15 @@ def _eigen_anim(
         }
     ]
     # Layout
-    if np.max(np.abs(eigen_points[:, -1])) < 1e-8:
-        eye = dict(x=0, y=-1e-5, z=1.5)
+    if np.max(np.abs(eigen_data["coord_no_deform"][:, -1])) < 1e-8:
+        eye = dict(x=0., y=-0.1, z=10)  # for 2D camera
+        scene = dict(camera=dict(
+            eye=eye, projection=dict(type="orthographic")))
     else:
-        eye = dict(x=-1.5, y=-1.5, z=1.5)
+        eye = dict(x=-3.5, y=-3.5, z=3.5)  # for 3D camera
+        scene = dict(aspectratio=dict(x=1, y=1, z=1), aspectmode="data",
+                     camera=dict(eye=eye, projection=dict(
+                         type="orthographic")))
     txt = "<br> Mode {}: T = {:.3f} s".format(mode_tag, 1 / f_)
     fig.update_layout(
         title=dict(font=dict(family="courier", color='black', size=25),
@@ -665,10 +694,7 @@ def _eigen_anim(
         showlegend=False,
         coloraxis=dict(colorscale=obj.color_map,
                        colorbar=dict(tickfont=dict(size=15))),
-        scene=dict(aspectratio=dict(x=1, y=1, z=1), aspectmode="data",
-                   camera=dict(eye=eye, projection=dict(
-                       type="orthographic"))
-                   ),
+        scene=scene,
         updatemenus=[
             {
                 "buttons": [
@@ -847,18 +873,20 @@ def _deform_vis(
                                                    cmin=cmin,
                                                    cmax=cmax,
                                                    colorbar=dict(tickfont=dict(size=15)))
-
         if np.max(model_dims) <= 2:
-            eye = dict(x=0, y=-1e-5, z=1.5)
+            eye = dict(x=0., y=-0.1, z=10)  # for 2D camera
+            scene = dict(camera=dict(
+                eye=eye, projection=dict(type="orthographic")))
         else:
-            eye = dict(x=-1.5, y=-1.5, z=1.5)
+            eye = dict(x=-3.5, y=-3.5, z=3.5)  # for 3D camera
+            scene = dict(aspectratio=dict(x=1, y=1, z=1), aspectmode="data",
+                         camera=dict(eye=eye, projection=dict(
+                             type="orthographic")))
         fig.update_layout(
             template=obj.theme,
             autosize=True,
             showlegend=False,
-            scene=dict(aspectmode="data",
-                       camera=dict(eye=eye,
-                                   projection=dict(type="orthographic"))),  # orthographic,perspective
+            scene=scene,  # orthographic,perspective
             title=dict(font=dict(family="courier", color='black', size=25),
                        text="<b>OpenSeesPy Deformation 3D View</b>"
                        ),
@@ -893,9 +921,14 @@ def _deform_vis(
                                      show_face_line=show_face_line)
         fig.add_traces(plotter)
         if np.max(np.abs(node_deform_coords[:, -1])) < 1e-5:
-            eye = dict(x=0, y=-1e-5, z=1.5)
+            eye = dict(x=0., y=-0.1, z=10)  # for 2D camera
+            scene = dict(camera=dict(
+                eye=eye, projection=dict(type="orthographic")))
         else:
-            eye = dict(x=-1.5, y=-1.5, z=1.5)
+            eye = dict(x=-3.5, y=-3.5, z=3.5)  # for 3D camera
+            scene = dict(aspectratio=dict(x=1, y=1, z=1), aspectmode="data",
+                         camera=dict(eye=eye, projection=dict(
+                             type="orthographic")))
         maxx, maxy, maxz = np.max(node_resp, axis=0)
         minx, miny, minz = np.min(node_resp, axis=0)
         txt = (f"<br>Step {max_step + 1} {response}"
@@ -906,9 +939,7 @@ def _deform_vis(
             template=obj.theme,
             autosize=True,
             showlegend=False,
-            scene=dict(aspectmode="data",
-                       camera=dict(eye=eye,
-                                   projection=dict(type="orthographic"))),  # orthographic,perspective
+            scene=scene,
             coloraxis=dict(colorscale=obj.color_map, cmin=cmin, cmax=cmax,
                            colorbar=dict(tickfont=dict(size=15))),
             title=dict(font=dict(family="courier", color='black', size=25),
@@ -1073,9 +1104,14 @@ def _deform_anim(
                f"<br>max.z={maxz:.2E} | min.z={minz:.2E}")
         fig.frames[i]['layout'].update(title_text=txt)
     if np.max(model_dims) < 3:
-        eye = dict(x=0, y=0, z=1.5)
+        eye = dict(x=0., y=-0.1, z=10)  # for 2D camera
+        scene = dict(camera=dict(
+            eye=eye, projection=dict(type="orthographic")))
     else:
-        eye = dict(x=-1.5, y=-1.5, z=1.5)
+        eye = dict(x=-3.5, y=-3.5, z=3.5)  # for 3D camera
+        scene = dict(aspectratio=dict(x=1, y=1, z=1), aspectmode="data",
+                     camera=dict(eye=eye, projection=dict(
+                         type="orthographic")))
 
     fig.update_layout(
         title=dict(font=dict(family="courier", color='black', size=25),
@@ -1087,10 +1123,7 @@ def _deform_anim(
                        cmin=cmin,
                        cmax=cmax,
                        colorbar=dict(tickfont=dict(size=15))),
-        scene=dict(aspectratio=dict(x=1, y=1, z=1), aspectmode="data",
-                   camera=dict(eye=eye, projection=dict(
-                       type="orthographic"))
-                   ),
+        scene=scene,
         updatemenus=[
             {
                 "buttons": [
@@ -1318,16 +1351,19 @@ def _frame_resp_vis(obj,
                                                    colorbar=dict(tickfont=dict(size=15)))
 
         if np.max(np.abs(beam_node_coords[:, -1])) < 1e-5:
-            eye = dict(x=0, y=-1e-5, z=1.5)
+            eye = dict(x=0., y=-0.1, z=10)  # for 2D camera
+            scene = dict(camera=dict(
+                eye=eye, projection=dict(type="orthographic")))
         else:
-            eye = dict(x=-1.5, y=-1.5, z=1.5)
+            eye = dict(x=-3.5, y=-3.5, z=3.5)  # for 3D camera
+            scene = dict(aspectratio=dict(x=1, y=1, z=1), aspectmode="data",
+                         camera=dict(eye=eye, projection=dict(
+                             type="orthographic")))
         fig.update_layout(
             template=obj.theme,
             autosize=True,
             showlegend=False,
-            scene=dict(aspectmode="data",
-                       camera=dict(eye=eye,
-                                   projection=dict(type="orthographic"))),  # orthographic,perspective
+            scene=scene,
             title=dict(font=dict(family="courier", color='black', size=25),
                        text="<b>OpenSeesPy Frames Response 3D View</b>"
                        ),
@@ -1396,9 +1432,14 @@ def _frame_resp_vis(obj,
             )
             fig.add_trace(txt_plot)
         if np.max(np.abs(beam_node_coords[:, -1])) < 1e-5:
-            eye = dict(x=0, y=-1e-5, z=1.5)
+            eye = dict(x=0., y=-0.1, z=10)  # for 2D camera
+            scene = dict(camera=dict(
+                eye=eye, projection=dict(type="orthographic")))
         else:
-            eye = dict(x=-1.5, y=-1.5, z=1.5)
+            eye = dict(x=-3.5, y=-3.5, z=3.5)  # for 3D camera
+            scene = dict(aspectratio=dict(x=1, y=1, z=1), aspectmode="data",
+                         camera=dict(eye=eye, projection=dict(
+                             type="orthographic")))
         maxx = np.max(local_forces)
         minx = np.min(local_forces)
         txt = (f"<br>Step {maxstep + 1} {response}"
@@ -1407,9 +1448,7 @@ def _frame_resp_vis(obj,
             template=obj.theme,
             autosize=True,
             showlegend=False,
-            scene=dict(aspectmode="data",
-                       camera=dict(eye=eye,
-                                   projection=dict(type="orthographic"))),  # orthographic,perspective
+            scene=scene,
             coloraxis=dict(colorscale=obj.color_map, cmin=cmin, cmax=cmax,
                            colorbar=dict(tickfont=dict(size=15))),
             title=dict(font=dict(family="courier", color='black', size=25),

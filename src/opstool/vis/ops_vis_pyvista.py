@@ -55,12 +55,13 @@ class OpsVisPyvista:
         self.title = "opstool"
         # Initialize the color dict
         colors = dict(
-            point="#8f1402",
-            line="#0504aa",
-            face="#74a662",
-            solid="#af884a",
-            truss="#9a0eea",
-            link="#c20078",
+            point="#7f181b",
+            line="#037ef3",
+            face="#00c16e",
+            solid="#0cb9c1",
+            truss="#7552cc",
+            link="#f48924",
+            constraint="#f85a40",
         )
         if colors_dict is not None:
             colors.update(colors_dict)
@@ -70,6 +71,7 @@ class OpsVisPyvista:
         self.color_solid = colors["solid"]
         self.color_truss = colors["truss"]
         self.color_link = colors["link"]
+        self.color_constraint = colors['constraint']
         # -------------------------------------------------
         self.theme = theme
         pv.set_plot_theme(theme)

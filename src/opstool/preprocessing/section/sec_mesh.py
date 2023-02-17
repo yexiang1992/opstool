@@ -701,14 +701,14 @@ class SecMesh:
         txt += f"| total--{n_cells}"
         fig.update_layout(
             shapes=shapes,
-            width=800,
-            height=800 * aspect_ratio,
+            width=900,
+            height=900 * aspect_ratio,
             template="plotly",
             autosize=True,
             showlegend=False,
             scene=dict(aspectratio=dict(
                 x=1, y=aspect_ratio), aspectmode="data"),
-            title=dict(font=dict(family="courier", color='black', size=20),
+            title=dict(font=dict(family="courier", color='black', size=16),
                        text=f"<b>{self.sec_name}</b> <br>" + f"{txt}")
         )
         fig.update_xaxes(tickfont_size=18, ticks="outside")
