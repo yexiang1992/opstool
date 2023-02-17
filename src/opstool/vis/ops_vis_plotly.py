@@ -2,7 +2,8 @@
 Visualizing OpenSeesPy model
 """
 
-from ._plotly_base import _model_vis, _eigen_vis, _eigen_anim, _deform_vis, _deform_anim, _frame_resp_vis
+from ._plotly_base import (_deform_anim, _deform_vis, _eigen_anim, _eigen_vis,
+                           _frame_resp_vis, _model_vis)
 
 
 class OpsVisPlotly:
@@ -15,8 +16,7 @@ class OpsVisPlotly:
     line_width: float
         The width of line element;
     colors_dict: dict,
-        default: dict(point='#840000', line='#0165fc', face='#06c2ac', solid='#f48924', truss="#7552cc", link="#00c16e")
-        The dict for ele color.
+        The dict for ele color, default color you can see by the class attribute ``default_colors``.
     theme: str, default=plotly
         Plot theme, optional "plotly", "plotly_white", "plotly_dark", "ggplot2", "seaborn", "simple_white", "none".
     color_map: str, default="jet"
@@ -55,16 +55,17 @@ class OpsVisPlotly:
         self.title = "OpenSeesVispy"
         # Initialize the color dict
         colors = dict(
-            point="#610023",
+            point="#580f41",
             line="#037ef3",
             face="#00c16e",
             solid="#0cb9c1",
             truss="#7552cc",
-            link="#f48924",
-            constraint="#f85a40",
+            link="#01ff07",
+            constraint="#00ffff",
         )
         if colors_dict is not None:
             colors.update(colors_dict)
+        self.default_colors = colors
         self.color_point = colors["point"]
         self.color_line = colors["line"]
         self.color_face = colors["face"]
@@ -112,7 +113,7 @@ class OpsVisPlotly:
         show_ele_label: bool, default=False
             Whether to display the ele label.
         show_local_crd: bool, default=False
-            Whether to display the local axes of beam elements.
+            Whether to display the local axes of beam and link elements.
         show_fix_node: bool, default=True
             Whether to display the fix nodes.
         label_size: float, default=8

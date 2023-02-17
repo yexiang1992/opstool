@@ -51,12 +51,9 @@ def _model_vis(
         plotter.add_point_labels(model_info["coord_ele_midpoints"], ele_labels, text_color="#ff796c",
                                  font_size=label_size, bold=False, always_visible=True)
     # local axes
-    beam_midpoints = model_info["beam_midpoints"]
-    if show_local_crd and len(beam_midpoints) == 0:
-        warnings.warn("Model has no frame elements!")
-        show_local_crd = False
     if show_local_crd:
-        plotter = _show_local_axes(plotter, model_info, beam_midpoints)
+        plotter = _show_beam_local_axes(plotter, model_info)
+        plotter = _show_link_local_axes(plotter, model_info)
     # fix nodes
     if show_fix_node:
         plotter = _show_fix_node(plotter, model_info)
@@ -88,48 +85,102 @@ def _show_mp_constraint(obj, plotter, model_info):
     return plotter
 
 
-def _show_local_axes(plotter, model_info, beam_midpoints):
+def _show_beam_local_axes(plotter, model_info):
     beam_xlocal = model_info["beam_xlocal"]
     beam_ylocal = model_info["beam_ylocal"]
     beam_zlocal = model_info["beam_zlocal"]
+    beam_midpoints = model_info["beam_midpoints"]
     beam_lengths = model_info["beam_lengths"]
-    length = (np.max(beam_lengths) + np.min(beam_lengths)) / 20
-    _ = plotter.add_arrows(beam_midpoints, beam_xlocal,
-                           mag=length, color="#cf6275")
-    _ = plotter.add_arrows(beam_midpoints, beam_ylocal,
-                           mag=length, color="#04d8b2")
-    _ = plotter.add_arrows(beam_midpoints, beam_zlocal,
-                           mag=length, color="#9aae07")
-    plotter.add_point_labels(
-        beam_midpoints + length * beam_xlocal,
-        ['x'] * beam_midpoints.shape[0],
-        text_color="#cf6275",
-        bold=False,
-        shape=None,
-        render_points_as_spheres=True,
-        point_size=1.e-5,
-        always_visible=True,
-    )
-    plotter.add_point_labels(
-        beam_midpoints + length * beam_ylocal,
-        ['y'] * beam_midpoints.shape[0],
-        text_color="#04d8b2",
-        bold=False,
-        shape=None,
-        render_points_as_spheres=True,
-        point_size=1.e-5,
-        always_visible=True,
-    )
-    plotter.add_point_labels(
-        beam_midpoints + length * beam_zlocal,
-        ['z'] * beam_midpoints.shape[0],
-        text_color="#9aae07",
-        bold=False,
-        shape=None,
-        render_points_as_spheres=True,
-        point_size=1.e-5,
-        always_visible=True,
-    )
+    if len(beam_lengths) > 0:
+        length = (np.max(beam_lengths) + np.min(beam_lengths)) / 20
+        _ = plotter.add_arrows(beam_midpoints, beam_xlocal,
+                               mag=length, color="#cf6275")
+        _ = plotter.add_arrows(beam_midpoints, beam_ylocal,
+                               mag=length, color="#04d8b2")
+        _ = plotter.add_arrows(beam_midpoints, beam_zlocal,
+                               mag=length, color="#9aae07")
+        plotter.add_point_labels(
+            beam_midpoints + length * beam_xlocal,
+            ['x'] * beam_midpoints.shape[0],
+            text_color="#cf6275",
+            bold=False,
+            shape=None,
+            render_points_as_spheres=True,
+            point_size=1.e-5,
+            always_visible=True,
+        )
+        plotter.add_point_labels(
+            beam_midpoints + length * beam_ylocal,
+            ['y'] * beam_midpoints.shape[0],
+            text_color="#04d8b2",
+            bold=False,
+            shape=None,
+            render_points_as_spheres=True,
+            point_size=1.e-5,
+            always_visible=True,
+        )
+        plotter.add_point_labels(
+            beam_midpoints + length * beam_zlocal,
+            ['z'] * beam_midpoints.shape[0],
+            text_color="#9aae07",
+            bold=False,
+            shape=None,
+            render_points_as_spheres=True,
+            point_size=1.e-5,
+            always_visible=True,
+        )
+    else:
+        warnings.warn("Model has no frame elements when show_local_crd=True!")
+    return plotter
+
+
+def _show_link_local_axes(plotter, model_info):
+    link_xlocal = model_info["link_xlocal"]
+    link_ylocal = model_info["link_ylocal"]
+    link_zlocal = model_info["link_zlocal"]
+    link_midpoints = model_info["link_midpoints"]
+    link_lengths = model_info["link_lengths"]
+    if len(link_midpoints) > 0:
+        length = (np.max(link_lengths) + np.min(link_lengths)) / 6
+        _ = plotter.add_arrows(link_midpoints, link_xlocal,
+                               mag=length, color="#cf6275")
+        _ = plotter.add_arrows(link_midpoints, link_ylocal,
+                               mag=length, color="#04d8b2")
+        _ = plotter.add_arrows(link_midpoints, link_zlocal,
+                               mag=length, color="#9aae07")
+        plotter.add_point_labels(
+            link_midpoints + length * link_xlocal,
+            ['x'] * link_midpoints.shape[0],
+            text_color="#cf6275",
+            bold=False,
+            shape=None,
+            render_points_as_spheres=True,
+            point_size=1.e-5,
+            always_visible=True,
+        )
+        plotter.add_point_labels(
+            link_midpoints + length * link_ylocal,
+            ['y'] * link_midpoints.shape[0],
+            text_color="#04d8b2",
+            bold=False,
+            shape=None,
+            render_points_as_spheres=True,
+            point_size=1.e-5,
+            always_visible=True,
+        )
+        plotter.add_point_labels(
+            link_midpoints + length * link_zlocal,
+            ['z'] * link_midpoints.shape[0],
+            text_color="#9aae07",
+            bold=False,
+            shape=None,
+            render_points_as_spheres=True,
+            point_size=1.e-5,
+            always_visible=True,
+        )
+    else:
+        # warnings.warn("Model has no link elements!")
+        pass
     return plotter
 
 
@@ -137,7 +188,10 @@ def _show_fix_node(plotter, model_info):
     fixed_dofs = model_info["FixNodeDofs"]
     fixed_coords = model_info["FixNodeCoords"]
     beam_lengths = model_info["beam_lengths"]
-    s = (np.max(beam_lengths) + np.min(beam_lengths)) / 20
+    if len(beam_lengths) > 0:
+        s = (np.max(beam_lengths) + np.min(beam_lengths)) / 20
+    else:
+        s = (model_info["max_bound"] + model_info["min_bound"]) / 100
     if len(fixed_coords) > 0:
         points, cells = [], []
         for coord, dof in zip(fixed_coords, fixed_dofs):

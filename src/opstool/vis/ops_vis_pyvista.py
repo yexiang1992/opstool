@@ -4,9 +4,9 @@ Visualizing OpenSeesPy model based on pyvista
 
 import pyvista as pv
 
-from ._pyvista_base import (_frame_resp_vis,
-                            _deform_anim, _deform_vis, _eigen_anim, _eigen_vis, _model_vis)
 from ..utils import check_file
+from ._pyvista_base import (_deform_anim, _deform_vis, _eigen_anim, _eigen_vis,
+                            _frame_resp_vis, _model_vis)
 
 
 class OpsVisPyvista:
@@ -20,8 +20,7 @@ class OpsVisPyvista:
     line_width: float, default=3
         The width of line element.
     colors_dict: dict,
-        default: dict(point='#840000', line='#0165fc', face='#06c2ac', solid='#f48924', truss="#7552cc", link="#00c16e")
-        The dict for ele color.
+        The dict for ele color, default color you can see by the class attribute ``default_colors``.
     theme: str, default='document'
         Plot theme for pyvista, optional 'default', 'paraview', 'document', 'dark'.
     color_map: str, default="jet"
@@ -55,16 +54,17 @@ class OpsVisPyvista:
         self.title = "opstool"
         # Initialize the color dict
         colors = dict(
-            point="#7f181b",
+            point="#580f41",
             line="#037ef3",
             face="#00c16e",
             solid="#0cb9c1",
             truss="#7552cc",
-            link="#f48924",
-            constraint="#f85a40",
+            link="#01ff07",
+            constraint="#00ffff",
         )
         if colors_dict is not None:
             colors.update(colors_dict)
+        self.default_colors = colors
         self.color_point = colors["point"]
         self.color_line = colors["line"]
         self.color_face = colors["face"]
@@ -112,7 +112,7 @@ class OpsVisPyvista:
         show_ele_label: bool, default=False
             Whether to display the ele label.
         show_local_crd: bool, default=False
-            Whether to display the local axes of beam elements.
+            Whether to display the local axes of beam and link elements.
         show_fix_node: bool, default=True
             Whether to display the fix nodes.
         label_size: float, default=8

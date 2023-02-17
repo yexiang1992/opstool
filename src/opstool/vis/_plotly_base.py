@@ -91,7 +91,10 @@ def _make_fix_node(model_info):
     fixed_dofs = model_info["FixNodeDofs"]
     fixed_coords = model_info["FixNodeCoords"]
     beam_lengths = model_info["beam_lengths"]
-    s = (np.max(beam_lengths) + np.min(beam_lengths)) / 20
+    if len(beam_lengths) > 0:
+        s = (np.max(beam_lengths) + np.min(beam_lengths)) / 20
+    else:
+        s = (model_info["max_bound"] + model_info["min_bound"]) / 100
     points = []
     for coord, dof in zip(fixed_coords, fixed_dofs):
         x, y, z = coord
@@ -240,64 +243,121 @@ def _model_vis(
             warnings.warn("Model has no fix nodes!")
 
     # local axes
-    beam_midpoints = model_info["beam_midpoints"]
-    beam_lengths = model_info["beam_lengths"]
-    if show_local_crd and len(beam_midpoints) == 0:
-        warnings.warn("Model has no frame elements!")
-        show_local_crd = False
     if show_local_crd:
-        beam_xlocal = model_info["beam_xlocal"]
-        beam_ylocal = model_info["beam_ylocal"]
-        beam_zlocal = model_info["beam_zlocal"]
-        length = (np.max(beam_lengths) + np.min(beam_lengths)) / 20
-        xcoords = beam_midpoints + length * beam_xlocal
-        ycoords = beam_midpoints + length * beam_ylocal
-        zcoords = beam_midpoints + length * beam_zlocal
-        localx_points = []
-        localy_points = []
-        localz_points = []
-        for i, midpoints in enumerate(beam_midpoints):
-            localx_points.append(midpoints)
-            localx_points.append(xcoords[i])
-            localx_points.append([np.NAN, np.NAN, np.NAN])
-            localy_points.append(midpoints)
-            localy_points.append(ycoords[i])
-            localy_points.append([np.NAN, np.NAN, np.NAN])
-            localz_points.append(midpoints)
-            localz_points.append(zcoords[i])
-            localz_points.append([np.NAN, np.NAN, np.NAN])
-        localx_points = np.array(localx_points)
-        localy_points = np.array(localy_points)
-        localz_points = np.array(localz_points)
-        plotter1 = go.Scatter3d(
-            x=localx_points[:, 0],
-            y=localx_points[:, 1],
-            z=localx_points[:, 2],
-            line=dict(color="#cf6275", width=obj.line_width * 1.5),
-            mode="lines",
-            connectgaps=False,
-            name='',
-            # customdata=['x'] * n_beam,
-            hovertemplate='<b>x</b>')
-        plotter2 = go.Scatter3d(
-            x=localy_points[:, 0],
-            y=localy_points[:, 1],
-            z=localy_points[:, 2],
-            line=dict(color="#04d8b2", width=obj.line_width * 1.5),
-            mode="lines",
-            connectgaps=False,
-            name='',
-            hovertemplate='<b>y</b>')
-        plotter3 = go.Scatter3d(
-            x=localz_points[:, 0],
-            y=localz_points[:, 1],
-            z=localz_points[:, 2],
-            line=dict(color="#9aae07", width=obj.line_width * 1.5),
-            mode="lines",
-            connectgaps=False,
-            name='',
-            hovertemplate='<b>z</b>')
-        plotter.extend([plotter1, plotter2, plotter3])
+        beam_midpoints = model_info["beam_midpoints"]
+        beam_lengths = model_info["beam_lengths"]
+        if len(beam_midpoints) > 0:
+            beam_xlocal = model_info["beam_xlocal"]
+            beam_ylocal = model_info["beam_ylocal"]
+            beam_zlocal = model_info["beam_zlocal"]
+            length = (np.max(beam_lengths) + np.min(beam_lengths)) / 20
+            xcoords = beam_midpoints + length * beam_xlocal
+            ycoords = beam_midpoints + length * beam_ylocal
+            zcoords = beam_midpoints + length * beam_zlocal
+            localx_points = []
+            localy_points = []
+            localz_points = []
+            for i, midpoints in enumerate(beam_midpoints):
+                localx_points.append(midpoints)
+                localx_points.append(xcoords[i])
+                localx_points.append([np.NAN, np.NAN, np.NAN])
+                localy_points.append(midpoints)
+                localy_points.append(ycoords[i])
+                localy_points.append([np.NAN, np.NAN, np.NAN])
+                localz_points.append(midpoints)
+                localz_points.append(zcoords[i])
+                localz_points.append([np.NAN, np.NAN, np.NAN])
+            localx_points = np.array(localx_points)
+            localy_points = np.array(localy_points)
+            localz_points = np.array(localz_points)
+            plotter1 = go.Scatter3d(
+                x=localx_points[:, 0],
+                y=localx_points[:, 1],
+                z=localx_points[:, 2],
+                line=dict(color="#cf6275", width=obj.line_width * 1.5),
+                mode="lines",
+                connectgaps=False,
+                name='',
+                # customdata=['x'] * n_beam,
+                hovertemplate='<b>x</b>')
+            plotter2 = go.Scatter3d(
+                x=localy_points[:, 0],
+                y=localy_points[:, 1],
+                z=localy_points[:, 2],
+                line=dict(color="#04d8b2", width=obj.line_width * 1.5),
+                mode="lines",
+                connectgaps=False,
+                name='',
+                hovertemplate='<b>y</b>')
+            plotter3 = go.Scatter3d(
+                x=localz_points[:, 0],
+                y=localz_points[:, 1],
+                z=localz_points[:, 2],
+                line=dict(color="#9aae07", width=obj.line_width * 1.5),
+                mode="lines",
+                connectgaps=False,
+                name='',
+                hovertemplate='<b>z</b>')
+            plotter.extend([plotter1, plotter2, plotter3])
+        else:
+            warnings.warn(
+                "Model has no frame elements when show_local_crd=True!")
+        # link axes
+        link_midpoints = model_info["link_midpoints"]
+        link_lengths = model_info["link_lengths"]
+        if len(link_midpoints) > 0:
+            link_xlocal = model_info["link_xlocal"]
+            link_ylocal = model_info["link_ylocal"]
+            link_zlocal = model_info["link_zlocal"]
+            length = (np.max(link_lengths) + np.min(link_lengths)) / 6
+            xcoords = link_midpoints + length * link_xlocal
+            ycoords = link_midpoints + length * link_ylocal
+            zcoords = link_midpoints + length * link_zlocal
+            localx_points = []
+            localy_points = []
+            localz_points = []
+            for i, midpoints in enumerate(link_midpoints):
+                localx_points.append(midpoints)
+                localx_points.append(xcoords[i])
+                localx_points.append([np.NAN, np.NAN, np.NAN])
+                localy_points.append(midpoints)
+                localy_points.append(ycoords[i])
+                localy_points.append([np.NAN, np.NAN, np.NAN])
+                localz_points.append(midpoints)
+                localz_points.append(zcoords[i])
+                localz_points.append([np.NAN, np.NAN, np.NAN])
+            localx_points = np.array(localx_points)
+            localy_points = np.array(localy_points)
+            localz_points = np.array(localz_points)
+            plotter1 = go.Scatter3d(
+                x=localx_points[:, 0],
+                y=localx_points[:, 1],
+                z=localx_points[:, 2],
+                line=dict(color="#cf6275", width=obj.line_width * 1.5),
+                mode="lines",
+                connectgaps=False,
+                name='',
+                # customdata=['x'] * n_beam,
+                hovertemplate='<b>x</b>')
+            plotter2 = go.Scatter3d(
+                x=localy_points[:, 0],
+                y=localy_points[:, 1],
+                z=localy_points[:, 2],
+                line=dict(color="#04d8b2", width=obj.line_width * 1.5),
+                mode="lines",
+                connectgaps=False,
+                name='',
+                hovertemplate='<b>y</b>')
+            plotter3 = go.Scatter3d(
+                x=localz_points[:, 0],
+                y=localz_points[:, 1],
+                z=localz_points[:, 2],
+                line=dict(color="#9aae07", width=obj.line_width * 1.5),
+                mode="lines",
+                connectgaps=False,
+                name='',
+                hovertemplate='<b>z</b>')
+            plotter.extend([plotter1, plotter2, plotter3])
     # mp constraint lines
     plotter = _show_mp_constraint(obj, plotter, model_info)
 

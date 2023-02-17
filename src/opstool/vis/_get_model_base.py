@@ -76,6 +76,7 @@ def get_link_info(ele_tags, node_coords, node_index):
     link_cells = []
     link_cells_tags = []
     link_midpoints = []
+    link_lengths = []
     link_xlocal = []
     link_ylocal = []
     link_zlocal = []
@@ -88,17 +89,29 @@ def get_link_info(ele_tags, node_coords, node_index):
             link_cells_tags.append(ele)
             link_midpoints.append(
                 (node_coords[idx_i] + node_coords[idx_j]) / 2)
-            xlocal = ops.eleResponse(ele, "xlocal")
-            ylocal = ops.eleResponse(ele, "ylocal")
-            zlocal = ops.eleResponse(ele, "zlocal")
-            link_xlocal.append(np.array(xlocal) / np.linalg.norm(xlocal))
-            link_ylocal.append(np.array(ylocal) / np.linalg.norm(ylocal))
-            link_zlocal.append(np.array(zlocal) / np.linalg.norm(zlocal))
+            link_lengths.append(
+                np.sqrt(np.sum((node_coords[idx_i] - node_coords[idx_j])**2)))
+            xlocal = ops.eleResponse(ele, "xaxis")
+            ylocal = ops.eleResponse(ele, "yaxis")
+            zlocal = ops.eleResponse(ele, "zaxis")
+            if xlocal:
+                link_xlocal.append(np.array(xlocal) / np.linalg.norm(xlocal))
+            else:
+                link_xlocal.append(np.array([0., 0., 0.]))
+            if ylocal:
+                link_ylocal.append(np.array(ylocal) / np.linalg.norm(ylocal))
+            else:
+                link_ylocal.append(np.array([0., 0., 0.]))
+            if zlocal:
+                link_zlocal.append(np.array(zlocal) / np.linalg.norm(zlocal))
+            else:
+                link_zlocal.append(np.array([0., 0., 0.]))
     link_midpoints = np.array(link_midpoints)
+    link_lengths = np.array(link_lengths)
     link_xlocal = np.array(link_xlocal)
     link_ylocal = np.array(link_ylocal)
     link_zlocal = np.array(link_zlocal)
-    return (link_cells, link_cells_tags, link_midpoints,
+    return (link_cells, link_cells_tags, link_midpoints, link_lengths,
             link_xlocal, link_ylocal, link_zlocal)
 
 
@@ -121,12 +134,21 @@ def get_beam_info(ele_tags, node_coords, node_index):
                 (node_coords[idx_i] + node_coords[idx_j]) / 2)
             beam_lengths.append(
                 np.sqrt(np.sum((node_coords[idx_i] - node_coords[idx_j])**2)))
-            xlocal = ops.eleResponse(ele, "xlocal")
-            ylocal = ops.eleResponse(ele, "ylocal")
-            zlocal = ops.eleResponse(ele, "zlocal")
-            beam_xlocal.append(np.array(xlocal) / np.linalg.norm(xlocal))
-            beam_ylocal.append(np.array(ylocal) / np.linalg.norm(ylocal))
-            beam_zlocal.append(np.array(zlocal) / np.linalg.norm(zlocal))
+            xlocal = ops.eleResponse(ele, "xaxis")
+            ylocal = ops.eleResponse(ele, "yaxis")
+            zlocal = ops.eleResponse(ele, "zaxis")
+            if xlocal:
+                beam_xlocal.append(np.array(xlocal) / np.linalg.norm(xlocal))
+            else:
+                beam_xlocal.append(np.array([0., 0., 0.]))
+            if xlocal:
+                beam_ylocal.append(np.array(ylocal) / np.linalg.norm(ylocal))
+            else:
+                beam_ylocal.append(np.array([0., 0., 0.]))
+            if zlocal:
+                beam_zlocal.append(np.array(zlocal) / np.linalg.norm(zlocal))
+            else:
+                beam_zlocal.append(np.array([0., 0., 0.]))
     beam_midpoints = np.array(beam_midpoints)
     beam_lengths = np.array(beam_lengths)
     beam_xlocal = np.array(beam_xlocal)
@@ -298,7 +320,7 @@ def get_model_info():
     ele_tags = ops.getEleTags()
     num_ele = len(ele_tags)
     truss_cells, truss_cells_tags = get_truss_info(ele_tags, node_index)
-    (link_cells, link_cells_tags, link_midpoints,
+    (link_cells, link_cells_tags, link_midpoints, link_lengths,
      link_xlocal, link_ylocal, link_zlocal) = get_link_info(ele_tags, node_coords, node_index)
     (beam_cells, beam_cells_tags, beam_midpoints, beam_lengths,
      beam_xlocal, beam_ylocal, beam_zlocal) = get_beam_info(ele_tags, node_coords, node_index)
@@ -340,6 +362,7 @@ def get_model_info():
     model_info["beam_ylocal"] = beam_ylocal
     model_info["beam_zlocal"] = beam_zlocal
     model_info["link_midpoints"] = link_midpoints
+    model_info["link_lengths"] = link_lengths
     model_info["link_xlocal"] = link_xlocal
     model_info["link_ylocal"] = link_ylocal
     model_info["link_zlocal"] = link_zlocal

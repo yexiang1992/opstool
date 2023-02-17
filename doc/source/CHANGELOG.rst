@@ -1,6 +1,10 @@
 Changelog
 ==========
 
+v0.4.1
+-------
+- Fixed some bugs in the arg ``show_local_crd`` in :meth:`opstool.vis.OpsVisPyvista.model_vis` and :meth:`opstool.vis.OpsVisPlotly.model_vis`
+
 v0.4.0
 -------
 - update vis module, add multi-point constraint plot
