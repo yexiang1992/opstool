@@ -26,10 +26,10 @@ setup(
     install_requires=[
         'matplotlib',
         'numpy',
-        'openseespy',
+        'openseespy>=3.4.0.5',
         'plotly',
-        'pyvista',
-        'sectionproperties',
+        'pyvista>=0.38.2',
+        'sectionproperties>=2.1.5',
         'shapely>=2.0.0',
         'h5py',
         'rich'

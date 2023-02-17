@@ -1,6 +1,10 @@
 Changelog
 ==========
 
+v0.4.0
+-------
+- update vis module, add multi-point constraint plot
+
 v0.3.0
 --------
 - Added the class :class:`opstool.analysis.SmartAnalyze`
