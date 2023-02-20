@@ -105,7 +105,7 @@ class OpsVisPyvista:
 
             .. warning::
                 Be careful not to include any path, only filename,
-                the file will be saved to the directory ``results_dir``.
+                the file will be loaded from the directory ``results_dir``.
 
         show_node_label: bool, default=False
             Whether to display the node label.
@@ -173,7 +173,7 @@ class OpsVisPyvista:
 
             .. warning::
                 Be careful not to include any path, only filename,
-                the file will be saved to the directory ``results_dir``.
+                the file will be loaded from the directory ``results_dir``.
 
         subplots: bool, default=False
             If True, subplots in a figure. If False, plot in a slider style.
@@ -241,7 +241,7 @@ class OpsVisPyvista:
 
             .. warning::
                 Be careful not to include any path, only filename,
-                the file will be saved to the directory ``results_dir``.
+                the file will be loaded from the directory ``results_dir``.
 
         alpha: float, default=None
             Scaling factor, the default value is 1/5 of the model boundary according to the maximum deformation.
@@ -296,7 +296,7 @@ class OpsVisPyvista:
 
             .. warning::
                 Be careful not to include any path, only filename,
-                the file will be saved to the directory ``results_dir``.
+                the file will be loaded from the directory ``results_dir``.
 
         slider: bool, default=False
             If True, responses in all steps will display by slider style.
@@ -370,7 +370,7 @@ class OpsVisPyvista:
 
             .. warning::
                 Be careful not to include any path, only filename,
-                the file will be saved to the directory ``results_dir``.
+                the file will be loaded from the directory ``results_dir``.
 
         response: str, default='disp'
             Response type. Optional, "disp", "vel", "accel".
@@ -432,7 +432,7 @@ class OpsVisPyvista:
 
             .. warning::
                 Be careful not to include any path, only filename,
-                the file will be saved to the directory ``results_dir``.
+                the file will be loaded from the directory ``results_dir``.
 
         ele_tags: int or list[int], default=None
             Element tags to display, if None, all frame elements will display.

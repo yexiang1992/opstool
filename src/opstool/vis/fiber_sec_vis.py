@@ -62,7 +62,7 @@ class FiberSecVis:
 
             .. warning::
                 Be careful not to include any path, only filename,
-                the file will be saved to the directory ``results_dir``.
+                the file will be loaded from the directory ``results_dir``.
 
         mat_color: dict
             Dict for assign color by matTag, {matTag1:color1,matTag2:color2, and so on}
@@ -415,7 +415,8 @@ class FiberSecVis:
             if show_mats is not None:
                 matidx_i = []
                 for mat_ in show_mats:
-                    matidx_i.append(np.argwhere(np.abs(mat_tagsi - mat_) < 1e-8))
+                    matidx_i.append(np.argwhere(
+                        np.abs(mat_tagsi - mat_) < 1e-8))
                 matidx_i = np.vstack(matidx_i)
             else:
                 matidx_i = np.argwhere(np.abs(mat_tagsi - mat_tagsi) < 1e-8)
