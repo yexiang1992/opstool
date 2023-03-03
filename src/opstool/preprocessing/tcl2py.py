@@ -41,14 +41,14 @@ def tcl2py(input_file: str,
         import_txt = "from openseespy.opensees import *\n\n"
         prefix = ''
 
-    with open(input_file, 'r') as f:
+    with open(input_file, 'r', encoding="utf-8") as f:
         tcl_src = f.read()
     tcl_src = tcl_src.replace("{", " { ")
     tcl_src = tcl_src.replace("}", " } ")
     interp, contents = _TclInterp(prefix)
     interp.eval(tcl_src)
 
-    with open(output_file, mode='w') as fw:
+    with open(output_file, mode='w', encoding="utf-8") as fw:
         fw.write(import_txt)
         for line in contents:
             fw.write(line + "\n")
@@ -208,7 +208,7 @@ def _TclInterp(prefix):
         args = _remove_commit(args)
         args = [_type_convert(i) for i in args]
         if args[0] == 'Path':
-            if '-time' in args or '-values' in args:
+            if ('-time' in args) or ('-values' in args):
                 time, values = None, None
                 if '-time' in args:
                     idx = args.index('-time')
@@ -241,7 +241,14 @@ def _TclInterp(prefix):
     def _pattern(*args):
         args = _remove_commit(args)
         args = tuple([_type_convert(i) for i in args])
-        contents.append(f"{prefix}pattern{args[:-1]}")
+        if args[0].lower() == "plain" and isinstance(args[2], str):
+            contents.append(f"{prefix}timeSeries('{args[2]}', {args[1]})")
+            args = list(args)
+            args[2] = args[1]
+            args = tuple(args)
+            contents.append(f"{prefix}pattern{args[:-1]}")
+        else:
+            contents.append(f"{prefix}pattern{args[:-1]}")
         txt = args[-1]
         txt.replace("\\n", '')
         interp.eval(txt)
