@@ -17,7 +17,7 @@ setup(
     license='GPL Licence',
     keywords='OpenSees seismic visualization',
     platforms='any',
-    python_requires='>=3.9.*',
+    python_requires='>=3.8.*',
     package_dir={'': 'src'},
     packages=find_packages('src'),
     classifiers=[
@@ -26,7 +26,7 @@ setup(
     install_requires=[
         'matplotlib',
         'numpy',
-        'openseespy>=3.4.0.5',
+        'openseespy>=3.4.0.1',
         'plotly',
         'pyvista>=0.38.2',
         'sectionproperties>=2.1.5',

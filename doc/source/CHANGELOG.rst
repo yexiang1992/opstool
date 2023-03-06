@@ -1,6 +1,11 @@
 📓 Changelog
 =============
 
+v0.4.2
+-------
+- Fixed som bugs in ``tclpy()``.
+- Updated the version requirements for mac.
+
 v0.4.1
 -------
 - Fixed some bugs in the arg ``show_local_crd`` in :meth:`opstool.vis.OpsVisPyvista.model_vis` and :meth:`opstool.vis.OpsVisPlotly.model_vis`
