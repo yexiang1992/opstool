@@ -11,6 +11,7 @@ Model Visualization
     api/vis.OpsVisPlotly
     api/vis.OpsVisPyvista
     api/vis.FiberSecVis
+    api/vis.save_tikz
 
 Section Fiber Mesh
 -------------------
