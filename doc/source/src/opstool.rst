@@ -42,6 +42,7 @@ Analysis
     :maxdepth: 1
 
     api/ana.SmartAnalyze
+    api/ana.MomentCurvature
 
 OpenSeesPy Examples
 --------------------
