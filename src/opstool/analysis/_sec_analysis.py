@@ -5,13 +5,19 @@ from ._smart_analyze import SmartAnalyze
 
 
 class MomentCurvature:
-    """_summary_
+    """Moment-Curvature Analysis for Fiber Section in OpenSeesPy.
 
+    Parameters
+    ----------
+    sec_tag : int,
+        The previously defined section Tag.
+    axial_force : float, optional
+        Axial load, compression is negative, by default 0
     """
 
     def __init__(self,
                  sec_tag: int,
-                 axial_force: float = 0,) -> None:
+                 axial_force: float = 0) -> None:
         self.P = axial_force
         self.sec_tag = sec_tag
         self.phi, self.M, self.FiberData = None, None, None
@@ -20,33 +26,37 @@ class MomentCurvature:
                 axis: str = "y",
                 max_phi: float = 1.0,
                 incr_phi: float = 1e-4,
-                stop_ratio: float = 0.7,
+                post_peak_ratio: float = 0.7,
                 smart_analyze: bool = True):
-        """_summary_
+        """Performing Moment-Curvature Analysis.
 
         Parameters
         ----------
-        axis : str, optional
-            _description_, by default "y"
+        axis : str, optional, "y" or "z"
+            The axis of the section to be analyzed, by default "y".
         max_phi : float, optional
-            _description_, by default 1.0
+            The maximum curvature to analyze, by default 1.0.
         incr_phi : float, optional
-            _description_, by default 1e-4
-        stop_ratio : float, optional
-            _description_, by default 0.8
+            Curvature analysis increment, by default 1e-4.
+        post_peak_ratio : float, optional
+            A ratio of the moment intensity after the peak used to stop the analysis., by default 0.7,
+            i.e. a 30% drop after peak.
         smart_analyze : bool, optional
-            _description_, by default True
+            Whether to use smart analysis options, by default True.
+
+        .. note::
+            The termination of the analysis depends on whichever reaches `max_phi` or `post_peak_ratio` first.
         """
         self.phi, self.M, self.FiberData = _analyze(sec_tag=self.sec_tag,
                                                     P=self.P,
                                                     axis=axis,
                                                     max_phi=max_phi,
                                                     incr_phi=incr_phi,
-                                                    stop_ratio=stop_ratio,
+                                                    stop_ratio=post_peak_ratio,
                                                     smart_analyze=smart_analyze)
 
     def plot_M_phi(self):
-        """_summary_
+        """Plot the moment-curvature relationship.
         """
         _, ax = plt.subplots(1, 1, figsize=(10, 10 * 0.618))
         ax.plot(self.phi, self.M, lw=3, c="blue")
@@ -63,6 +73,8 @@ class MomentCurvature:
         plt.show()
 
     def plot_fiber_responses(self):
+        """Plot the stress-strain histories for all fibers of each material.
+        """
         fiber_data = self.FiberData
         matTags = np.unique(fiber_data[-1][:, 3])
 
@@ -83,62 +95,63 @@ class MomentCurvature:
         plt.show()
 
     def get_phi(self):
-        """_summary_
+        """Get the curvature array.
 
         Returns
         -------
-        _type_
-            _description_
+        1D array-like
+            Curvature array.
         """
         return self.phi
 
     def get_curvature(self):
-        """_summary_
+        """Get the curvature array.
 
         Returns
         -------
-        _type_
-            _description_
+        1D array-like
+            Curvature array.
         """
         return self.get_phi()
 
     def get_M(self):
-        """_summary_
+        """Get the moment array.
 
         Returns
         -------
-        _type_
-            _description_
+        1D array-like
+            Moment array.
         """
         return self.M
 
     def get_moment(self):
-        """_summary_
+        """Get the moment array.
 
         Returns
         -------
-        _type_
-            _description_
+        1D array-like
+            Moment array.
         """
         return self.get_M()
 
     def get_M_phi(self):
-        """_summary_
+        """Get the moment and curvature array.
 
         Returns
         -------
-        _type_
-            _description_
+        (1D array-like, 1D array-like)
+            (Curvature array, Moment array)
         """
         return self.phi, self.M
 
     def get_fiber_data(self):
-        """_summary_
+        """All fiber data.
 
         Returns
         -------
-        _type_
-            _description_
+        Shape-(n,m,6) Array.
+            n is the length of moment and curvature array, m is the fiber number,
+            6 contain ("yCoord", "zCoord", "area", 'mat', "stress", "strain")
         """
         return self.FiberData
 
@@ -146,28 +159,22 @@ class MomentCurvature:
                         matTag: int = 1,
                         threshold: float = 0,
                         use_peak_drop20: bool = False):
-        """_summary_
+        """Get the curvature and moment corresponding to a certain limit state.
 
         Parameters
         ----------
         matTag : int, optional
-            _description_, by default 1
+            The OpenSeesPy material Tag used to determine the limit state., by default 1
         threshold : float, optional
-            _description_, by default 0
+            The strain threshold used to determine the limit state by material `matTag`, by default 0
         use_peak_drop20 : bool, optional
-            _description_, by default False
+            If True, A 20% drop from the peak value of the moment will be used as the limit state,
+            and `matTag` and `threshold` are not needed, by default False.
 
         Returns
         -------
-        _type_
-            _description_
-
-        Raises
-        ------
-        RuntimeError
-            _description_
-        RuntimeError
-            _description_
+        (float, float)
+            (Limit Curvature, Limit Moment)
         """
         phi = self.phi
         M = self.M
@@ -204,23 +211,23 @@ class MomentCurvature:
                     My: float,
                     phiu: float,
                     plot: bool = False):
-        """_summary_
+        """Bilinear Approximation of Moment-Curvature Relation.
 
         Parameters
         ----------
         phiy : float
-            _description_
+            The initial yield curvature.
         My : float
-            _description_
+            The initial yield moment.
         phiu : float
-            _description_
+            The limit curvature.
         plot : bool, optional
-            _description_, by default False
+            If True, plot the bilinear approximation, by default False.
 
         Returns
         -------
-        _type_
-            _description_
+        (float, float)
+            (Equivalent Curvature, Equivalent Moment)
         """
 
         phi = self.phi

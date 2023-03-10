@@ -16,7 +16,11 @@ Example
    ops.wipe()
    ops.model('basic', '-ndm', 3, '-ndf', 6)
 
-   #%% materials
+Create the material first:
+
+.. jupyter-execute::
+
+   # materials
    Ec = 3.55E+7
    Vc = 0.2
    Gc = 0.5 * Ec / (1 + Vc)
@@ -46,7 +50,10 @@ Example
    ops.uniaxialMaterial('ReinforcingSteel', matTagS, Fys,
                         Fus, Es, Esh, eps_sh, eps_ult)
 
-   #%% section mesh
+Create the section mesh by opstool(see :class:`~opstool.preprocessing.SecMesh`):
+
+.. jupyter-execute::
+
    outlines = [[0, 0], [2, 0], [2, 2], [0, 2]]
    coverlines = opst.offset(outlines, d=0.05)
    cover = opst.add_polygon(outlines, holes=[coverlines])
@@ -81,21 +88,24 @@ Example
    # sec.get_sec_props(display_results=False, plot_centroids=False)
    sec.centring()
    # sec.rotate(45)
+
+Plot the section mesh, and generate the OpenSeesPy commands by ``opspy_cmds()``:
+
+.. jupyter-execute::
    sec.view(fill=True, engine='matplotlib', save_html=None, on_notebook=True)
    sec.opspy_cmds(secTag=1, GJ=100000)
 
-   #%% Moment Curvature analysis
+Moment-Curvature analysis:
+
+.. jupyter-execute::
    mc = opst.MomentCurvature(sec_tag=1, axial_force=-10000)
    mc.analyze(axis='z')
-   #%%
    mc.plot_M_phi()
-   #%%
    mc.plot_fiber_responses()
-   #%%
-   phiy, my = mc.get_limit_state(matTag=matTagS,
+   phiy, My = mc.get_limit_state(matTag=matTagS,
                                  threshold=2e-3,)
-   phiu, mu = mc.get_limit_state(matTag=1,
+   phiu, Mu = mc.get_limit_state(matTag=matTagCCore,
                                  threshold=-0.0144,
                                  use_peak_drop20=False
                                  )
-   mc.bilinearize(phiy, my, phiu, plot=True)
+   phi_eq, M_eq = mc.bilinearize(phiy, My, phiu, plot=True)
