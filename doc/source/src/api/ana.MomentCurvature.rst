@@ -72,18 +72,6 @@ Create the section mesh by opstool(see :class:`~opstool.preprocessing.SecMesh`):
       points=rebar_lines1, dia=0.02, gap=0.1, color="red",
       matTag=matTagS,
    )
-   rebar_lines2 = opst.offset(holelines, d=-(0.05 + 0.02 / 2))
-   rebars.add_rebar_line(
-      points=rebar_lines2, dia=0.020, gap=0.1, color="black",
-      matTag=matTagS,
-   )
-   rebar_lines3 = [[0.3, 0.3], [1.7, 0.3], [1.7, 1.7], [0.3, 1.7]]
-   rebars.add_rebar_line(
-      points=rebar_lines3, dia=0.02, gap=0.15, closure=True,
-      matTag=matTagS,
-      color="blue",
-   )
-   # add to the sec
    sec.add_rebars(rebars)
    # sec.get_sec_props(display_results=False, plot_centroids=False)
    sec.centring()
@@ -92,13 +80,15 @@ Create the section mesh by opstool(see :class:`~opstool.preprocessing.SecMesh`):
 Plot the section mesh:
 
 .. jupyter-execute::
+
    sec.view(fill=True, engine='matplotlib', save_html=None, on_notebook=True)
+   # generate the OpenSeesPy commands
+   sec.opspy_cmds(secTag=1, GJ=100000)
 
 Moment-Curvature analysis:
 
 .. jupyter-execute::
-   # generate the OpenSeesPy commands
-   sec.opspy_cmds(secTag=1, GJ=100000)
+
    # M-Phi analysis
    mc = opst.MomentCurvature(sec_tag=1, axial_force=-10000)
    mc.analyze(axis='z')
