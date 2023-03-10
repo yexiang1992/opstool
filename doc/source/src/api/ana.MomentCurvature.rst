@@ -89,15 +89,17 @@ Create the section mesh by opstool(see :class:`~opstool.preprocessing.SecMesh`):
    sec.centring()
    # sec.rotate(45)
 
-Plot the section mesh, and generate the OpenSeesPy commands by ``opspy_cmds()``:
+Plot the section mesh:
 
 .. jupyter-execute::
    sec.view(fill=True, engine='matplotlib', save_html=None, on_notebook=True)
-   sec.opspy_cmds(secTag=1, GJ=100000)
 
 Moment-Curvature analysis:
 
 .. jupyter-execute::
+   # generate the OpenSeesPy commands
+   sec.opspy_cmds(secTag=1, GJ=100000)
+   # M-Phi analysis
    mc = opst.MomentCurvature(sec_tag=1, axial_force=-10000)
    mc.analyze(axis='z')
    mc.plot_M_phi()
