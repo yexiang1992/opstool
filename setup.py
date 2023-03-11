@@ -8,7 +8,7 @@ with open("README.md", "r") as fh:
 setup(
     name='opstool',
     version=__version__,
-    description='opensees toolbox',
+    description='openseespy toolbox',
     long_description=long_description,
     long_description_content_type="text/markdown",
     author='Yexiang Yan',

@@ -1,6 +1,11 @@
 📓 Changelog
 =============
 
+v0.5.0
+-------
+- Added the function :func:`~opstool.vis.save_tikz` to save as the ``.tex`` file using `tikz` package, which can be visualized by native ``texlive`` or web-based ``overleaf``.
+- Added the class :class:`opstool.analysis.MomentCurvature` to moment-curvature analysis of fiber section.
+
 v0.4.2
 -------
 - Fixed som bugs in ``tclpy()``.

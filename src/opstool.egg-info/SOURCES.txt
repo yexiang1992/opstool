@@ -10,6 +10,7 @@ src/opstool.egg-info/dependency_links.txt
 src/opstool.egg-info/requires.txt
 src/opstool.egg-info/top_level.txt
 src/opstool/analysis/__init__.py
+src/opstool/analysis/_sec_analysis.py
 src/opstool/analysis/_smart_analyze.py
 src/opstool/examples/ArchBridge.py
 src/opstool/examples/ArchBridge2.py
@@ -37,3 +38,4 @@ src/opstool/vis/fiber_sec_vis.py
 src/opstool/vis/get_model_data.py
 src/opstool/vis/ops_vis_plotly.py
 src/opstool/vis/ops_vis_pyvista.py
+src/opstool/vis/save_tikz.py
