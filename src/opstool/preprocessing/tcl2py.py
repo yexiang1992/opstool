@@ -1,6 +1,5 @@
 import tkinter
 
-import chardet
 from rich import print
 
 
