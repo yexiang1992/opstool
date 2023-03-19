@@ -97,19 +97,29 @@ class UnitSystem:
 
     def __repr__(self):
         txt = "\n[bold #d20962]Length unit:[/bold #d20962]\n"
-        for unit in unit_length:
-            txt += f"{unit}={getattr(self, unit):.3E}; "
+        for i, unit in enumerate(unit_length):
+            txt += f"{unit}={getattr(self, unit)}; "
+            if i > 1 and (i + 1) % 5 == 0:
+                txt += "\n"
         txt += "\n\n[bold #f47721]Force unit:[/bold #f47721]\n"
-        for unit in unit_force:
-            txt += f"{unit}={getattr(self, unit):.3E}; "
+        for i, unit in enumerate(unit_force):
+            txt += f"{unit}={getattr(self, unit)}; "
+            if i > 1 and (i + 1) % 5 == 0:
+                txt += "\n"
         txt += "\n\n[bold #7ac143]Time unit:[/bold #7ac143]\n"
-        for unit in unit_time:
-            txt += f"{unit}={getattr(self, unit):.3E}; "
+        for i, unit in enumerate(unit_time):
+            txt += f"{unit}={getattr(self, unit)}; "
+            if i > 1 and (i + 1) % 5 == 0:
+                txt += "\n"
         txt += "\n\n[bold #00bce4]Mass unit:[/bold #00bce4]\n"
-        for unit in unit_mass:
-            txt += f"{unit}={getattr(self, unit):.3E}; "
+        for i, unit in enumerate(unit_mass):
+            txt += f"{unit}={getattr(self, unit)}; "
+            if i > 1 and (i + 1) % 5 == 0:
+                txt += "\n"
         txt += "\n\n[bold #7d3f98]Pressure unit:[/bold #7d3f98]\n"
-        for unit in unit_stress:
-            txt += f"{unit}={getattr(self, unit):.3E}; "
+        for i, unit in enumerate(unit_stress):
+            txt += f"{unit}={getattr(self, unit)}; "
+            if i > 1 and (i + 1) % 5 == 0:
+                txt += "\n"
         rich.print(txt)
         return ""
