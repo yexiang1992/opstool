@@ -51,13 +51,13 @@ class UnitSystem:
     length: str, default="m"
         Length unit base. Optional ["inch", "ft", "mm", "cm", "m"].
     force: str, default="kN"
-        Force unit base. Optional ["lb", "lbf", "kip", "n", "kn", "mn", "kgf", "tonf"].
+        Force unit base. Optional ["lb"("lbf"), "kip", "n", "kn", "mn", "kgf", "tonf"].
     time: str, default="sec"
         Time unit base. Optional ["sec", "msec"].
 
     .. note::
         * `Mass` and `stress` units can be automatically determined based on `length` and `force` units,
-          optional mass units include ["mg", "g", "kg", "ton", "t", "slug"],
+          optional mass units include ["mg", "g", "kg", "ton"("t"), "slug"],
           and optional stress units include ["pa", "kpa", "mpa", "gpa", "bar", "psi", "ksi", "psf", "ksf"].
 
         * You can enter any uppercase and lowercase forms, such as ``kn`` and ``kN``, ``mpa`` and ``MPa`` are equivalent.
