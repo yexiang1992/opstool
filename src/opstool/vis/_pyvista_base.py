@@ -13,6 +13,7 @@ def _model_vis(
         show_ele_label: bool = False,
         show_local_crd: bool = False,
         show_fix_node: bool = True,
+        show_constrain_dof: bool = False,
         label_size: float = 8,
         show_outline: bool = True,
         opacity: float = 1.0,
@@ -30,7 +31,7 @@ def _model_vis(
             cells[name] = grp2[name][...]
 
     plotter = pv.Plotter(notebook=obj.notebook)
-    plotter = _plot_model(obj, plotter, model_info, cells, opacity)
+    _plot_model(obj, plotter, model_info, cells, opacity)
 
     txt = f"OpenSees 3D View\nNum. of Node:{model_info['num_node']}\nNum. of Ele:{model_info['num_ele']}"
     plotter.add_text(txt, position="upper_right", font_size=10, font="courier")
@@ -52,13 +53,13 @@ def _model_vis(
                                  font_size=label_size, bold=False, always_visible=True)
     # local axes
     if show_local_crd:
-        plotter = _show_beam_local_axes(plotter, model_info)
-        plotter = _show_link_local_axes(plotter, model_info)
+        _show_beam_local_axes(plotter, model_info)
+        _show_link_local_axes(plotter, model_info)
     # fix nodes
     if show_fix_node:
-        plotter = _show_fix_node(plotter, model_info)
+        _show_fix_node(plotter, model_info)
     # mp constraint lines
-    plotter = _show_mp_constraint(obj, plotter, model_info)
+    _show_mp_constraint(obj, plotter, model_info, show_constrain_dof)
     plotter.add_axes()
     plotter.view_isometric()
     if np.max(model_info["model_dims"]) <= 2:
@@ -69,7 +70,7 @@ def _model_vis(
     plotter.close()
 
 
-def _show_mp_constraint(obj, plotter, model_info):
+def _show_mp_constraint(obj, plotter, model_info, show_dofs):
     points = model_info["ConstrainedCoords"]
     cells = model_info["ConstrainedCells"]
     midcoords = model_info["ConstrainedMidCoords"]
@@ -79,10 +80,10 @@ def _show_mp_constraint(obj, plotter, model_info):
         mesh = _generate_mesh(points, cells, kind="line")
         plotter.add_mesh(mesh, color=obj.color_constraint,
                          render_lines_as_tubes=False, line_width=obj.line_width / 3)
-        plotter.add_point_labels(midcoords, dofs, text_color=obj.color_constraint,
-                                 font_size=12, bold=True, show_points=False,
-                                 always_visible=True, shape_opacity=0)
-    return plotter
+        if show_dofs:
+            plotter.add_point_labels(midcoords, dofs, text_color=obj.color_constraint,
+                                     font_size=12, bold=True, show_points=False,
+                                     always_visible=True, shape_opacity=0)
 
 
 def _show_beam_local_axes(plotter, model_info):
@@ -131,7 +132,6 @@ def _show_beam_local_axes(plotter, model_info):
         )
     else:
         warnings.warn("Model has no frame elements when show_local_crd=True!")
-    return plotter
 
 
 def _show_link_local_axes(plotter, model_info):
@@ -181,7 +181,6 @@ def _show_link_local_axes(plotter, model_info):
     else:
         # warnings.warn("Model has no link elements!")
         pass
-    return plotter
 
 
 def _show_fix_node(plotter, model_info):
@@ -219,7 +218,6 @@ def _show_fix_node(plotter, model_info):
                          render_lines_as_tubes=False, line_width=2)
     else:
         warnings.warn("Model has no fix nodes!")
-    return plotter
 
 
 def _eigen_vis(
@@ -1294,4 +1292,3 @@ def _plot_model(obj, plotter, model_info, cells, opacity):
         plotter.add_mesh(
             bri_plot, color=obj.color_solid, show_edges=True, opacity=opacity
         )
-    return plotter

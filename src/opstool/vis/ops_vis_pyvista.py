@@ -89,10 +89,11 @@ class OpsVisPyvista:
         show_ele_label: bool = False,
         show_local_crd: bool = False,
         show_fix_node: bool = True,
+        show_constrain_dof: bool = False,
         label_size: float = 8,
         show_outline: bool = True,
         opacity: float = 1.0,
-        save_fig: str = 'ModelVis.svg'
+        save_fig: str = None
     ):
         """
         Visualize the model in the current domain.
@@ -115,6 +116,8 @@ class OpsVisPyvista:
             Whether to display the local axes of beam and link elements.
         show_fix_node: bool, default=True
             Whether to display the fix nodes.
+        show_constrain_dof: bool, default=False
+            Whether to display labels for constrained degrees of freedom.
         label_size: float, default=8
             The foontsize of node and ele label.
         show_outline: bool, default=True
@@ -142,6 +145,7 @@ class OpsVisPyvista:
                    show_ele_label=show_ele_label,
                    show_local_crd=show_local_crd,
                    show_fix_node=show_fix_node,
+                   show_constrain_dof=show_constrain_dof,
                    label_size=label_size,
                    show_outline=show_outline,
                    opacity=opacity,
