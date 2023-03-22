@@ -1,5 +1,5 @@
 
-📓 OpenSeesPy Model Visualization
+OpenSeesPy Model Visualization
 ===================================
 
 Currently, Module :mod:`opstool.vis` provides two major roles, OpenSeesPy model (including responses) visualization and 

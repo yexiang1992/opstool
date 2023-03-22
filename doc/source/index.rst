@@ -23,32 +23,32 @@ It is recommended that you use `Anaconda <https://www.anaconda.com/>`_ to avoid 
    :maxdepth: 5
    :caption: Installation
 
-   src/installation
+   _Installation
    CHANGELOG
 
 .. toctree::
    :maxdepth: 5
    :caption: Visualization
 
-   src/mod_vis
+   _vis
 
 .. toctree::
    :maxdepth: 5
    :caption: Fiber Section Mesh
 
-   src/mod_secmesh
+   _sec_mesh
 
 .. toctree::
    :maxdepth: 5
    :caption: Pre-processing
 
-   src/tcl2py
+   _pre
 
 .. toctree::
    :maxdepth: 5
    :caption: Analysis
 
-   src/smart_analysis
+   _analysis
 
 .. toctree::
    :maxdepth: 5

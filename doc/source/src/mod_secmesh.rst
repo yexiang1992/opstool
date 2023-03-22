@@ -1,4 +1,4 @@
-📓 Fiber Section Mesh Generation
+Fiber Section Mesh
 ==================================
 
 The module :mod:`opstool.preprocessing` provides a series of classes and functions for fiber section mesh generation, 

@@ -1,2 +1,2 @@
-📓 Smart Analysis
+Smart Analysis
 ===================
