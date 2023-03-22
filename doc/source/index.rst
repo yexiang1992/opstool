@@ -21,9 +21,36 @@ It is recommended that you use `Anaconda <https://www.anaconda.com/>`_ to avoid 
 
 .. toctree::
    :maxdepth: 5
-   :caption: User Guide
+   :caption: Installation
 
-   usr_guide
+   _Installation
+
+.. toctree::
+   :maxdepth: 5
+   :caption: Visualization
+
+   _vis
+
+.. toctree::
+   :maxdepth: 5
+   :caption: Fiber Section Mesh
+
+   _sec_mesh
+
+.. toctree::
+   :maxdepth: 5
+   :caption: Pre-processing
+
+   _pre
+
+
+.. toctree::
+   :maxdepth: 5
+   :caption: Analysis
+
+   _analysis
+
+
 
 .. toctree::
    :maxdepth: 5
