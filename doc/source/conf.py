@@ -87,7 +87,7 @@ extensions = [
     'nbsphinx',
     "jupyter_sphinx",
     'sphinx_copybutton',
-    'jupyter_sphinx.execute'
+    # 'jupyter_sphinx.execute'
 ]
 
 # The master toctree document.
