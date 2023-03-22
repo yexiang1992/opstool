@@ -24,7 +24,6 @@ It is recommended that you use `Anaconda <https://www.anaconda.com/>`_ to avoid 
    :caption: Installation
 
    _Installation
-   CHANGELOG
 
 .. toctree::
    :maxdepth: 5
