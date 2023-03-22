@@ -86,6 +86,7 @@ extensions = [
     # "sphinx_gallery.gen_gallery",
     'nbsphinx',
     "jupyter_sphinx",
+    "notfound.extension",
     'sphinx_copybutton',
     # 'jupyter_sphinx.execute'
 ]

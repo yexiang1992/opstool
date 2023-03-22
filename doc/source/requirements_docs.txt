@@ -20,3 +20,4 @@ cad_to_shapely
 jinja2==3.0.3
 jupyter-sphinx
 pythreejs
+notebook
