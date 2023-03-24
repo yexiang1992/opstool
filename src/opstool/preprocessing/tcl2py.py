@@ -324,13 +324,47 @@ def _TclInterp(prefix):
 
     def _block2D(*args):
         args = _remove_commit(args)
-        args = tuple([_type_convert(i) for i in args])
-        contents.append(f"{prefix}block2D{args}")
+        args = [_type_convert(i) for i in args]
+        txt = args[-1]
+        txt = txt.replace("\n", "").replace("\t", " ")
+        crds = txt.split()
+        crds = [_type_convert(i) for i in crds]
+        contents.append(f"crds = {crds}")
+        if isinstance(args[-2], str):
+            eleargs = args[-2].split()
+            eleargs = [_type_convert(i) for i in eleargs]
+            args = args[:-2] + eleargs
+            args = [f"'{i}'" if isinstance(i, str) else str(i)
+                    for i in args]
+            args.append("*crds")
+        else:
+            args = [f"'{i}'" if isinstance(i, str) else str(i)
+                    for i in args[:-1]]
+            args.append("*crds")
+        txt = f"{prefix}block2D(" + ", ".join(args) + ")"
+        contents.append(txt)
 
     def _block3D(*args):
         args = _remove_commit(args)
-        args = tuple([_type_convert(i) for i in args])
-        contents.append(f"{prefix}block3D{args}")
+        args = [_type_convert(i) for i in args]
+        txt = args[-1]
+        txt = txt.replace("\n", "").replace("\t", " ")
+        crds = txt.split()
+        crds = [_type_convert(i) for i in crds]
+        contents.append(f"crds = {crds}")
+        if isinstance(args[-2], str):
+            eleargs = args[-2].split()
+            eleargs = [_type_convert(i) for i in eleargs]
+            args = args[:-2] + eleargs
+            args = [f"'{i}'" if isinstance(i, str) else str(i)
+                    for i in args]
+            args.append("*crds")
+        else:
+            args = [f"'{i}'" if isinstance(i, str) else str(i)
+                    for i in args[:-1]]
+            args.append("*crds")
+        txt = f"{prefix}block3D(" + ", ".join(args) + ")"
+        contents.append(txt)
 
     def _ShallowFoundationGen(*args):
         args = _remove_commit(args)
