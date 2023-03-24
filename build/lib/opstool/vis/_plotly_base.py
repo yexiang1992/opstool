@@ -122,6 +122,7 @@ def _model_vis(
         show_ele_label: bool = False,
         show_local_crd: bool = False,
         show_fix_node: bool = True,
+        show_constrain_dof: bool = False,
         label_size: float = 8,
         show_outline: bool = True,
         opacity: float = 1.0,
@@ -359,7 +360,7 @@ def _model_vis(
                 hovertemplate='<b>z</b>')
             plotter.extend([plotter1, plotter2, plotter3])
     # mp constraint lines
-    plotter = _show_mp_constraint(obj, plotter, model_info)
+    _show_mp_constraint(obj, plotter, model_info, show_constrain_dof)
 
     fig.add_traces(plotter)
 
@@ -397,7 +398,7 @@ def _model_vis(
         fig.show()
 
 
-def _show_mp_constraint(obj, plotter, model_info):
+def _show_mp_constraint(obj, plotter, model_info, show_dofs):
     points = model_info["ConstrainedCoords"]
     cells = model_info["ConstrainedCells"]
     cells = _reshape_cell(cells)
@@ -412,13 +413,13 @@ def _show_mp_constraint(obj, plotter, model_info):
                                         width=obj.line_width / 3),
                                     mode="lines", name="mp constraint",
                                     connectgaps=False, hoverinfo="skip"))
-        x, y, z = [line_mid_points[:, j] for j in range(3)]
-        txt_plot = go.Scatter3d(x=x, y=y, z=z, text=dofs,
-                                textfont=dict(color=obj.color_constraint,
-                                              size=12),
-                                mode="text", name="constraint dofs")
-        plotter.append(txt_plot)
-    return plotter
+        if show_dofs:
+            x, y, z = [line_mid_points[:, j] for j in range(3)]
+            txt_plot = go.Scatter3d(x=x, y=y, z=z, text=dofs,
+                                    textfont=dict(color=obj.color_constraint,
+                                                  size=12),
+                                    mode="text", name="constraint dofs")
+            plotter.append(txt_plot)
 
 
 def _eigen_vis(

@@ -1,9 +1,12 @@
 import tkinter
 
+from rich import print
+
 
 def tcl2py(input_file: str,
            output_file: str,
-           prefix: str = "ops"):
+           prefix: str = "ops",
+           encoding: str = "utf-8"):
     """Convert tcl code of opensees to openseespy code.
 
     .. tip::
@@ -29,6 +32,8 @@ def tcl2py(input_file: str,
         i.e., ``import openseespy.opensees as ops``.
         If None or void str '', the prefix is not used.
         i.e., ``from openseespy.opensees import *``.
+    encoding: str, optional
+        file encoding format, by default "utf-8".
     """
     if not input_file.endswith(".tcl"):
         input_file += ".tcl"
@@ -40,18 +45,19 @@ def tcl2py(input_file: str,
     else:
         import_txt = "from openseespy.opensees import *\n\n"
         prefix = ''
-
-    with open(input_file, 'r', encoding="utf-8") as f:
+    with open(input_file, 'r', encoding=encoding) as f:
         tcl_src = f.read()
     tcl_src = tcl_src.replace("{", " { ")
     tcl_src = tcl_src.replace("}", " } ")
     interp, contents = _TclInterp(prefix)
-    interp.eval(tcl_src)
 
-    with open(output_file, mode='w', encoding="utf-8") as fw:
-        fw.write(import_txt)
-        for line in contents:
-            fw.write(line + "\n")
+    try:
+        interp.eval(tcl_src)
+    finally:
+        with open(output_file, mode='w', encoding=encoding) as fw:
+            fw.write(import_txt)
+            for line in contents:
+                fw.write(line + "\n")
 
 
 def _TclInterp(prefix):
@@ -135,8 +141,14 @@ def _TclInterp(prefix):
     def _section(*args):
         args = _remove_commit(args)
         args = tuple([_type_convert(i) for i in args])
-        if args[0] in ('NDFiber', 'Fiber'):
-            contents.append(f"{prefix}section{args[:-1]}")
+        if args[0].lower() in ('ndfiber', 'fiber'):
+            if args[0].lower() == "fiber" and ('-GJ' not in args or '-torsion' not in args):
+                print("[bold #d20962]Warning[/bold #d20962]: "
+                      "-GJ or -torsion not used for fiber section, GJ=10000 is assumed!")
+                new_args = (args[0], args[1], '-GJ', 1.E4)
+            else:
+                new_args = args[:-1]
+            contents.append(f"{prefix}section{new_args}")
             txt = args[-1]
             txt.replace("\\n", '')
             interp.eval(txt)
@@ -232,26 +244,33 @@ def _TclInterp(prefix):
                 txt = f"{prefix}timeSeries('Path', {args[1]}, *{args[2:]})"
                 contents.append(txt)
             else:
-                args = tuple([_type_convert(i) for i in args])
-                contents.append(f"{prefix}timeSeries{args}")
+                contents.append(f"{prefix}timeSeries{tuple(args)}")
         else:
-            args = tuple([_type_convert(i) for i in args])
-            contents.append(f"{prefix}timeSeries{args}")
+            contents.append(f"{prefix}timeSeries{tuple(args)}")
 
     def _pattern(*args):
         args = _remove_commit(args)
         args = tuple([_type_convert(i) for i in args])
-        if args[0].lower() == "plain" and isinstance(args[2], str):
-            contents.append(f"{prefix}timeSeries('{args[2]}', {args[1]})")
-            args = list(args)
-            args[2] = args[1]
-            args = tuple(args)
-            contents.append(f"{prefix}pattern{args[:-1]}")
+        if args[0].lower() != "uniformexcitation":
+            if args[0].lower() == "plain" and isinstance(args[2], str):
+                print(
+                    f"[bold #d20962]Warning[/bold #d20962]: OpenSeesPy not support a str [bold #0099e5]{args[2]}[/bold #0099e5] "
+                    f"followed [bold #ff4c4c]plain[/bold #ff4c4c], "
+                    f"and a new [bold #f47721]timeSeries[/bold #f47721] is created with tag "
+                    f"[bold #34bf49]{args[1]}[/bold #34bf49], "
+                    f"please check this [bold #34bf49]pattern tag={args[1]}[/bold #34bf49]!")
+                contents.append(f"{prefix}timeSeries('{args[2]}', {args[1]})")
+                args = list(args)
+                args[2] = args[1]
+                args = tuple(args)
+                contents.append(f"{prefix}pattern{args[:-1]}")
+            else:
+                contents.append(f"{prefix}pattern{args[:-1]}")
+            txt = args[-1]
+            txt.replace("\\n", '')
+            interp.eval(txt)
         else:
-            contents.append(f"{prefix}pattern{args[:-1]}")
-        txt = args[-1]
-        txt.replace("\\n", '')
-        interp.eval(txt)
+            contents.append(f"{prefix}pattern{args}")
 
     def _load(*args):
         args = _remove_commit(args)
@@ -305,13 +324,47 @@ def _TclInterp(prefix):
 
     def _block2D(*args):
         args = _remove_commit(args)
-        args = tuple([_type_convert(i) for i in args])
-        contents.append(f"{prefix}block2D{args}")
+        args = [_type_convert(i) for i in args]
+        txt = args[-1]
+        txt = txt.replace("\n", "").replace("\t", " ")
+        crds = txt.split()
+        crds = [_type_convert(i) for i in crds]
+        contents.append(f"crds = {crds}")
+        if isinstance(args[-2], str):
+            eleargs = args[-2].split()
+            eleargs = [_type_convert(i) for i in eleargs]
+            args = args[:-2] + eleargs
+            args = [f"'{i}'" if isinstance(i, str) else str(i)
+                    for i in args]
+            args.append("*crds")
+        else:
+            args = [f"'{i}'" if isinstance(i, str) else str(i)
+                    for i in args[:-1]]
+            args.append("*crds")
+        txt = f"{prefix}block2D(" + ", ".join(args) + ")"
+        contents.append(txt)
 
     def _block3D(*args):
         args = _remove_commit(args)
-        args = tuple([_type_convert(i) for i in args])
-        contents.append(f"{prefix}block3D{args}")
+        args = [_type_convert(i) for i in args]
+        txt = args[-1]
+        txt = txt.replace("\n", "").replace("\t", " ")
+        crds = txt.split()
+        crds = [_type_convert(i) for i in crds]
+        contents.append(f"crds = {crds}")
+        if isinstance(args[-2], str):
+            eleargs = args[-2].split()
+            eleargs = [_type_convert(i) for i in eleargs]
+            args = args[:-2] + eleargs
+            args = [f"'{i}'" if isinstance(i, str) else str(i)
+                    for i in args]
+            args.append("*crds")
+        else:
+            args = [f"'{i}'" if isinstance(i, str) else str(i)
+                    for i in args[:-1]]
+            args.append("*crds")
+        txt = f"{prefix}block3D(" + ", ".join(args) + ")"
+        contents.append(txt)
 
     def _ShallowFoundationGen(*args):
         args = _remove_commit(args)
@@ -1104,6 +1157,7 @@ def _TclInterp(prefix):
     interp.createcommand('rigidLink', _rigidLink)
     interp.createcommand('element', _element)
     interp.createcommand('timeSeries', _timeSeries)
+    # interp.createcommand('Series', _timeSeries)
     interp.createcommand('pattern', _pattern)
     interp.createcommand('load', _load)
     interp.createcommand('eleLoad', _eleLoad)

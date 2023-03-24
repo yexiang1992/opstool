@@ -1,6 +1,12 @@
 Changelog
 =============
 
+v0.6.0
+-------
+- Added the unit conversion class :func:`opstool.preprocessing.UnitSystem`.
+- Fixed bugs in :func:`opstool.preprocessing.tcl2py`.
+- Added the arg `show_constrain_dof` in :meth:`opstool.vis.OpsVisPyvista.model_vis` and :meth:`opstool.vis.OpsVisPlotly.model_vis`.
+
 v0.5.0
 -------
 - Added the function :func:`~opstool.vis.save_tikz` to save as the ``.tex`` file using `tikz` package, which can be visualized by native ``texlive`` or web-based ``overleaf``.
@@ -8,7 +14,7 @@ v0.5.0
 
 v0.4.2
 -------
-- Fixed som bugs in ``tclpy()``.
+- Fixed som bugs in :func:`opstool.preprocessing.tcl2py`.
 - Updated the version requirements for mac.
 
 v0.4.1
