@@ -1,3 +1,4 @@
+import numpy as np
 from typing import Union
 
 # The element class Tag in OpenSees, which is used to determine the element type
@@ -16,7 +17,7 @@ ELE_TAG_Plane = [31, 32, 33, 40, 47, 50, 52, 53, 54, 55, 59, 60, 61, 116, 119, 1
                  142, 143, 156, 157,
                  167, 168, 173, 174, 175, 180, 203, 204, 207, 208, 209]
 ELE_TAG_Joint = [71, 72, 81, 8181, 82, 83]
-ELE_TAG_Tetrahedron = [179, 256, 189]   # four, ten, 189-FEMBubble
+ELE_TAG_Tetrahedron = [179, 256, 189]  # four, ten, 189-FEMBubble
 ELE_TAG_Brick = [36, 37, 38, 39, 41, 42, 43, 44, 45, 46,
                  48, 49, 51, 56, 57, 58, 121, 122, 127]
 ELE_TAG_PFEM = [133, 141, 142, 143, 144, 164, 187, 189, 199, 200, 255]
@@ -118,3 +119,12 @@ def load_ops_examples(name: str):
         # exec("from opstool.examples.DamBreak import *")
     else:
         raise ValueError(f"not supported example {name}!")
+
+
+def _get_random_color():
+    colors = ['#00aeff', '#3369e7', '#8e43e7', '#b84592', '#ff4f81',
+              '#ff6c5f', '#ffc168', '#2dde98', '#1cc7d0', '#ce181e',
+              '#007cc0', '#ffc20e', '#0099e5', '#ff4c4c', '#34bf49',
+              '#d20962', '#f47721', '#00c16e', '#7552cc', '#00bce4']
+    idx = np.random.choice(15)
+    return colors[idx]

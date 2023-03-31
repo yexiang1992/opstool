@@ -1,4 +1,3 @@
-
 from setuptools import find_packages, setup
 
 from src.opstool import __version__
@@ -9,7 +8,7 @@ with open("README.md", "r") as fh:
 setup(
     name='opstool',
     version=__version__,
-    description='opensees toolbox',
+    description='openseespy toolbox',
     long_description=long_description,
     long_description_content_type="text/markdown",
     author='Yexiang Yan',
@@ -18,19 +17,19 @@ setup(
     license='GPL Licence',
     keywords='OpenSees seismic visualization',
     platforms='any',
-    python_requires='>=3.9.*',
+    python_requires='>=3.8.*',
     package_dir={'': 'src'},
     packages=find_packages('src'),
     classifiers=[
-        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3",
     ],
     install_requires=[
         'matplotlib',
         'numpy',
-        'openseespy',
+        'openseespy>=3.4.0.1',
         'plotly',
-        'pyvista',
-        'sectionproperties',
+        'pyvista>=0.38.2',
+        'sectionproperties>=2.1.5',
         'shapely>=2.0.0',
         'h5py',
         'rich'

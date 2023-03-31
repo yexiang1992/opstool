@@ -24,17 +24,39 @@ def get_node_coords():
     return node_coords, node_index, model_dims, node_tags
 
 
-def get_node_fix():
+def get_node_fix(node_coords, node_index):
     fixed_nodes = ops.getFixedNodes()
     fixed_dofs = []
+    fixed_coords = []
     for tag in fixed_nodes:
+        fixed_coords.append(node_coords[node_index[tag]])
         fixeddofs = ops.getFixedDOFs(tag)
         fixities = [0] * 6
         for dof in fixeddofs:
             fixities[dof - 1] = -1
         fixed_dofs.append(fixities)
+    fixed_coords = np.array(fixed_coords)
     fixed_dofs = np.array(fixed_dofs)
-    return fixed_nodes, fixed_dofs
+    return fixed_nodes, fixed_coords, fixed_dofs
+
+
+def get_mp_constraint(node_coords, node_index):
+    retained_nodes = ops.getRetainedNodes()
+    points = []
+    midpoints = []
+    cells = []
+    dofs = []
+    for i, tag in enumerate(retained_nodes):
+        constrained_nodes = ops.getConstrainedNodes(tag)
+        for tag2 in constrained_nodes:
+            points.append(node_coords[node_index[tag]])
+            points.append(node_coords[node_index[tag2]])
+            midpoints.append(
+                (node_coords[node_index[tag]] + node_coords[node_index[tag2]]) / 2)
+            cells.extend([2, 2 * i, 2 * i + 1])
+            dof = ops.getRetainedDOFs(tag, tag2)
+            dofs.append(dof)
+    return np.array(points), np.array(midpoints), dofs, cells
 
 
 def get_truss_info(ele_tags, node_index):
@@ -54,6 +76,7 @@ def get_link_info(ele_tags, node_coords, node_index):
     link_cells = []
     link_cells_tags = []
     link_midpoints = []
+    link_lengths = []
     link_xlocal = []
     link_ylocal = []
     link_zlocal = []
@@ -66,17 +89,29 @@ def get_link_info(ele_tags, node_coords, node_index):
             link_cells_tags.append(ele)
             link_midpoints.append(
                 (node_coords[idx_i] + node_coords[idx_j]) / 2)
-            xlocal = ops.eleResponse(ele, "xlocal")
-            ylocal = ops.eleResponse(ele, "ylocal")
-            zlocal = ops.eleResponse(ele, "zlocal")
-            link_xlocal.append(np.array(xlocal) / np.linalg.norm(xlocal))
-            link_ylocal.append(np.array(ylocal) / np.linalg.norm(ylocal))
-            link_zlocal.append(np.array(zlocal) / np.linalg.norm(zlocal))
+            link_lengths.append(
+                np.sqrt(np.sum((node_coords[idx_i] - node_coords[idx_j])**2)))
+            xlocal = ops.eleResponse(ele, "xaxis")
+            ylocal = ops.eleResponse(ele, "yaxis")
+            zlocal = ops.eleResponse(ele, "zaxis")
+            if xlocal:
+                link_xlocal.append(np.array(xlocal) / np.linalg.norm(xlocal))
+            else:
+                link_xlocal.append(np.array([0., 0., 0.]))
+            if ylocal:
+                link_ylocal.append(np.array(ylocal) / np.linalg.norm(ylocal))
+            else:
+                link_ylocal.append(np.array([0., 0., 0.]))
+            if zlocal:
+                link_zlocal.append(np.array(zlocal) / np.linalg.norm(zlocal))
+            else:
+                link_zlocal.append(np.array([0., 0., 0.]))
     link_midpoints = np.array(link_midpoints)
+    link_lengths = np.array(link_lengths)
     link_xlocal = np.array(link_xlocal)
     link_ylocal = np.array(link_ylocal)
     link_zlocal = np.array(link_zlocal)
-    return (link_cells, link_cells_tags, link_midpoints,
+    return (link_cells, link_cells_tags, link_midpoints, link_lengths,
             link_xlocal, link_ylocal, link_zlocal)
 
 
@@ -84,6 +119,7 @@ def get_beam_info(ele_tags, node_coords, node_index):
     beam_cells = []
     beam_cells_tags = []
     beam_midpoints = []
+    beam_lengths = []
     beam_xlocal = []
     beam_ylocal = []
     beam_zlocal = []
@@ -96,17 +132,29 @@ def get_beam_info(ele_tags, node_coords, node_index):
             beam_cells_tags.append(ele)
             beam_midpoints.append(
                 (node_coords[idx_i] + node_coords[idx_j]) / 2)
-            xlocal = ops.eleResponse(ele, "xlocal")
-            ylocal = ops.eleResponse(ele, "ylocal")
-            zlocal = ops.eleResponse(ele, "zlocal")
-            beam_xlocal.append(np.array(xlocal) / np.linalg.norm(xlocal))
-            beam_ylocal.append(np.array(ylocal) / np.linalg.norm(ylocal))
-            beam_zlocal.append(np.array(zlocal) / np.linalg.norm(zlocal))
+            beam_lengths.append(
+                np.sqrt(np.sum((node_coords[idx_i] - node_coords[idx_j])**2)))
+            xlocal = ops.eleResponse(ele, "xaxis")
+            ylocal = ops.eleResponse(ele, "yaxis")
+            zlocal = ops.eleResponse(ele, "zaxis")
+            if xlocal:
+                beam_xlocal.append(np.array(xlocal) / np.linalg.norm(xlocal))
+            else:
+                beam_xlocal.append(np.array([0., 0., 0.]))
+            if xlocal:
+                beam_ylocal.append(np.array(ylocal) / np.linalg.norm(ylocal))
+            else:
+                beam_ylocal.append(np.array([0., 0., 0.]))
+            if zlocal:
+                beam_zlocal.append(np.array(zlocal) / np.linalg.norm(zlocal))
+            else:
+                beam_zlocal.append(np.array([0., 0., 0.]))
     beam_midpoints = np.array(beam_midpoints)
+    beam_lengths = np.array(beam_lengths)
     beam_xlocal = np.array(beam_xlocal)
     beam_ylocal = np.array(beam_ylocal)
     beam_zlocal = np.array(beam_zlocal)
-    return (beam_cells, beam_cells_tags, beam_midpoints,
+    return (beam_cells, beam_cells_tags, beam_midpoints, beam_lengths,
             beam_xlocal, beam_ylocal, beam_zlocal)
 
 
@@ -193,7 +241,7 @@ def get_tet_info(ele_tags, node_index):
     return tetrahedron_cells, tetrahedron_cells_tags
 
 
-def get_bri_info(ele_tags, node_coords, node_index):
+def get_bri_info(ele_tags, node_index):
     brick_cells = []
     brick_cells_tags = []
     for i, ele in enumerate(ele_tags):
@@ -230,8 +278,8 @@ def get_bri_info(ele_tags, node_coords, node_index):
     return brick_cells, brick_cells_tags
 
 
-def get_all_face_info(ele_tags, node_coords, node_index):
-    pass
+# def get_all_face_info(ele_tags, node_coords, node_index):
+#     pass
 
 
 def get_ele_mid(ele_tags, node_coords, node_index):
@@ -246,9 +294,9 @@ def get_ele_mid(ele_tags, node_coords, node_index):
 def get_bounds(node_coords):
     min_node = np.min(node_coords, axis=0)
     max_node = np.max(node_coords, axis=0)
-    space = (max_node - min_node) / 10
-    min_node = min_node - 2 * space
-    max_node = max_node + 2 * space
+    space = (max_node - min_node) / 5
+    min_node = min_node - space
+    max_node = max_node + space
     bounds = [
         min_node[0],
         max_node[0],
@@ -258,7 +306,99 @@ def get_bounds(node_coords):
         max_node[2],
     ]
     max_bound = np.max(max_node - min_node)
-    return bounds, max_bound
+    min_bound = np.min(max_node - min_node)
+    return bounds, max_bound, min_bound
+
+
+def get_model_info():
+    # print(ops.constrainedDOFs())   constrainedDOFs
+    node_coords, node_index, model_dims, node_tags = get_node_coords()
+    fixed_nodes, fixed_coords, fixed_dofs = get_node_fix(
+        node_coords, node_index)
+    ctra_coords, ctra_midcoords, ctra_dofs, ctra_cells = get_mp_constraint(
+        node_coords, node_index)
+    ele_tags = ops.getEleTags()
+    num_ele = len(ele_tags)
+    truss_cells, truss_cells_tags = get_truss_info(ele_tags, node_index)
+    (link_cells, link_cells_tags, link_midpoints, link_lengths,
+     link_xlocal, link_ylocal, link_zlocal) = get_link_info(ele_tags, node_coords, node_index)
+    (beam_cells, beam_cells_tags, beam_midpoints, beam_lengths,
+     beam_xlocal, beam_ylocal, beam_zlocal) = get_beam_info(ele_tags, node_coords, node_index)
+    other_line_cells, other_line_cells_tags = get_other_line_info(
+        ele_tags, node_index)
+    all_lines_cells, all_lines_cells_tags = get_all_line_info(
+        ele_tags, node_index)
+    plane_cells, plane_cells_tags = get_plane_info(ele_tags, node_index)
+    tetrahedron_cells, tetrahedron_cells_tags = get_tet_info(
+        ele_tags, node_index)
+    brick_cells, brick_cells_tags = get_bri_info(ele_tags, node_index)
+    all_faces_cells = plane_cells + tetrahedron_cells + brick_cells
+    all_faces_cells_tags = plane_cells_tags + \
+        tetrahedron_cells_tags + brick_cells_tags
+    ele_midpoints = get_ele_mid(ele_tags, node_coords, node_index)
+    bounds, max_bound, min_bound = get_bounds(node_coords)
+    model_info = dict()
+    model_info["coord_no_deform"] = node_coords
+    model_info["coord_ele_midpoints"] = ele_midpoints
+    model_info["bound"] = bounds
+    model_info["max_bound"] = max_bound
+    model_info["min_bound"] = min_bound
+    model_info["num_ele"] = num_ele
+    model_info["NodeTags"] = node_tags
+    model_info["num_node"] = len(node_tags)
+    model_info["FixNodeTags"] = fixed_nodes
+    model_info["FixNodeDofs"] = fixed_dofs
+    model_info["FixNodeCoords"] = fixed_coords
+    model_info["ConstrainedCoords"] = ctra_coords
+    model_info["ConstrainedMidCoords"] = ctra_midcoords
+    model_info["ConstrainedDofs"] = ctra_dofs
+    model_info["ConstrainedCells"] = ctra_cells
+    model_info["EleTags"] = ele_tags
+    model_info["model_dims"] = model_dims
+    model_info["coord_ele_midpoints"] = ele_midpoints
+    model_info["beam_midpoints"] = beam_midpoints
+    model_info["beam_lengths"] = beam_lengths
+    model_info["beam_xlocal"] = beam_xlocal
+    model_info["beam_ylocal"] = beam_ylocal
+    model_info["beam_zlocal"] = beam_zlocal
+    model_info["link_midpoints"] = link_midpoints
+    model_info["link_lengths"] = link_lengths
+    model_info["link_xlocal"] = link_xlocal
+    model_info["link_ylocal"] = link_ylocal
+    model_info["link_zlocal"] = link_zlocal
+    cells = dict()
+    cells["all_lines"] = all_lines_cells
+    cells['all_lines_tags'] = all_lines_cells_tags
+    cells["all_faces"] = all_faces_cells
+    cells["all_faces_tags"] = all_faces_cells_tags
+    cells["plane"] = plane_cells
+    cells["plane_tags"] = plane_cells_tags
+    cells["tetrahedron"] = tetrahedron_cells
+    cells["tetrahedron_tags"] = tetrahedron_cells_tags
+    cells["brick"] = brick_cells
+    cells["brick_tags"] = brick_cells_tags
+    cells["truss"] = truss_cells
+    cells["truss_tags"] = truss_cells_tags
+    cells["link"] = link_cells
+    cells["link_tags"] = link_cells_tags
+    cells["beam"] = beam_cells
+    cells["beam_tags"] = beam_cells_tags
+    cells["other_line"] = other_line_cells
+    cells["other_line_tags"] = other_line_cells_tags
+    for key, value in cells.items():
+        cells[key] = np.array(value)
+    return model_info, cells
+
+
+def get_node_react(fixed_nodes):
+    reacts = []
+    for tag in fixed_nodes:
+        fixeddofs = ops.getFixedDOFs(tag)
+        forces = [0] * 6
+        for dof in fixeddofs:
+            forces[dof - 1] = ops.nodeReaction(tag, dof)
+        reacts.append(forces)
+    return np.array(reacts)
 
 
 def get_node_resp(node_tags):

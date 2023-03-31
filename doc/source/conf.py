@@ -19,7 +19,8 @@ import plotly.io as pio
 # import pyvista as pv
 # pv.set_jupyter_backend('pythreejs')
 # pio.renderers = 'jupyterlab'
-pio.renderers = 'notebook'
+# pio.renderers = 'notebook'
+pio.renderers = 'sphinx_gallery'
 
 # from unittest.mock import MagicMock
 
@@ -56,6 +57,9 @@ with open(this_dir / "src" / "opstool" / "__about__.py") as f:
 __version__ = about["__version__"]
 
 sys.path.insert(0, os.path.abspath('../../src'))
+package_path = os.path.abspath('../../src')
+os.environ['PYTHONPATH'] = ':'.join(
+    (package_path, os.environ.get('PYTHONPATH', '')))
 
 
 # -- Project information -----------------------------------------------------
@@ -75,12 +79,15 @@ release = __version__
 # ones.
 extensions = [
     "sphinx.ext.autodoc",
+    'sphinx_autodoc_typehints',
     "sphinx.ext.mathjax",
     "sphinx.ext.viewcode",
+    "sphinx_gallery.load_style",
     # "sphinx_gallery.gen_gallery",
     'nbsphinx',
     "jupyter_sphinx",
     'sphinx_copybutton',
+    # 'jupyter_sphinx.execute'
 ]
 
 # The master toctree document.
@@ -106,7 +113,6 @@ pygments_style = "sphinx"
 # html_theme = 'alabaster'
 # html_theme = 'sphinx_rtd_theme'
 html_theme = 'pydata_sphinx_theme'
-html_static_path = ["_static"]
 html_theme_options = {
     "show_prev_next": False,
     # "google_analytics_id": 'UA-141840477-1',
@@ -130,10 +136,6 @@ html_theme_options = {
     }
 }
 
-html_sidebars = {
-    "index": ["search-field", "sidebar_index"],
-    # "gallery/*": []
-}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

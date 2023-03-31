@@ -1,5 +1,44 @@
 Changelog
-==========
+=============
+
+developing in v0.7.0
+---------------------
+- Added the method :meth:`opstool.vis.GetFEMdata.save_resp_all` and :meth:`opstool.vis.GetFEMdata.get_resp_step`.
+- Added the node reactions plot method :meth:`opstool.vis.OpsVisPyvista.react_vis` and :meth:`opstool.vis.OpsVisPlotly.react_vis`.
+- Added the method :py:meth:`opstool.preprocessing.SecMesh.get_frame_props`.
+- Added the method :py:meth:`opstool.preprocessing.SecMesh.get_stress`.
+- Fixed the bug in the calculation of equivalent torsion constants for reference materials in composite sections,
+  in :py:meth:`opstool.preprocessing.SecMesh.get_sec_props` and :py:meth:`opstool.preprocessing.SecMesh.get_frame_props`
+
+v0.6.0
+-------
+- Added the unit conversion class :func:`opstool.preprocessing.UnitSystem`.
+- Fixed bugs in :func:`opstool.preprocessing.tcl2py`.
+- Added the arg `show_constrain_dof` in :meth:`opstool.vis.OpsVisPyvista.model_vis` and :meth:`opstool.vis.OpsVisPlotly.model_vis`.
+
+v0.5.0
+-------
+- Added the function :func:`~opstool.vis.save_tikz` to save as the ``.tex`` file using `tikz` package, which can be visualized by native ``texlive`` or web-based ``overleaf``.
+- Added the class :class:`opstool.analysis.MomentCurvature` to moment-curvature analysis of fiber section.
+
+v0.4.2
+-------
+- Fixed som bugs in :func:`opstool.preprocessing.tcl2py`.
+- Updated the version requirements for mac.
+
+v0.4.1
+-------
+- Fixed some bugs in the arg ``show_local_crd`` in :meth:`opstool.vis.OpsVisPyvista.model_vis` and :meth:`opstool.vis.OpsVisPlotly.model_vis`
+
+v0.4.0
+-------
+- update vis module, add multi-point constraint plot
+
+v0.3.0
+--------
+- Added the class :class:`opstool.analysis.SmartAnalyze`
+- Added the functions :func:`opstool.preprocessing.var_line_string` and :func:`opstool.preprocessing.vis_var_sec`
+  to create variable fiber cross-section meshes.
 
 v0.2.0
 --------

@@ -87,12 +87,42 @@ def _make_lines(points, cells):
     return line_points, line_mid_points
 
 
+def _make_fix_node(model_info):
+    fixed_dofs = model_info["FixNodeDofs"]
+    fixed_coords = model_info["FixNodeCoords"]
+    beam_lengths = model_info["beam_lengths"]
+    if len(beam_lengths) > 0:
+        s = (np.max(beam_lengths) + np.min(beam_lengths)) / 20
+    else:
+        s = (model_info["max_bound"] + model_info["min_bound"]) / 100
+    points = []
+    for coord, dof in zip(fixed_coords, fixed_dofs):
+        x, y, z = coord
+        if dof[0] == -1:
+            points.extend([[x, y - s / 2, z], [x, y + s / 2, z],
+                           [x, y + s / 2, z - s], [x, y - s / 2, z - s],
+                           [x, y - s / 2, z], [np.NAN, np.NAN, np.NAN]])
+        if dof[1] == -1:
+            points.extend([[x - s / 2, y, z], [x + s / 2, y, z],
+                           [x + s / 2, y, z - s], [x - s / 2, y, z - s],
+                           [x - s / 2, y, z], [np.NAN, np.NAN, np.NAN]])
+        if dof[2] == -1:
+            points.extend([[x - s / 2, y - s / 2, z - s / 2], [x + s / 2, y - s / 2, z - s / 2],
+                           [x + s / 2, y + s / 2, z - s / 2], [x -
+                                                               s / 2, y + s / 2, z - s / 2],
+                           [x - s / 2, y - s / 2, z - s / 2], [np.NAN, np.NAN, np.NAN]])
+    points = np.array(points)
+    return points
+
+
 def _model_vis(
         obj,
         input_file: str = "ModelData.hdf5",
         show_node_label: bool = False,
         show_ele_label: bool = False,
         show_local_crd: bool = False,
+        show_fix_node: bool = True,
+        show_constrain_dof: bool = False,
         label_size: float = 8,
         show_outline: bool = True,
         opacity: float = 1.0,
@@ -112,9 +142,32 @@ def _model_vis(
             cells[name] = grp2[name][...]
     for name, value in cells.items():
         cells[name] = _reshape_cell(value)
+    fig = _plot_model(obj, model_info, cells,
+                      show_node_label=show_node_label,
+                      show_ele_label=show_ele_label,
+                      show_local_crd=show_local_crd,
+                      show_fix_node=show_fix_node,
+                      show_constrain_dof=show_constrain_dof,
+                      label_size=label_size,
+                      show_outline=show_outline,
+                      opacity=opacity)
+    if save_html:
+        if not save_html.endswith(".html"):
+            save_html += ".html"
+        pio.write_html(fig, file=save_html, auto_open=True)
+    if obj.notebook:
+        fig.show()
 
-    # plotly
-    # --------------------------------------------------
+
+def _plot_model(obj, model_info, cells,
+                show_node_label: bool = False,
+                show_ele_label: bool = False,
+                show_local_crd: bool = False,
+                show_fix_node: bool = True,
+                show_constrain_dof: bool = False,
+                label_size: float = 8,
+                show_outline: bool = True,
+                opacity: float = 1.0,):
     fig = go.Figure()
     plotter = []
     points_no_deform = model_info["coord_no_deform"]
@@ -127,7 +180,7 @@ def _model_vis(
     for ii in range(len(face_cells)):
         if len(face_cells[ii]) > 0:
             (face_points, face_line_points, face_mid_points,
-                veci, vecj, veck) = _make_faces(points_no_deform, face_cells[ii])
+             veci, vecj, veck) = _make_faces(points_no_deform, face_cells[ii])
             x, y, z = face_points[:, 0], face_points[:, 1], face_points[:, 2]
             plotter.append(go.Mesh3d(x=x, y=y, z=z, i=veci, j=vecj, k=veck,
                                      name=names[ii], color=face_colors[ii],
@@ -181,14 +234,13 @@ def _model_vis(
                                             color=obj.color_point),
                                 mode="markers", name="Node", customdata=node_labels,
                                 hovertemplate='<b>x: %{x}</b><br>y: %{y}<br>z: %{z} <br>tag: %{customdata}'))
-    fig.add_traces(plotter)
 
     if show_node_label:
         txt_plot = go.Scatter3d(x=x, y=y, z=z, text=node_labels,
                                 textfont=dict(color="#6e750e",
                                               size=label_size),
                                 mode="text", name="Node Label")
-        fig.add_trace(txt_plot)
+        plotter.append(txt_plot)
 
     if show_ele_label:
         ele_labels = [str(i) for i in model_info["EleTags"]]
@@ -201,78 +253,154 @@ def _model_vis(
             mode="text",
             name="Ele Label",
         )
-        fig.add_trace(txt_plot)
+        plotter.append(txt_plot)
 
-    if np.max(np.abs(points_no_deform[:, -1])) < 1e-5:
-        eye = dict(x=0, y=0, z=1.5)  # for 2D camera
-    else:
-        eye = dict(x=-3.5, y=-3.5, z=3.5)  # for 3D camera
+    if show_fix_node:
+        fix_points = _make_fix_node(model_info)
+        if len(fix_points) > 0:
+            x, y, z = fix_points[:, 0], fix_points[:, 1], fix_points[:, 2]
+            fix_plot = go.Scatter3d(x=x, y=y, z=z,
+                                    line=dict(color="#01ff07", width=2),
+                                    mode="lines", connectgaps=False, hoverinfo="skip")
+            plotter.append(fix_plot)
+        else:
+            warnings.warn("Model has no fix nodes!")
 
     # local axes
-    beam_midpoints = model_info["beam_midpoints"]
-    if show_local_crd and len(beam_midpoints) == 0:
-        warnings.warn("Model has no frame elements!")
-        show_local_crd = False
     if show_local_crd:
-        beam_xlocal = model_info["beam_xlocal"]
-        beam_ylocal = model_info["beam_ylocal"]
-        beam_zlocal = model_info["beam_zlocal"]
-        length = model_info["max_bound"] / 350
-        xcoords = beam_midpoints + length * beam_xlocal
-        ycoords = beam_midpoints + length * beam_ylocal
-        zcoords = beam_midpoints + length * beam_zlocal
-        localx_points = []
-        localy_points = []
-        localz_points = []
-        for i, midpoints in enumerate(beam_midpoints):
-            localx_points.append(midpoints)
-            localx_points.append(xcoords[i])
-            localx_points.append([np.NAN, np.NAN, np.NAN])
-            localy_points.append(midpoints)
-            localy_points.append(ycoords[i])
-            localy_points.append([np.NAN, np.NAN, np.NAN])
-            localz_points.append(midpoints)
-            localz_points.append(zcoords[i])
-            localz_points.append([np.NAN, np.NAN, np.NAN])
-        localx_points = np.array(localx_points)
-        localy_points = np.array(localy_points)
-        localz_points = np.array(localz_points)
-        plotter1 = go.Scatter3d(
-            x=localx_points[:, 0],
-            y=localx_points[:, 1],
-            z=localx_points[:, 2],
-            line=dict(color="red", width=3.5),
-            mode="lines",
-            connectgaps=False,
-            name='',
-            # customdata=['x'] * n_beam,
-            hovertemplate='<b>x</b>')
-        plotter2 = go.Scatter3d(
-            x=localy_points[:, 0],
-            y=localy_points[:, 1],
-            z=localy_points[:, 2],
-            line=dict(color="orange", width=3.5),
-            mode="lines",
-            connectgaps=False,
-            name='',
-            hovertemplate='<b>y</b>')
-        plotter3 = go.Scatter3d(
-            x=localz_points[:, 0],
-            y=localz_points[:, 1],
-            z=localz_points[:, 2],
-            line=dict(color="green", width=3.5),
-            mode="lines",
-            connectgaps=False,
-            name='',
-            hovertemplate='<b>z</b>')
-        fig.add_traces([plotter1, plotter2, plotter3])
+        beam_midpoints = model_info["beam_midpoints"]
+        beam_lengths = model_info["beam_lengths"]
+        if len(beam_midpoints) > 0:
+            beam_xlocal = model_info["beam_xlocal"]
+            beam_ylocal = model_info["beam_ylocal"]
+            beam_zlocal = model_info["beam_zlocal"]
+            length = (np.max(beam_lengths) + np.min(beam_lengths)) / 20
+            xcoords = beam_midpoints + length * beam_xlocal
+            ycoords = beam_midpoints + length * beam_ylocal
+            zcoords = beam_midpoints + length * beam_zlocal
+            localx_points = []
+            localy_points = []
+            localz_points = []
+            for i, midpoints in enumerate(beam_midpoints):
+                localx_points.append(midpoints)
+                localx_points.append(xcoords[i])
+                localx_points.append([np.NAN, np.NAN, np.NAN])
+                localy_points.append(midpoints)
+                localy_points.append(ycoords[i])
+                localy_points.append([np.NAN, np.NAN, np.NAN])
+                localz_points.append(midpoints)
+                localz_points.append(zcoords[i])
+                localz_points.append([np.NAN, np.NAN, np.NAN])
+            localx_points = np.array(localx_points)
+            localy_points = np.array(localy_points)
+            localz_points = np.array(localz_points)
+            plotter1 = go.Scatter3d(
+                x=localx_points[:, 0],
+                y=localx_points[:, 1],
+                z=localx_points[:, 2],
+                line=dict(color="#cf6275", width=obj.line_width * 1.5),
+                mode="lines",
+                connectgaps=False,
+                name='',
+                # customdata=['x'] * n_beam,
+                hovertemplate='<b>x</b>')
+            plotter2 = go.Scatter3d(
+                x=localy_points[:, 0],
+                y=localy_points[:, 1],
+                z=localy_points[:, 2],
+                line=dict(color="#04d8b2", width=obj.line_width * 1.5),
+                mode="lines",
+                connectgaps=False,
+                name='',
+                hovertemplate='<b>y</b>')
+            plotter3 = go.Scatter3d(
+                x=localz_points[:, 0],
+                y=localz_points[:, 1],
+                z=localz_points[:, 2],
+                line=dict(color="#9aae07", width=obj.line_width * 1.5),
+                mode="lines",
+                connectgaps=False,
+                name='',
+                hovertemplate='<b>z</b>')
+            plotter.extend([plotter1, plotter2, plotter3])
+        else:
+            warnings.warn(
+                "Model has no frame elements when show_local_crd=True!")
+        # link axes
+        link_midpoints = model_info["link_midpoints"]
+        link_lengths = model_info["link_lengths"]
+        if len(link_midpoints) > 0:
+            link_xlocal = model_info["link_xlocal"]
+            link_ylocal = model_info["link_ylocal"]
+            link_zlocal = model_info["link_zlocal"]
+            length = (np.max(link_lengths) + np.min(link_lengths)) / 6
+            xcoords = link_midpoints + length * link_xlocal
+            ycoords = link_midpoints + length * link_ylocal
+            zcoords = link_midpoints + length * link_zlocal
+            localx_points = []
+            localy_points = []
+            localz_points = []
+            for i, midpoints in enumerate(link_midpoints):
+                localx_points.append(midpoints)
+                localx_points.append(xcoords[i])
+                localx_points.append([np.NAN, np.NAN, np.NAN])
+                localy_points.append(midpoints)
+                localy_points.append(ycoords[i])
+                localy_points.append([np.NAN, np.NAN, np.NAN])
+                localz_points.append(midpoints)
+                localz_points.append(zcoords[i])
+                localz_points.append([np.NAN, np.NAN, np.NAN])
+            localx_points = np.array(localx_points)
+            localy_points = np.array(localy_points)
+            localz_points = np.array(localz_points)
+            plotter1 = go.Scatter3d(
+                x=localx_points[:, 0],
+                y=localx_points[:, 1],
+                z=localx_points[:, 2],
+                line=dict(color="#cf6275", width=obj.line_width * 1.5),
+                mode="lines",
+                connectgaps=False,
+                name='',
+                # customdata=['x'] * n_beam,
+                hovertemplate='<b>x</b>')
+            plotter2 = go.Scatter3d(
+                x=localy_points[:, 0],
+                y=localy_points[:, 1],
+                z=localy_points[:, 2],
+                line=dict(color="#04d8b2", width=obj.line_width * 1.5),
+                mode="lines",
+                connectgaps=False,
+                name='',
+                hovertemplate='<b>y</b>')
+            plotter3 = go.Scatter3d(
+                x=localz_points[:, 0],
+                y=localz_points[:, 1],
+                z=localz_points[:, 2],
+                line=dict(color="#9aae07", width=obj.line_width * 1.5),
+                mode="lines",
+                connectgaps=False,
+                name='',
+                hovertemplate='<b>z</b>')
+            plotter.extend([plotter1, plotter2, plotter3])
+    # mp constraint lines
+    _show_mp_constraint(obj, plotter, model_info, show_constrain_dof)
+
+    fig.add_traces(plotter)
+
+    if np.max(np.abs(points_no_deform[:, -1])) < 1e-6:
+        eye = dict(x=0., y=-0.1, z=10)  # for 2D camera
+        scene = dict(camera=dict(
+            eye=eye, projection=dict(type="orthographic")))
+    else:
+        eye = dict(x=-3.5, y=-3.5, z=3.5)  # for 3D camera
+        scene = dict(aspectratio=dict(x=1, y=1, z=1), aspectmode="data",
+                     camera=dict(eye=eye, projection=dict(type="orthographic")))
 
     fig.update_layout(
         template=obj.theme,
         autosize=True,
         showlegend=False,
-        scene=dict(aspectratio=dict(x=1, y=1, z=1), aspectmode="data",
-                   camera=dict(eye=eye, projection=dict(type="orthographic"))),
+        scene=scene,
         title=dict(font=dict(family="courier", color='black', size=25),
                    text=("<b>OpenSeesPy 3D View</b> <br>"
                          f"Num. of Node: {model_info['num_node']} || Num. of Ele:{model_info['num_ele']}")
@@ -285,12 +413,31 @@ def _model_vis(
                               'zeroline': False, 'visible': False},
                        zaxis={'showgrid': False, 'zeroline': False, 'visible': False}, ),
         )
-    if save_html:
-        if not save_html.endswith(".html"):
-            save_html += ".html"
-        pio.write_html(fig, file=save_html, auto_open=True)
-    if obj.notebook:
-        fig.show()
+    return fig
+
+
+def _show_mp_constraint(obj, plotter, model_info, show_dofs):
+    points = model_info["ConstrainedCoords"]
+    cells = model_info["ConstrainedCells"]
+    cells = _reshape_cell(cells)
+    dofs = model_info["ConstrainedDofs"]
+    dofs = ["".join([str(k) for k in dof]) for dof in dofs]
+    if len(cells) > 0:
+        line_points, line_mid_points = _make_lines(points, cells)
+        x, y, z = line_points[:, 0], line_points[:, 1], line_points[:, 2]
+        plotter.append(go.Scatter3d(x=x, y=y, z=z,
+                                    line=dict(
+                                        color=obj.color_constraint,
+                                        width=obj.line_width / 3),
+                                    mode="lines", name="mp constraint",
+                                    connectgaps=False, hoverinfo="skip"))
+        if show_dofs:
+            x, y, z = [line_mid_points[:, j] for j in range(3)]
+            txt_plot = go.Scatter3d(x=x, y=y, z=z, text=dofs,
+                                    textfont=dict(color=obj.color_constraint,
+                                                  size=12),
+                                    mode="text", name="constraint dofs")
+            plotter.append(txt_plot)
 
 
 def _eigen_vis(
@@ -325,10 +472,13 @@ def _eigen_vis(
             f"Insufficient number of modes in eigen file {filename}!")
 
     fig = go.Figure()
-    off_axis = {'showgrid': False, 'zeroline': False, 'visible': False}
     title = dict(font=dict(family="courier", color='black', size=25),
                  text="<b>OpenSeesPy Eigen 3D View</b>"
                  )
+    if show_outline:
+        off_axis = {'showgrid': True, 'zeroline': True, 'visible': True}
+    else:
+        off_axis = {'showgrid': False, 'zeroline': False, 'visible': False}
 
     # !subplots
     if subplots:
@@ -380,53 +530,42 @@ def _eigen_vis(
                                          line_width=obj.line_width,
                                          show_face_line=show_face_line)
             fig.add_traces(plotter, rows=idxi + 1, cols=idxj + 1)
+        if np.max(np.abs(eigen_data["coord_no_deform"][:, -1])) < 1e-8:
+            eye = dict(x=0., y=-0.1, z=10)  # for 2D camera
+            scene = dict(camera=dict(
+                eye=eye, projection=dict(type="orthographic")),
+                xaxis=off_axis, yaxis=off_axis, zaxis=off_axis)
+        else:
+            eye = dict(x=-3.5, y=-3.5, z=3.5)  # for 3D camera
+            scene = dict(aspectratio=dict(x=1, y=1, z=1), aspectmode="data",
+                         camera=dict(eye=eye, projection=dict(
+                             type="orthographic")),
+                         xaxis=off_axis, yaxis=off_axis, zaxis=off_axis)
         scenes = dict()
         coloraxiss = dict()
-        if np.max(np.abs(eigen_data["coord_no_deform"][:, -1])) < 1e-8:
-            eye = dict(x=0, y=-1e-5, z=1.5)
-        else:
-            eye = dict(x=-1.5, y=-1.5, z=1.5)
-        if show_outline:
-            for k in range(shape[0] * shape[1]):
-                coloraxiss[f"coloraxis{k + 1}"] = dict(
-                    showscale=False, colorscale=obj.color_map)
-                if k >= 1:
-                    scenes[f"scene{k + 1}"] = dict(aspectratio=dict(x=1, y=1, z=1), aspectmode="data",
-                                                   camera=dict(eye=eye, projection=dict(type="orthographic")))
-            fig.update_layout(
-                title=title,
-                template=obj.theme,
-                autosize=True,
-                showlegend=False,
-                coloraxis=dict(showscale=False, colorscale=obj.color_map),
-                scene=dict(aspectratio=dict(x=1, y=1, z=1), aspectmode="data",
-                           camera=dict(eye=eye, projection=dict(type="orthographic"))),
-                **scenes,
-                **coloraxiss
-            )
-        else:
-            for k in range(shape[0] * shape[1]):
-                coloraxiss[f"coloraxis{k + 1}"] = dict(
-                    showscale=False, colorscale=obj.color_map)
-                if k >= 1:
+        for k in range(shape[0] * shape[1]):
+            coloraxiss[f"coloraxis{k + 1}"] = dict(
+                showscale=False, colorscale=obj.color_map)
+            if k >= 1:
+                if np.max(np.abs(eigen_data["coord_no_deform"][:, -1])) < 1e-8:
+                    scenes[f"scene{k + 1}"] = dict(camera=dict(eye=eye,
+                                                               projection=dict(type="orthographic")),
+                                                   xaxis=off_axis, yaxis=off_axis, zaxis=off_axis)
+                else:
                     scenes[f"scene{k + 1}"] = dict(aspectratio=dict(x=1, y=1, z=1), aspectmode="data",
                                                    camera=dict(eye=eye,
                                                                projection=dict(type="orthographic")),
                                                    xaxis=off_axis, yaxis=off_axis, zaxis=off_axis)
-
-            fig.update_layout(
-                title=title,
-                template=obj.theme,
-                autosize=True,
-                showlegend=False,
-                coloraxis=dict(showscale=False, colorscale=obj.color_map),
-                scene=dict(aspectratio=dict(x=1, y=1, z=1), aspectmode="data",
-                           camera=dict(eye=eye, projection=dict(
-                               type="orthographic")),
-                           xaxis=off_axis, yaxis=off_axis, zaxis=off_axis),
-                **scenes,
-                **coloraxiss
-            )
+        fig.update_layout(
+            title=title,
+            template=obj.theme,
+            autosize=True,
+            showlegend=False,
+            coloraxis=dict(showscale=False, colorscale=obj.color_map),
+            scene=scene,
+            **scenes,
+            **coloraxiss
+        )
     # !slider style
     else:
         n_data = None
@@ -493,24 +632,25 @@ def _eigen_vis(
                                                    colorbar=dict(tickfont=dict(size=15)))
 
         if np.max(np.abs(eigen_data["coord_no_deform"][:, -1])) < 1e-8:
-            eye = dict(x=0, y=-1e-5, z=1.5)
+            eye = dict(x=0., y=-0.1, z=10)  # for 2D camera
+            scene = dict(camera=dict(
+                eye=eye, projection=dict(type="orthographic")),
+                xaxis=off_axis, yaxis=off_axis, zaxis=off_axis)
         else:
-            eye = dict(x=-1.5, y=-1.5, z=1.5)
+            eye = dict(x=-3.5, y=-3.5, z=3.5)  # for 3D camera
+            scene = dict(aspectratio=dict(x=1, y=1, z=1), aspectmode="data",
+                         camera=dict(eye=eye, projection=dict(
+                             type="orthographic")),
+                         xaxis=off_axis, yaxis=off_axis, zaxis=off_axis)
         fig.update_layout(
             template=obj.theme,
             autosize=True,
             showlegend=False,
-            scene=dict(aspectmode="data",
-                       camera=dict(eye=eye,
-                                   projection=dict(type="orthographic"))),  # orthographic,perspective
+            scene=scene,
             title=title,
             sliders=sliders,
             **coloraxiss
         )
-        if not show_outline:
-            fig.update_layout(
-                scene=dict(xaxis=off_axis, yaxis=off_axis, zaxis=off_axis),
-            )
     if save_html:
         if not save_html.endswith(".html"):
             save_html += ".html"
@@ -523,6 +663,7 @@ def _eigen_anim(
         obj,
         mode_tag: int = 1,
         input_file: str = 'EigenData.hdf5',
+        n_cycle: int = 5,
         alpha: float = None,
         show_outline: bool = False,
         opacity: float = 1,
@@ -558,7 +699,7 @@ def _eigen_anim(
     scalars = np.sqrt(np.sum(eigen_vec ** 2, axis=1))
     plt_points = [anti_eigen_points,
                   eigen_data["coord_no_deform"], eigen_points]
-    index = [1] + [2, 0] * 3
+    index = [1] + [2, 0] * n_cycle
     nb_frames = len(index)
     times = int(nb_frames / framerate)
 
@@ -614,10 +755,15 @@ def _eigen_anim(
         }
     ]
     # Layout
-    if np.max(np.abs(eigen_points[:, -1])) < 1e-8:
-        eye = dict(x=0, y=-1e-5, z=1.5)
+    if np.max(np.abs(eigen_data["coord_no_deform"][:, -1])) < 1e-8:
+        eye = dict(x=0., y=-0.1, z=10)  # for 2D camera
+        scene = dict(camera=dict(
+            eye=eye, projection=dict(type="orthographic")))
     else:
-        eye = dict(x=-1.5, y=-1.5, z=1.5)
+        eye = dict(x=-3.5, y=-3.5, z=3.5)  # for 3D camera
+        scene = dict(aspectratio=dict(x=1, y=1, z=1), aspectmode="data",
+                     camera=dict(eye=eye, projection=dict(
+                         type="orthographic")))
     txt = "<br> Mode {}: T = {:.3f} s".format(mode_tag, 1 / f_)
     fig.update_layout(
         title=dict(font=dict(family="courier", color='black', size=25),
@@ -628,10 +774,7 @@ def _eigen_anim(
         showlegend=False,
         coloraxis=dict(colorscale=obj.color_map,
                        colorbar=dict(tickfont=dict(size=15))),
-        scene=dict(aspectratio=dict(x=1, y=1, z=1), aspectmode="data",
-                   camera=dict(eye=eye, projection=dict(
-                       type="orthographic"))
-                   ),
+        scene=scene,
         updatemenus=[
             {
                 "buttons": [
@@ -663,6 +806,191 @@ def _eigen_anim(
                        zaxis={'showgrid': False, 'zeroline': False, 'visible': False}, ),
         )
 
+    if save_html:
+        if not save_html.endswith(".html"):
+            save_html += ".html"
+        pio.write_html(fig, file=save_html, auto_open=True)
+    if obj.notebook:
+        fig.show()
+
+
+def _react_vis(obj,
+               input_file: str = "NodeReactionStepData-1.hdf5",
+               slider: bool = False,
+               direction: str = "Fz",
+               show_values: bool = True,
+               show_outline: bool = False,
+               save_html: str = "ReactionVis"):
+    direct = direction.lower()
+    if direct not in ['fx', 'fy', 'fz', 'mx', 'my', 'mz']:
+        raise ValueError(
+            "response must be one of ['Fx', 'Fy', 'Fz', 'Mx', 'My', 'Mz']!")
+    filename = obj.out_dir + '/' + input_file
+    node_react_steps = []
+    with h5py.File(filename, "r") as f:
+        Nsteps = int(f["Nsteps"][...])
+        node_coords = f["NodeReactCoords"][...]
+        model_dims = f['model_dims'][...]
+        NodeTags = f["NodeReactTags"][...]
+        num_nodes = node_coords.shape[0]
+        grp = f["NodeReactSteps"]
+        for i in range(Nsteps):
+            node_react_steps.append(grp[f"step{i + 1}"][...])
+    if np.max(model_dims) < 3:
+        D2 = True
+    else:
+        D2 = False
+    x, y, z = [node_coords[:, j] for j in range(3)]
+    max_bound = np.max(np.max(node_coords, axis=0) -
+                       np.min(node_coords, axis=0))
+    axis_dict = dict(fx=(1, 0., 0.), fy=(0., 1, 0.), fz=(0., 0., 1),
+                     mx=(1, 0., 0.), my=(0., 1, 0.), mz=(0., 0., 1))
+    color_dict = dict(fx="#d20962", fy="#f47721", fz="#7ac143",
+                      mx="#00a78e", my="#00bce4", mz="#7d3f98")
+    if D2:
+        reactidx_dict = dict(fx=0, fy=1, fz=None, mx=None, my=None, mz=2)
+    else:
+        reactidx_dict = dict(fx=0, fy=1, fz=2, mx=3, my=4, mz=5)
+
+    fig = go.Figure()
+
+    def creat_plot(step):
+        f = node_react_steps[step][:, reactidx_dict[direct]]
+        idxmax, idxmin = np.argmax(f), np.argmin(f)
+        # point plot
+        labels = [
+            f"<b>tag: {tag}</b><br>{direction}: {fi:.3E}" for tag, fi in zip(NodeTags, f)]
+        point_plot = go.Scatter3d(x=x, y=y, z=z,
+                                  marker=dict(size=obj.point_size,
+                                              color=obj.color_point),
+                                  mode="markers", name="Node Reactions",
+                                  customdata=labels,
+                                  hovertemplate='%{customdata}')
+        fig.add_trace(point_plot)
+        if show_values:
+            labels = [f"{fi:.3E}" for fi in f]
+            txt_plot = go.Scatter3d(x=x, y=y, z=z, text=labels,
+                                    textfont=dict(color="#6e750e",
+                                                  size=10),
+                                    mode="text", hoverinfo='skip',)
+            fig.add_trace(txt_plot)
+        # max min point plot
+        labels = [
+            f"<b>tag: {NodeTags[idx]}</b><br>{direction}: {f[idx]:.3E}" for idx in [idxmax, idxmin]]
+        point_plot2 = go.Scatter3d(x=x[[idxmax, idxmin]], y=y[[idxmax, idxmin]], z=z[[idxmax, idxmin]],
+                                   marker=dict(size=obj.point_size * 1.25,
+                                               color=obj.color_point,
+                                               symbol=['x'] * 2),
+                                   mode="markers", name="Node Reactions",
+                                   customdata=labels,
+                                   hovertemplate='%{customdata}')
+        fig.add_trace(point_plot2)
+        # line plot
+        line_ends = np.zeros_like(node_coords)
+        for i in range(num_nodes):
+            line_ends[i] = node_coords[i] - \
+                np.array(axis_dict[direct]) * \
+                max_bound / 30 * np.sign(f[i])
+        line_points = []
+        line_cells = []
+        for point1, point2 in zip(node_coords, line_ends):
+            line_points.extend([point2, point1])
+            line_cells.extend([2, len(line_points)-2, len(line_points)-1])
+        line_cells = np.reshape(line_cells, (-1, 3))
+        line_plot = _generate_line_mesh(points=line_points, cells=line_cells,
+                                        line_width=obj.line_width * 2, color=color_dict[direct])
+        fig.add_traces(line_plot)
+        arrow_plot = _creat_arrows(points=line_points, cells=line_cells,
+                                   color=color_dict[direct])
+        fig.add_traces(arrow_plot)
+
+    if slider:
+        n_data = None
+        for step in range(Nsteps):
+            creat_plot(step)
+            if step == 0:
+                n_data = len(fig.data)
+
+        for i in range(0, len(fig.data) - n_data):
+            fig.data[i].visible = False
+        # ! Create and add slider
+        steps = []
+        for i in range(Nsteps):
+            f = node_react_steps[i][:, reactidx_dict[direct]]
+            idxmax, idxmin = np.argmax(f), np.argmin(f)
+            txt = (f"<b>Step {i + 1} {direction}</b>"
+                   f"<br>max={f[idxmax]:.3E} | nodeTag={NodeTags[idxmax]}"
+                   f"<br>min={f[idxmin]:.3E} | nodeTag={NodeTags[idxmin]}")
+            step = dict(
+                method="update",
+                args=[{"visible": [False] * len(fig.data)},
+                      {"title": txt}],  # layout attribute
+                label=str(i + 1),
+            )
+            idxi, idxj = n_data * i, n_data * (i + 1)
+            step["args"][0]["visible"][idxi:idxj] = [True] * n_data
+            # Toggle i'th trace to "visible"
+            steps.append(step)
+        sliders = [dict(
+            active=Nsteps,
+            currentvalue={"prefix": "Step: "},
+            pad={"t": 50},
+            steps=steps
+        )]
+        if D2:
+            eye = dict(x=0., y=-0.1, z=10)  # for 2D camera
+            scene = dict(camera=dict(
+                eye=eye, projection=dict(type="orthographic")))
+        else:
+            eye = dict(x=-3.5, y=-3.5, z=3.5)  # for 3D camera
+            scene = dict(aspectratio=dict(x=1, y=1, z=1), aspectmode="data",
+                         camera=dict(eye=eye, projection=dict(
+                             type="orthographic")))
+        fig.update_layout(
+            template=obj.theme,
+            autosize=True,
+            showlegend=False,
+            scene=scene,  # orthographic,perspective
+            title=dict(font=dict(family="courier", color='black', size=25),
+                       text=f"<b>OpenSeesPy Node Reactions View</b>"
+                       ),
+            sliders=sliders,
+        )
+    else:  # a sing step
+        idx = np.argmax([np.max(np.abs(react[:, reactidx_dict[direct]]))
+                        for react in node_react_steps])
+        creat_plot(idx)
+        f = node_react_steps[idx][:, reactidx_dict[direct]]
+        idxmax, idxmin = np.argmax(f), np.argmin(f)
+        txt = (f"<b>OpenSeesPy Node Reactions View</b>"
+               f"<br>Step {i + 1} {direction}"
+               f"<br>max={f[idxmax]:.3E} | nodeTag={NodeTags[idxmax]}"
+               f"<br>min={f[idxmin]:.3E} | nodeTag={NodeTags[idxmin]}")
+        if D2:
+            eye = dict(x=0., y=-0.1, z=10)  # for 2D camera
+            scene = dict(camera=dict(
+                eye=eye, projection=dict(type="orthographic")))
+        else:
+            eye = dict(x=-3.5, y=-3.5, z=3.5)  # for 3D camera
+            scene = dict(aspectratio=dict(x=1, y=1, z=1), aspectmode="data",
+                         camera=dict(eye=eye, projection=dict(
+                             type="orthographic")))
+        fig.update_layout(
+            template=obj.theme,
+            autosize=True,
+            showlegend=False,
+            scene=scene,  # orthographic,perspective
+            title=dict(font=dict(family="courier", color='black', size=25),
+                       text=txt
+                       ),
+        )
+    if not show_outline:
+        fig.update_layout(
+            scene=dict(xaxis={'showgrid': False, 'zeroline': False, 'visible': False},
+                       yaxis={'showgrid': False,
+                              'zeroline': False, 'visible': False},
+                       zaxis={'showgrid': False, 'zeroline': False, 'visible': False}, ),
+        )
     if save_html:
         if not save_html.endswith(".html"):
             save_html += ".html"
@@ -810,18 +1138,20 @@ def _deform_vis(
                                                    cmin=cmin,
                                                    cmax=cmax,
                                                    colorbar=dict(tickfont=dict(size=15)))
-
         if np.max(model_dims) <= 2:
-            eye = dict(x=0, y=-1e-5, z=1.5)
+            eye = dict(x=0., y=-0.1, z=10)  # for 2D camera
+            scene = dict(camera=dict(
+                eye=eye, projection=dict(type="orthographic")))
         else:
-            eye = dict(x=-1.5, y=-1.5, z=1.5)
+            eye = dict(x=-3.5, y=-3.5, z=3.5)  # for 3D camera
+            scene = dict(aspectratio=dict(x=1, y=1, z=1), aspectmode="data",
+                         camera=dict(eye=eye, projection=dict(
+                             type="orthographic")))
         fig.update_layout(
             template=obj.theme,
             autosize=True,
             showlegend=False,
-            scene=dict(aspectmode="data",
-                       camera=dict(eye=eye,
-                                   projection=dict(type="orthographic"))),  # orthographic,perspective
+            scene=scene,  # orthographic,perspective
             title=dict(font=dict(family="courier", color='black', size=25),
                        text="<b>OpenSeesPy Deformation 3D View</b>"
                        ),
@@ -856,9 +1186,14 @@ def _deform_vis(
                                      show_face_line=show_face_line)
         fig.add_traces(plotter)
         if np.max(np.abs(node_deform_coords[:, -1])) < 1e-5:
-            eye = dict(x=0, y=-1e-5, z=1.5)
+            eye = dict(x=0., y=-0.1, z=10)  # for 2D camera
+            scene = dict(camera=dict(
+                eye=eye, projection=dict(type="orthographic")))
         else:
-            eye = dict(x=-1.5, y=-1.5, z=1.5)
+            eye = dict(x=-3.5, y=-3.5, z=3.5)  # for 3D camera
+            scene = dict(aspectratio=dict(x=1, y=1, z=1), aspectmode="data",
+                         camera=dict(eye=eye, projection=dict(
+                             type="orthographic")))
         maxx, maxy, maxz = np.max(node_resp, axis=0)
         minx, miny, minz = np.min(node_resp, axis=0)
         txt = (f"<br>Step {max_step + 1} {response}"
@@ -869,9 +1204,7 @@ def _deform_vis(
             template=obj.theme,
             autosize=True,
             showlegend=False,
-            scene=dict(aspectmode="data",
-                       camera=dict(eye=eye,
-                                   projection=dict(type="orthographic"))),  # orthographic,perspective
+            scene=scene,
             coloraxis=dict(colorscale=obj.color_map, cmin=cmin, cmax=cmax,
                            colorbar=dict(tickfont=dict(size=15))),
             title=dict(font=dict(family="courier", color='black', size=25),
@@ -1036,9 +1369,14 @@ def _deform_anim(
                f"<br>max.z={maxz:.2E} | min.z={minz:.2E}")
         fig.frames[i]['layout'].update(title_text=txt)
     if np.max(model_dims) < 3:
-        eye = dict(x=0, y=0, z=1.5)
+        eye = dict(x=0., y=-0.1, z=10)  # for 2D camera
+        scene = dict(camera=dict(
+            eye=eye, projection=dict(type="orthographic")))
     else:
-        eye = dict(x=-1.5, y=-1.5, z=1.5)
+        eye = dict(x=-3.5, y=-3.5, z=3.5)  # for 3D camera
+        scene = dict(aspectratio=dict(x=1, y=1, z=1), aspectmode="data",
+                     camera=dict(eye=eye, projection=dict(
+                         type="orthographic")))
 
     fig.update_layout(
         title=dict(font=dict(family="courier", color='black', size=25),
@@ -1050,10 +1388,7 @@ def _deform_anim(
                        cmin=cmin,
                        cmax=cmax,
                        colorbar=dict(tickfont=dict(size=15))),
-        scene=dict(aspectratio=dict(x=1, y=1, z=1), aspectmode="data",
-                   camera=dict(eye=eye, projection=dict(
-                       type="orthographic"))
-                   ),
+        scene=scene,
         updatemenus=[
             {
                 "buttons": [
@@ -1281,16 +1616,19 @@ def _frame_resp_vis(obj,
                                                    colorbar=dict(tickfont=dict(size=15)))
 
         if np.max(np.abs(beam_node_coords[:, -1])) < 1e-5:
-            eye = dict(x=0, y=-1e-5, z=1.5)
+            eye = dict(x=0., y=-0.1, z=10)  # for 2D camera
+            scene = dict(camera=dict(
+                eye=eye, projection=dict(type="orthographic")))
         else:
-            eye = dict(x=-1.5, y=-1.5, z=1.5)
+            eye = dict(x=-3.5, y=-3.5, z=3.5)  # for 3D camera
+            scene = dict(aspectratio=dict(x=1, y=1, z=1), aspectmode="data",
+                         camera=dict(eye=eye, projection=dict(
+                             type="orthographic")))
         fig.update_layout(
             template=obj.theme,
             autosize=True,
             showlegend=False,
-            scene=dict(aspectmode="data",
-                       camera=dict(eye=eye,
-                                   projection=dict(type="orthographic"))),  # orthographic,perspective
+            scene=scene,
             title=dict(font=dict(family="courier", color='black', size=25),
                        text="<b>OpenSeesPy Frames Response 3D View</b>"
                        ),
@@ -1359,9 +1697,14 @@ def _frame_resp_vis(obj,
             )
             fig.add_trace(txt_plot)
         if np.max(np.abs(beam_node_coords[:, -1])) < 1e-5:
-            eye = dict(x=0, y=-1e-5, z=1.5)
+            eye = dict(x=0., y=-0.1, z=10)  # for 2D camera
+            scene = dict(camera=dict(
+                eye=eye, projection=dict(type="orthographic")))
         else:
-            eye = dict(x=-1.5, y=-1.5, z=1.5)
+            eye = dict(x=-3.5, y=-3.5, z=3.5)  # for 3D camera
+            scene = dict(aspectratio=dict(x=1, y=1, z=1), aspectmode="data",
+                         camera=dict(eye=eye, projection=dict(
+                             type="orthographic")))
         maxx = np.max(local_forces)
         minx = np.min(local_forces)
         txt = (f"<br>Step {maxstep + 1} {response}"
@@ -1370,9 +1713,7 @@ def _frame_resp_vis(obj,
             template=obj.theme,
             autosize=True,
             showlegend=False,
-            scene=dict(aspectmode="data",
-                       camera=dict(eye=eye,
-                                   projection=dict(type="orthographic"))),  # orthographic,perspective
+            scene=scene,
             coloraxis=dict(colorscale=obj.color_map, cmin=cmin, cmax=cmax,
                            colorbar=dict(tickfont=dict(size=15))),
             title=dict(font=dict(family="courier", color='black', size=25),
@@ -1426,6 +1767,8 @@ def _generate_line_mesh(points, cells, line_width=1, color='blue', scalars=None,
     """
     generate the mesh from the points and cell
     """
+    points = np.array(points)
+    cells = np.array(cells)
     plotter = []
     line_points = []
     line_scalars = []
@@ -1438,7 +1781,6 @@ def _generate_line_mesh(points, cells, line_width=1, color='blue', scalars=None,
             line_scalars.extend(list(scalars[cell[1:]]) + [np.NAN])
     line_points = np.array(line_points)
     line_scalars = np.array(line_scalars)
-    line_dict = dict()
     if use_cmap:
         line_dict = dict(color=line_scalars, width=line_width,
                          cmin=np.min(line_scalars), cmax=np.max(line_scalars),
@@ -1733,7 +2075,7 @@ def _generate_all_mesh(points, scalars, opacity, lines_cells, face_cells, point_
                 hoverinfo="skip",
             )
         )
-    # ------------------------------------------------------------------------
+    # ---------------------------------------
     # point plot
     point_plot = go.Scatter3d(
         x=points[:, 0],
@@ -1749,6 +2091,40 @@ def _generate_all_mesh(points, scalars, opacity, lines_cells, face_cells, point_
     )
     plotter.append(point_plot)
     return plotter
+
+
+def _creat_arrows(points, cells, color,
+                  arrow_tip_ratio=0.9, arrow_starting_ratio=1.0,
+                  anchor_tip=True):
+    points = np.array(points)
+    cells = np.array(cells)
+    x, y, z = points[:, 0], points[:, 1], points[:, 2]
+    x_, y_, z_ = [], [], []
+    u, v, w = [], [], []
+    for p in cells:
+        x_.append(x[p[1]] + arrow_starting_ratio*(x[p[2]] - x[p[1]]))
+        y_.append(y[p[1]] + arrow_starting_ratio*(y[p[2]] - y[p[1]]))
+        z_.append(z[p[1]] + arrow_starting_ratio*(z[p[2]] - z[p[1]]))
+        u.append(arrow_tip_ratio*(x[p[2]] - x[p[1]]))
+        v.append(arrow_tip_ratio*(y[p[2]] - y[p[1]]))
+        w.append(arrow_tip_ratio*(z[p[2]] - z[p[1]]))
+    arrow_plot = []
+    for i in range(len(cells)):
+        if anchor_tip:
+            arrow_plot.append(go.Cone(x=[x_[i]], y=[y_[i]], z=[z_[i]],
+                                      u=[u[i]], v=[v[i]], w=[w[i]],
+                                      sizemode="absolute",
+                                      anchor='tip', hoverinfo='skip',
+                                      showlegend=False, showscale=False,
+                                      colorscale=[[0, color], [1, color]]))
+        else:
+            arrow_plot.append(go.Cone(x=[x_[i]], y=[y_[i]], z=[z_[i]],
+                                      u=[u[i]], v=[v[i]], w=[w[i]],
+                                      sizemode="absolute",
+                                      hoverinfo='skip',
+                                      showlegend=False, showscale=False,
+                                      colorscale=[[0, color], [1, color]]))
+    return arrow_plot
 
 
 def _reshape_cell(data):

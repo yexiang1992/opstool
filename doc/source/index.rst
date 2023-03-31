@@ -6,7 +6,7 @@
 Welcome to opstool's documentation!
 ===================================
 
-``opstool`` is a useful toolbox package aims to *modelling*, *visualization*, *post-processing*, etc., for `openseespy <https://openseespydoc.readthedocs.io/en/latest/>`_. 
+``opstool`` is a useful toolbox package aims to *pre-processing*, *visualization*, *analysis-aided*, etc., for `openseespy <https://openseespydoc.readthedocs.io/en/latest/>`_. 
 The package is still under development.
 
 To use, install `opstool` from 
@@ -16,14 +16,37 @@ To use, install `opstool` from
 
    pip install --upgrade opstool
 
-Python 3.9 is required for windows.
-It is recommended that you use `Anaconda <https://www.anaconda.com/>`_ to avoid library version incompatibilities.
+The restriction on the python version mainly depends on ``openseespy``, it is recommended that you use `Anaconda <https://www.anaconda.com/>`_ to avoid library version incompatibilities.
 
 .. toctree::
    :maxdepth: 5
-   :caption: User Guide
+   :caption: Installation
 
-   usr_guide
+   _Installation
+
+.. toctree::
+   :maxdepth: 5
+   :caption: Visualization
+
+   _vis
+
+.. toctree::
+   :maxdepth: 5
+   :caption: Fiber Section Mesh
+
+   _sec_mesh
+
+.. toctree::
+   :maxdepth: 5
+   :caption: Pre-processing
+
+   _pre
+
+.. toctree::
+   :maxdepth: 5
+   :caption: Analysis
+
+   _analysis
 
 .. toctree::
    :maxdepth: 5
@@ -33,7 +56,7 @@ It is recommended that you use `Anaconda <https://www.anaconda.com/>`_ to avoid 
 
 .. toctree::
    :maxdepth: 5
-   :caption: Opstool Package Index
+   :caption: API Reference
 
-   src/opstool
+   src/opstool_api
 

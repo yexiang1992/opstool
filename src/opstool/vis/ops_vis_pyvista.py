@@ -4,9 +4,9 @@ Visualizing OpenSeesPy model based on pyvista
 
 import pyvista as pv
 
-from ._pyvista_base import (_frame_resp_vis,
-                            _deform_anim, _deform_vis, _eigen_anim, _eigen_vis, _model_vis)
 from ..utils import check_file
+from ._pyvista_base import (_deform_anim, _deform_vis, _eigen_anim, _eigen_vis,
+                            _frame_resp_vis, _model_vis, _react_vis)
 
 
 class OpsVisPyvista:
@@ -20,8 +20,7 @@ class OpsVisPyvista:
     line_width: float, default=3
         The width of line element.
     colors_dict: dict,
-        default: dict(point='#840000', line='#0165fc', face='#06c2ac', solid='#f48924', truss="#7552cc", link="#00c16e")
-        The dict for ele color.
+        The dict for ele color, default color you can see by the class attribute ``default_colors``.
     theme: str, default='document'
         Plot theme for pyvista, optional 'default', 'paraview', 'document', 'dark'.
     color_map: str, default="jet"
@@ -55,21 +54,24 @@ class OpsVisPyvista:
         self.title = "opstool"
         # Initialize the color dict
         colors = dict(
-            point="#8f1402",
-            line="#0504aa",
-            face="#74a662",
-            solid="#af884a",
-            truss="#9a0eea",
-            link="#c20078",
+            point="#580f41",
+            line="#037ef3",
+            face="#00c16e",
+            solid="#0cb9c1",
+            truss="#7552cc",
+            link="#01ff07",
+            constraint="#00ffff",
         )
         if colors_dict is not None:
             colors.update(colors_dict)
+        self.default_colors = colors
         self.color_point = colors["point"]
         self.color_line = colors["line"]
         self.color_face = colors["face"]
         self.color_solid = colors["solid"]
         self.color_truss = colors["truss"]
         self.color_link = colors["link"]
+        self.color_constraint = colors['constraint']
         # -------------------------------------------------
         self.theme = theme
         pv.set_plot_theme(theme)
@@ -86,10 +88,12 @@ class OpsVisPyvista:
         show_node_label: bool = False,
         show_ele_label: bool = False,
         show_local_crd: bool = False,
+        show_fix_node: bool = True,
+        show_constrain_dof: bool = False,
         label_size: float = 8,
         show_outline: bool = True,
         opacity: float = 1.0,
-        save_fig: str = 'ModelVis.svg'
+        save_fig: str = None
     ):
         """
         Visualize the model in the current domain.
@@ -102,14 +106,18 @@ class OpsVisPyvista:
 
             .. warning::
                 Be careful not to include any path, only filename,
-                the file will be saved to the directory ``results_dir``.
+                the file will be loaded from the directory ``results_dir``.
 
         show_node_label: bool, default=False
             Whether to display the node label.
         show_ele_label: bool, default=False
             Whether to display the ele label.
         show_local_crd: bool, default=False
-            Whether to display the local coordinate system.
+            Whether to display the local axes of beam and link elements.
+        show_fix_node: bool, default=True
+            Whether to display the fix nodes.
+        show_constrain_dof: bool, default=False
+            Whether to display labels for constrained degrees of freedom.
         label_size: float, default=8
             The foontsize of node and ele label.
         show_outline: bool, default=True
@@ -136,6 +144,8 @@ class OpsVisPyvista:
                    show_node_label=show_node_label,
                    show_ele_label=show_ele_label,
                    show_local_crd=show_local_crd,
+                   show_fix_node=show_fix_node,
+                   show_constrain_dof=show_constrain_dof,
                    label_size=label_size,
                    show_outline=show_outline,
                    opacity=opacity,
@@ -147,6 +157,7 @@ class OpsVisPyvista:
         mode_tags: list[int],
         input_file: str = 'EigenData.hdf5',
         subplots: bool = False,
+        link_views: bool = True,
         alpha: float = None,
         show_outline: bool = False,
         show_origin: bool = False,
@@ -166,10 +177,12 @@ class OpsVisPyvista:
 
             .. warning::
                 Be careful not to include any path, only filename,
-                the file will be saved to the directory ``results_dir``.
+                the file will be loaded from the directory ``results_dir``.
 
         subplots: bool, default=False
             If True, subplots in a figure. If False, plot in a slider style.
+        link_views: bool, default=True
+            If True, link the views’ cameras, only usefuly when subplots is True.
         alpha: float, default=None
             Model scaling factor, the default value is 1/5 of the model boundary according to the maximum deformation.
         show_outline: bool, default=True
@@ -200,6 +213,7 @@ class OpsVisPyvista:
             mode_tags=mode_tags,
             input_file=input_file,
             subplots=subplots,
+            link_views=link_views,
             alpha=alpha,
             show_outline=show_outline,
             show_origin=show_origin,
@@ -212,6 +226,7 @@ class OpsVisPyvista:
         self,
         mode_tag: int = 1,
         input_file: str = 'EigenData.hdf5',
+        n_cycle: int = 5,
         alpha: float = None,
         show_outline: bool = False,
         opacity: float = 1,
@@ -231,8 +246,10 @@ class OpsVisPyvista:
 
             .. warning::
                 Be careful not to include any path, only filename,
-                the file will be saved to the directory ``results_dir``.
+                the file will be loaded from the directory ``results_dir``.
 
+        n_cycle: int, default = 5,
+            The number of cycles in the positive and negative directions of the modal deformation.
         alpha: float, default=None
             Scaling factor, the default value is 1/5 of the model boundary according to the maximum deformation.
         show_outline: bool, default=False
@@ -255,6 +272,7 @@ class OpsVisPyvista:
         _eigen_anim(self,
                     mode_tag=mode_tag,
                     input_file=input_file,
+                    n_cycle=n_cycle,
                     alpha=alpha,
                     show_outline=show_outline,
                     opacity=opacity,
@@ -262,6 +280,47 @@ class OpsVisPyvista:
                     show_face_line=show_face_line,
                     save_fig=save_fig
                     )
+    
+    def react_vis(self,
+                  input_file: str = "NodeReactionStepData-1.hdf5",
+                  slider: bool = False,
+                  direction: str = "Fz",
+                  show_values: bool = True,
+                  show_outline: bool = False,
+                  save_fig: str = "ReactionVis.svg"):
+        """Plot the node reactions.
+
+        Parameters
+        ----------
+        input_file : str, optional, default="NodeReactionStepData-1.hdf5"
+            The filename that eigen data saved by
+            :py:meth:`opstool.vis.GetFEMdata.get_node_react_step` or 
+            :py:meth:`opstool.vis.GetFEMdata.save_resp_all`.
+
+            .. warning::
+                Be careful not to include any path, only filename,
+                the file will be loaded from the directory ``results_dir``.
+
+        slider: bool, default=False
+            If True, responses in all steps will display by slider style.
+            If False, the step that max response will display.
+        direction : str, optional, by default "Fz"
+            Type of reaction, if 2D, only be one of ['Fx', 'Fy', 'Mz'];
+            if 3D, one of ['Fx', 'Fy', 'Fz', 'Mx', 'My', 'Mz']
+        show_values : bool, optional, by default True
+            If True, will show the reaction values.
+        show_outline: bool, default=False
+            Whether to display the axes.
+        save_fig: str, default='ReactionVis.svg'
+            The output file name, must end with `.gif` or `.mp4`.
+            You can export to any folder, such as "C:mydir/myfile.gif", but the folder `mydir` must exist.
+        """
+        _react_vis(self, input_file=input_file,
+                   slider=slider,
+                   direction=direction,
+                   show_values=show_values,
+                   show_outline=show_outline,
+                   save_fig=save_fig)
 
     def deform_vis(
         self,
@@ -286,7 +345,7 @@ class OpsVisPyvista:
 
             .. warning::
                 Be careful not to include any path, only filename,
-                the file will be saved to the directory ``results_dir``.
+                the file will be loaded from the directory ``results_dir``.
 
         slider: bool, default=False
             If True, responses in all steps will display by slider style.
@@ -360,7 +419,7 @@ class OpsVisPyvista:
 
             .. warning::
                 Be careful not to include any path, only filename,
-                the file will be saved to the directory ``results_dir``.
+                the file will be loaded from the directory ``results_dir``.
 
         response: str, default='disp'
             Response type. Optional, "disp", "vel", "accel".
@@ -422,7 +481,7 @@ class OpsVisPyvista:
 
             .. warning::
                 Be careful not to include any path, only filename,
-                the file will be saved to the directory ``results_dir``.
+                the file will be loaded from the directory ``results_dir``.
 
         ele_tags: int or list[int], default=None
             Element tags to display, if None, all frame elements will display.
