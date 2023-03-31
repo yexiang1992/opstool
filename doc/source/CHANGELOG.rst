@@ -1,8 +1,8 @@
 Changelog
 =============
 
-developing in v0.7.0
----------------------
+v0.7.0
+-------
 - Added the method :meth:`opstool.vis.GetFEMdata.save_resp_all` and :meth:`opstool.vis.GetFEMdata.get_resp_step`.
 - Added the node reactions plot method :meth:`opstool.vis.OpsVisPyvista.react_vis` and :meth:`opstool.vis.OpsVisPlotly.react_vis`.
 - Added the method :py:meth:`opstool.preprocessing.SecMesh.get_frame_props`.

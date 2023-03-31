@@ -46,7 +46,7 @@ it is recommended that you use [Anaconda](https://www.anaconda.com/) to avoid li
 
 #### Based on [pyvista](https://docs.pyvista.org/)
 
-|                          Model                          |                          Modal                          |                       Deformation                       |
+|                          Model                          |                          Eigen                          |                       Deformation                       |
 | :-----------------------------------------------------: | :-----------------------------------------------------: | :-----------------------------------------------------: |
 | ![](https://s2.loli.net/2023/03/27/NfVY135ibDSdCgj.png) | ![](https://s2.loli.net/2023/03/27/r1NaUGuiEcjJMYn.png) | ![](https://s2.loli.net/2023/03/27/EMo5lJx2eC9zSm4.png) |
 | ![](https://s2.loli.net/2023/03/27/YWVnahNiwgFS6tE.png) | ![](https://s2.loli.net/2023/03/27/vFuV8IfHosRJYkG.png) | ![](https://s2.loli.net/2023/03/27/KFzs3qoy2cEWl7u.png) |
@@ -58,19 +58,19 @@ it is recommended that you use [Anaconda](https://www.anaconda.com/) to avoid li
 
 #### Animation
 
-|                          Modal                          |                       Deformation                       |
+|                          Eigen                          |                       Deformation                       |
 | :-----------------------------------------------------: | :-----------------------------------------------------: |
 | ![](https://s2.loli.net/2022/12/07/akOEebwrNZCuj2V.gif) | ![](https://s2.loli.net/2022/12/07/KVEYO6eC8hlWvXg.gif) |
 
 #### Fiber section vis
 
-|                           ✅                            |                           ✅                            |
+|                        &#x2705;                         |                        &#x2705;                         |
 | :-----------------------------------------------------: | :-----------------------------------------------------: |
 | ![](https://s2.loli.net/2022/12/03/jwvVecT3GCWbdBI.png) | ![](https://s2.loli.net/2022/12/03/NQ5VOA6iUFtY9af.png) |
 
 ### Fiber Section Mesh Generation
 
-|                           ✅                            |                           ✅                            |                           ✅                            |
+|                        &#x2705;                         |                        &#x2705;                         |                        &#x2705;                         |
 | :-----------------------------------------------------: | :-----------------------------------------------------: | :-----------------------------------------------------: |
 | ![](https://s2.loli.net/2023/03/27/bRYlfP8vNLEeJxF.png) | ![](https://s2.loli.net/2023/03/27/XfPkFKYmZEWJqnc.png) | ![](https://s2.loli.net/2023/03/27/YuwXlkZCIQRnsiK.png) |
 | ![](https://s2.loli.net/2023/03/27/z2JvO3B9GD8EnkC.png) | ![](https://s2.loli.net/2023/03/27/ci3DtqojAy9zfeH.png) | ![](https://s2.loli.net/2023/03/27/Ss3rlzUv7u2Pjp6.png) |
