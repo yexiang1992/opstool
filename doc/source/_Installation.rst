@@ -2,7 +2,7 @@ Installation
 ---------------
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 1
    :caption: Installation
 
    src/installation

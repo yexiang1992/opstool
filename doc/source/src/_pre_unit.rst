@@ -1,4 +1,4 @@
-automatic unit conversion
+Automatic Unit Conversion
 ===========================
 
 As we all know, the units should be unified in the finite element analysis.
@@ -11,7 +11,7 @@ can automatically perform unit conversion based on the basic units you set.
 
 For details of the parameters see :func:`opstool.preprocessing.UnitSystem`.
 
-.. code-block:: python
+.. jupyter-execute::
 
     import numpy as np
     import matplotlib.pyplot as plt
@@ -34,7 +34,7 @@ Let's look at a truss example.
 You can set the practical values of structural parameters in the model,
 and :func:`~opstool.preprocessing.UnitSystem` will help you automatically convert to the base unit system you specify.
 
-.. code-block:: python
+.. jupyter-execute::
 
     def model(UNIT):
         ops.wipe()
@@ -88,7 +88,7 @@ Results
 
 Three Cases:
 
-.. code-block:: python
+.. jupyter-execute::
 
     length_unit1 = "m"
     force_unit1 = "kN"
@@ -110,7 +110,7 @@ Let's verify it!
 Structure Frequency
 +++++++++++++++++++++
 
-.. code-block:: python
+.. jupyter-execute::
 
     print("structure frequency 1:", f1)
     print("structure frequency 2:", f2)
@@ -121,7 +121,7 @@ The structural frequencies are consistent, it really has nothing to do with the 
 Node 4 Displacement
 +++++++++++++++++++++
 
-.. code-block:: python
+.. jupyter-execute::
 
     print("Dispalcement at node4 case 1:", u1, length_unit1)
     print("Dispalcement at node4 case 2:", u2, length_unit2)
@@ -130,7 +130,7 @@ Node 4 Displacement
 Node 2 Reactions
 +++++++++++++++++++++
 
-.. code-block:: python
+.. jupyter-execute::
 
     print("Reaction at node2 case 1:", forces1, force_unit1)
     print("Reaction at node2 case 2:", forces2, force_unit2)
