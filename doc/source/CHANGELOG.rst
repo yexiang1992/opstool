@@ -9,6 +9,7 @@ developing in v0.7.0
 - Added the method :py:meth:`opstool.preprocessing.SecMesh.get_stress`.
 - Fixed the bug in the calculation of equivalent torsion constants for reference materials in composite sections,
   in :py:meth:`opstool.preprocessing.SecMesh.get_sec_props` and :py:meth:`opstool.preprocessing.SecMesh.get_frame_props`
+- Updated the Fiber section visualization :func:`opstool.vis.plot_fiber_sec` and :class:`opstool.vis.FiberSecVis`.
 
 v0.6.0
 -------

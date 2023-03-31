@@ -1,55 +1,84 @@
+import numpy as np
+import matplotlib.pyplot as plt
 import openseespy.opensees as ops
 import opstool as opst
-ops.wipe()
-m = 100/386
-ops.model('BasicBuilder', '-ndm', 2, '-ndf', 3)
-ops.node(1, 0.0, 0.0)
-ops.node(2, 288.0, 0.0)
-ops.node(3, 0.0, 144.0)
-ops.node(4, 288.0, 144.0)
-ops.node(5, 0.0, 288.0)
-ops.node(6, 288.0, 288.0)
-ops.fix(1, 1, 1, 1)
-ops.fix(2, 1, 1, 1)
-ops.equalDOF(3, 4, 2, 3)
-ops.equalDOF(5, 6, 2, 3)
-ops.mass(3, 0.25906735751295334, 0.0, 0.0)
-ops.mass(4, 0.25906735751295334, 0.0, 0.0)
-ops.mass(5, 0.12953367875647667, 0.0, 0.0)
-ops.mass(6, 0.12953367875647667, 0.0, 0.0)
-ops.geomTransf('Linear', 1)
-ops.element('elasticBeamColumn', 1, 1, 3, 63.41, 30000, 640, 1)
-ops.element('elasticBeamColumn', 2, 3, 5, 63.41, 30000, 320, 1)
-ops.element('elasticBeamColumn', 3, 2, 4, 63.41, 30000, 640, 1)
-ops.element('elasticBeamColumn', 4, 4, 6, 63.41, 30000, 320, 1)
-ops.element('elasticBeamColumn', 5, 3, 4, 63.41, 30000, 10000000000000, 1)
-ops.element('elasticBeamColumn', 6, 5, 6, 63.41, 30000, 10000000000000, 1)
-ops.recorder('Node', '-file', 'modes/mode1.out',
-             '-nodeRange', 1, 6, '-dof', 1, 2, 3, 'eigen 1')
-ops.recorder('Node', '-file', 'modes/mode2.out',
-             '-nodeRange', 1, 6, '-dof', 1, 2, 3, 'eigen 2')
-# ops.eigen(2,)
-Lambda = ops.eigen('-fullGenLapack', 6)
-ModelData = opst.GetFEMdata(results_dir="opstool_output")
-ModelData.get_model_data(save_file="ModelData.hdf5")
-opsvis = opst.OpsVisPlotly(point_size=2, line_width=3, colors_dict=None, theme="plotly",
-                           color_map="jet", on_notebook=True, results_dir="opstool_output")
 
-opsvis.model_vis(input_file="ModelData.hdf5",
-                 show_node_label=False,
-                 show_ele_label=False,
-                 show_local_crd=True,
-                 show_fix_node=True,
-                 show_constrain_dof=True,
-                 label_size=8,
-                 show_outline=True,
-                 opacity=1.0,
-                 save_html='modd')
-ModelData.get_eigen_data(mode_tag=4, solver="-fullGenLapack",
-                         save_file='EigenData.hdf5')
+length_unit = "m"
+force_unit = "kN"
+UNIT = opst.UnitSystem(length=length_unit, force=force_unit)
+print("Length:", UNIT.mm, UNIT.mm2, UNIT.cm, UNIT.m, UNIT.inch, UNIT.ft)
+print("Force", UNIT.N, UNIT.kN, UNIT.lbf, UNIT.kip)
+print("Stress", UNIT.MPa, UNIT.kPa, UNIT.Pa, UNIT.psi, UNIT.ksi)
+print("Mass", UNIT.g, UNIT.kg, UNIT.ton, UNIT.slug)
+# print(UNIT)
 
-opsvis.eigen_vis(input_file='EigenData.hdf5',
-                 mode_tags=[1, 4], subplots=False,
-                 alpha=None, show_outline=False,
-                 show_origin=False, opacity=1.0,
-                 show_face_line=False, save_html='vvvvvvv')
+
+def model(UNIT):
+    ops.wipe()
+    ops.model('basic', '-ndm', 2, '-ndf', 2)
+    # create nodes
+    ops.node(1, 0, 0)
+    ops.node(2, 144.0 * UNIT.cm,  0)
+    ops.node(3, 2.0 * UNIT.m,  0)
+    ops.node(4,  80. * UNIT.cm, 96.0 * UNIT.cm)
+    ops.mass(4, 100 * UNIT.kg, 100 * UNIT.kg)
+    # set boundary condition
+    ops.fix(1, 1, 1)
+    ops.fix(2, 1, 1)
+    ops.fix(3, 1, 1)
+    # define materials
+    ops.uniaxialMaterial("Elastic", 1, 3000.0 * UNIT.N / UNIT.cm2)
+    # define elements
+    ops.element("Truss", 1, 1, 4, 100.0 * UNIT.cm2, 1)
+    ops.element("Truss", 2, 2, 4, 50.0 * UNIT.cm2, 1)
+    ops.element("Truss", 3, 3, 4, 50.0 * UNIT.cm2, 1)
+    # eigen
+    omega = np.sqrt(ops.eigen('-fullGenLapack', 2))
+    f = omega / (2 * np.pi)
+    # create TimeSeries
+    ops.timeSeries("Linear", 1)
+    ops.pattern("Plain", 1, 1)
+    ops.load(4, 10.0 * UNIT.kN, -5.0 * UNIT.kN)
+
+    # ------------------------------
+    # Start of analysis generation
+    # ------------------------------
+    ops.system("BandSPD")
+    ops.numberer("RCM")
+    ops.constraints("Plain")
+    ops.integrator("LoadControl", 1)
+    ops.algorithm("Linear")
+    ops.analysis("Static")
+    ops.analyze(1)
+    u = ops.nodeDisp(4)
+    ops.reactions()
+    force = ops.nodeReaction(2)
+    return u, force, f
+
+
+length_unit1 = "m"
+force_unit1 = "kN"
+UNIT1 = opst.UnitSystem(length=length_unit1, force=force_unit1)
+u1, forces1, f1 = model(UNIT=UNIT1)
+
+length_unit2 = "cm"
+force_unit2 = "N"
+UNIT2 = opst.UnitSystem(length=length_unit2, force=force_unit2)
+u2, forces2, f2 = model(UNIT=UNIT2)
+
+length_unit3 = "ft"
+force_unit3 = "lbf"
+UNIT3 = opst.UnitSystem(length=length_unit3, force=force_unit3)
+u3, forces3, f3 = model(UNIT=UNIT3)
+
+print("structure frequency 1:", f1)
+print("structure frequency 2:", f2)
+print("structure frequency 3:", f3)
+
+print("Dispalcement at node4 case 1:", u1, length_unit1)
+print("Dispalcement at node4 case 2:", u2, length_unit2)
+print("Dispalcement at node4 case 3:", u3, length_unit3)
+
+print("Reaction at node2 case 1:", forces1, force_unit1)
+print("Reaction at node2 case 2:", forces2, force_unit2)
+print("Reaction at node2 case 3:", forces3, force_unit3)
