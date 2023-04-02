@@ -1340,7 +1340,34 @@ def _lines_subdivide(x, y, gap):
 
 
 def offset(points: list[list[float, float]], d: float):
-    """Offsets closed polygons
+    """Offsets closed polygons, same as :py:func:`opstool.preprocessing.poly_offset`
+
+    Parameters
+    ----------
+    points  : list[list[float, float]]
+        A list containing the coordinate points, [(x1, y1),(x2, y2),...,(xn.yn)].
+    d : float
+        Offsets closed polygons, positive values offset inwards, negative values outwards.
+
+    Returns
+    -------
+    coords: list[[float, float]]
+
+    Examples
+    ----------
+    >>> import opstool as opst
+    >>> outlines1 = [[0, 0], [0, 1], [1, 1]]
+    >>> outlines2 = opst.offset(outlines1, d=0.1)
+    >>> outlines3 = [[0, 0], [0, 1], [1, 1], [1, 0]]
+    >>> outlines4 = opst.offset(outlines3, d=0.1)
+    """
+    ply = Polygon(points)
+    ply_off = ply.buffer(-d, cap_style=3, join_style=2)
+    return list(ply_off.exterior.coords)
+
+
+def poly_offset(points: list[list[float, float]], d: float):
+    """Offsets closed polygons, same as :py:func:`opstool.preprocessing.offset`
 
     Parameters
     ----------
@@ -1353,9 +1380,36 @@ def offset(points: list[list[float, float]], d: float):
     -------
     coords: list[[float, float]]
     """
-    ply = Polygon(points)
-    ply_off = ply.buffer(-d, cap_style=3, join_style=2)
-    return list(ply_off.exterior.coords)
+    return offset(points=points, d=d)
+
+
+def line_offset(points: list[list[float, float]], d: float):
+    """Offset a distance from a non-closed line ring on its right or its left side.
+
+    Parameters
+    ----------
+    points  : list[list[float, float]]
+        A list containing the coordinate points, [(x1, y1),(x2, y2),...,(xn.yn)].
+    d : float
+        Offsets non-closed line ring, negative for left side offset, positive for right side offset.
+
+    Returns
+    -------
+    coords: list[[float, float]]
+
+    Examples
+    ----------
+    >>> import opstool as opst
+    >>> lines = [[0, 0], [0, 1]]
+    >>> lines2 = opst.line_offset(lines, d=0.1)
+    >>> lines = [[0, 0], [0, 1], [1, 1]]
+    >>> lines3 = opst.line_offset(lines, d=0.1)
+    >>> lines = [[0, 0], [0, 1], [1, 0]]
+    >>> lines4 = opst.line_offset(lines, d=0.1)
+    """
+    ls = LineString(points)
+    ls_off = ls.offset_curve(-d, quad_segs=16, join_style=2, mitre_limit=5.0)
+    return list(ls_off.coords)
 
 
 def sec_rotation(x, y, theta):

@@ -1,6 +1,10 @@
 Changelog
 =============
 
+Devloping in v0.8.0
+--------------------
+- Added functions :py:func:`opstool.preprocessing.poly_offset` and :py:func:`opstool.preprocessing.line_offset`
+
 v0.7.1
 -------
 - Fixed the bug in get mp_constraint data.
