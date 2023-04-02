@@ -1,4 +1,4 @@
-Fiber ection visualization in the OpenSeesPy domain
+Fiber section visualization in the OpenSeesPy domain
 ========================================================
 
 Geometric Visualization

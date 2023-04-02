@@ -75,7 +75,7 @@ def _show_mp_constraint(obj, plotter, model_info, show_dofs):
     cells = model_info["ConstrainedCells"]
     midcoords = model_info["ConstrainedMidCoords"]
     dofs = model_info["ConstrainedDofs"]
-    dofs = ["".join([str(k) for k in dof]) for dof in dofs]
+    dofs = ["".join([str(k) for k in dof if k != -1]) for dof in dofs]
     if len(cells) > 0:
         mesh = _generate_mesh(points, cells, kind="line")
         plotter.add_mesh(mesh, color=obj.color_constraint,

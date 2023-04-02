@@ -1,4 +1,5 @@
 import warnings
+
 import h5py
 import numpy as np
 import plotly.graph_objs as go
@@ -421,7 +422,7 @@ def _show_mp_constraint(obj, plotter, model_info, show_dofs):
     cells = model_info["ConstrainedCells"]
     cells = _reshape_cell(cells)
     dofs = model_info["ConstrainedDofs"]
-    dofs = ["".join([str(k) for k in dof]) for dof in dofs]
+    dofs = ["".join([str(k) for k in dof if k != -1]) for dof in dofs]
     if len(cells) > 0:
         line_points, line_mid_points = _make_lines(points, cells)
         x, y, z = line_points[:, 0], line_points[:, 1], line_points[:, 2]

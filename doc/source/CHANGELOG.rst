@@ -1,6 +1,10 @@
 Changelog
 =============
 
+v0.7.1
+-------
+- Fixed the bug in get mp_constraint data.
+
 v0.7.0
 -------
 - Added the method :meth:`opstool.vis.GetFEMdata.save_resp_all` and :meth:`opstool.vis.GetFEMdata.get_resp_step`.

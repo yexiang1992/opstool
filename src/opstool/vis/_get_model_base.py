@@ -1,8 +1,8 @@
 import numpy as np
 import openseespy.opensees as ops
 
-from ..utils import (ELE_TAG_Beam, ELE_TAG_Link, ELE_TAG_Plane, ELE_TAG_Brick,
-                     ELE_TAG_Tetrahedron, ELE_TAG_Truss, ELE_TAG_PFEM)
+from ..utils import (ELE_TAG_PFEM, ELE_TAG_Beam, ELE_TAG_Brick, ELE_TAG_Link,
+                     ELE_TAG_Plane, ELE_TAG_Tetrahedron, ELE_TAG_Truss)
 
 
 def get_node_coords():
@@ -56,7 +56,13 @@ def get_mp_constraint(node_coords, node_index):
             cells.extend([2, 2 * i, 2 * i + 1])
             dof = ops.getRetainedDOFs(tag, tag2)
             dofs.append(dof)
-    return np.array(points), np.array(midpoints), dofs, cells
+    max_dof_dim = np.max([len(dof) for dof in dofs])
+    new_dofs = []
+    for dof in dofs:
+        if len(dof) < max_dof_dim:
+            dof.extend([-1] * (max_dof_dim - len(dof)))
+        new_dofs.append(dof)
+    return np.array(points), np.array(midpoints), new_dofs, cells
 
 
 def get_truss_info(ele_tags, node_index):
