@@ -6,12 +6,13 @@ OpenSeesPy Model Visualization
 
 .. toctree::
    :maxdepth: 2
-   :caption: plotly
+   :caption: Visualization
 
    notebooks/demos_frame3d.ipynb
    notebooks/demos_cablebridge.ipynb
    notebooks/demos_dam.ipynb
    notebooks/demos_pier.ipynb
+   notebooks/demos_beam_sec_render.ipynb
 
 Fiber Section Mesh Generation
 -------------------------------
