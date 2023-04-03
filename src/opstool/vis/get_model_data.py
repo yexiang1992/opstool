@@ -137,12 +137,17 @@ class GetFEMdata:
 
         # Beam Element Analysis Step Response Data
 
-    def get_model_data(self, save_file: Union[str, bool] = "ModelData.hdf5"):
+    def get_model_data(self, beam_sec: dict = None,
+                       save_file: Union[str, bool] = "ModelData.hdf5"):
         """Get data from the current model domain.
         The data will saved to file ``results_dir`` + ``save_file`` in hdf5 style.
 
         Parameters
         -----------
+        beam_sec: dict, default=None
+            Specifies the section geometry for some beam or truss elements for 3D rendering.
+            Such as beam_sec={1: sec_mesh, 2: sec_mesh}, 1 and 2 are beam or truss tags,
+            sec_mesh must be an instance of :py:class:`opstool.preprocessing.SecMesh`.
         save_file: str, default="ModelData.hdf5"
             The file name that data saved.
             If None of False, the data will not be saved.
@@ -155,7 +160,7 @@ class GetFEMdata:
         if save_file:
             check_file(save_file, ['.hdf5', '.h5', '.he5'])
         # --------------------------------
-        model_info, cells = get_model_info()
+        model_info, cells = get_model_info(sec_mesh=beam_sec)
         self.model_info.update(model_info)
         self.cells.update(cells)
         self.get_model_data_finished = True

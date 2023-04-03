@@ -32,6 +32,7 @@ setup(
         'sectionproperties>=2.1.5',
         'shapely>=2.0.0',
         'h5py',
-        'rich'
+        'rich',
+        "triangle"
     ],
 )

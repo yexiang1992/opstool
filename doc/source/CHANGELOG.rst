@@ -1,9 +1,13 @@
 Changelog
 =============
 
-Devloping in v0.8.0
+v0.7.2
 --------------------
 - Added functions :py:func:`opstool.preprocessing.poly_offset` and :py:func:`opstool.preprocessing.line_offset`
+- Fixed the bug in get mp_constraint dof data.
+- Added beam section 3D rendering, by Arg `beam_sec` in :py:meth:`opstool.vis.GetFEMdata.get_model_data`,
+  and Args `show_beam_sec` and `beam_sec_paras` in :py:meth:`opstool.vis.OpsVisPyvista.model_vis`.
+
 
 v0.7.1
 -------

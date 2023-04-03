@@ -14,6 +14,8 @@ def _model_vis(
         show_local_crd: bool = False,
         show_fix_node: bool = True,
         show_constrain_dof: bool = False,
+        show_beam_sec: bool = False,
+        beam_sec_paras: dict = None,
         label_size: float = 8,
         show_outline: bool = True,
         opacity: float = 1.0,
@@ -58,6 +60,11 @@ def _model_vis(
     # fix nodes
     if show_fix_node:
         _show_fix_node(plotter, model_info)
+    if show_beam_sec:
+        beam_sec_paras_ = dict(color='#5170d7', opacity=0.25, texture=False)
+        if beam_sec_paras is not None:
+            beam_sec_paras_.update(beam_sec_paras)
+        _show_beam_sec(plotter, model_info, cells, beam_sec_paras_)
     # mp constraint lines
     _show_mp_constraint(obj, plotter, model_info, show_constrain_dof)
     plotter.add_axes()
@@ -84,6 +91,27 @@ def _show_mp_constraint(obj, plotter, model_info, show_dofs):
             plotter.add_point_labels(midcoords, dofs, text_color=obj.color_constraint,
                                      font_size=12, bold=True, show_points=False,
                                      always_visible=True, shape_opacity=0)
+
+
+def _show_beam_sec(plotter, model_info, cells, paras):
+    ext_points = model_info["line_sec_ext_points"]
+    int_points = model_info["line_sec_int_points"]
+    sec_points = model_info["line_sec_points"]
+    ext_cells = cells["line_sec_ext"]
+    int_cells = cells["line_sec_int"]
+    sec_cells = cells["line_sec"]
+    if len(ext_cells) > 0:
+        ext = _generate_mesh(ext_points, ext_cells, kind='face')
+        plotter.add_mesh(ext, show_edges=False, color=paras['color'],
+                         opacity=paras['opacity'], texture=paras['texture'])
+    if len(int_cells) > 0:
+        intt = _generate_mesh(int_points, int_cells, kind='face')
+        plotter.add_mesh(intt, show_edges=False, color=paras['color'],
+                         opacity=paras['opacity'], texture=paras['texture'])
+    if len(sec_cells) > 0:
+        sec = _generate_mesh(sec_points, sec_cells, kind='face')
+        plotter.add_mesh(sec, show_edges=False, color=paras['color'],
+                         opacity=paras['opacity'], texture=paras['texture'])
 
 
 def _show_beam_local_axes(plotter, model_info):
@@ -269,7 +297,7 @@ def _eigen_vis(
             if alpha is None:
                 value_ = np.max(np.sqrt(np.sum(eigen_vec ** 2, axis=1)))
                 alpha_ = (
-                    eigen_data["max_bound"] / obj.bound_fact / value_
+                        eigen_data["max_bound"] / obj.bound_fact / value_
                 )
             else:
                 alpha_ = alpha
@@ -329,7 +357,7 @@ def _eigen_vis(
             if alpha is None:
                 value_ = np.max(np.sqrt(np.sum(eigen_vec ** 2, axis=1)))
                 alpha_ = (
-                    eigen_data["max_bound"] / obj.bound_fact / value_
+                        eigen_data["max_bound"] / obj.bound_fact / value_
                 )
             else:
                 alpha_ = alpha
@@ -424,7 +452,7 @@ def _eigen_anim(
     if alpha is None:
         value_ = np.max(np.sqrt(np.sum(eigen_vec ** 2, axis=1)))
         alpha_ = (
-            eigen_data["max_bound"] / obj.bound_fact / value_
+                eigen_data["max_bound"] / obj.bound_fact / value_
         )
     else:
         alpha_ = alpha
@@ -440,7 +468,7 @@ def _eigen_anim(
     if alpha is None:
         value_ = np.max(np.sqrt(np.sum(eigen_vec ** 2, axis=1)))
         alpha_ = (
-            eigen_data["max_bound"] / obj.bound_fact / value_
+                eigen_data["max_bound"] / obj.bound_fact / value_
         )
     else:
         alpha_ = alpha
@@ -651,7 +679,7 @@ def _react_vis(obj,
     # -------------------------------------------------------------------------
     else:  # plot a single step
         idx = np.argmax([np.max(np.abs(react[:, reactidx_dict[direct]]))
-                        for react in node_react_steps])
+                         for react in node_react_steps])
         create_mesh(idx + 1)
     plotter.view_isometric()
     if D2:

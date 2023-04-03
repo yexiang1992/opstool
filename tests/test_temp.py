@@ -1,3 +1,82 @@
+import numpy as np
+import openseespy.opensees as ops
+import opstool as opst
+
+ops.wipe()
+ops.model('basic', '-ndm', 3, '-ndf', 6)
+
+# the points of the outer contour line, only the turning point of the line is needed, counterclockwise or clockwise.
+outlines = [[0.5, 0], [7.5, 0], [8, 0.5], [8, 4.5],
+            [7.5, 5], [0.5, 5], [0, 4.5], [0, 0.5]]
+# cover thick
+cover_d = 0.08
+# Offset to get the inner boundary of the cover layer
+coverlines = opst.offset(outlines, d=cover_d)
+
+# Generate polygonal geometry object for cover layer
+cover = opst.add_polygon(outlines, holes=[coverlines])
+
+# Creating core with voids
+holelines1 = [[1, 1], [3.5, 1], [3.5, 4], [1, 4]]
+holelines2 = [[4.5, 1], [7, 1], [7, 4], [4.5, 4]]
+core = opst.add_polygon(coverlines, holes=[holelines1, holelines2])
+sec = opst.SecMesh(sec_name="My Fiber Section")
+# Grouping, the dict key is the group name, which can be arbitrary.
+sec.assign_group({"cover": cover, "core": core})
+# Specify the mesh size
+sec.assign_mesh_size(dict(cover=1, core=2))
+# Specify the region color
+sec.assign_group_color(dict(cover="gray", core="green"))
+# Specify the material tag in the opensees, the material needs to be defined by you beforehand.
+ops.uniaxialMaterial('Concrete01', 1, -30, -0.002, -15, -0.005)
+ops.uniaxialMaterial('Concrete01', 2, -40, -0.006, -30, -0.015)
+sec.assign_ops_matTag(dict(cover=1, core=2))
+# mesh!
+sec.mesh()
+sec.centring()
+#sec.view(fill=True, engine='plotly', save_html=None, on_notebook=True)
+# sec_props = sec.get_frame_props(display_results=True)
+# G = 3.45E7 / (2 * (1 + 0.2))
+# J = sec_props['J']  # or other number if you don't care
+sec.opspy_cmds(secTag=1, GJ=10000)   # generate openseespy fiber commands
+
+
+def create_pier(sec_tag):
+    ops.node(1, 0.0, 0.0, 0.0)
+    ops.node(2, 0.0, 0.0, 10.0)
+    ops.node(3, 0.0, 0.0, 20.0)
+    ops.node(4, 0.0, 0.0, 30.0)
+    ops.node(5, 0.0, 0.0, 40.0)
+    ops.mass(5, 50, 50, 50, 0.0, 0.0, 0.0)
+    ops.fix(1, 1, 1, 1, 1, 1, 1)
+    ops.geomTransf('Linear', 1, *[-1.0, 0.0, 0.0])
+    ops.beamIntegration('Lobatto', 1, sec_tag, 10)
+    ops.element('forceBeamColumn', 1, *[1, 2], 1, 1)
+    ops.element('forceBeamColumn', 2, *[2, 3], 1, 1)
+    ops.element('forceBeamColumn', 3, *[3, 4], 1, 1)
+    ops.element('forceBeamColumn', 4, *[4, 5], 1, 1)
+
+
+create_pier(1)
+
+ModelData = opst.GetFEMdata(results_dir="opstool_output")
+beam_sec = {1: sec, 2: sec, 3: sec, 4: sec}
+ModelData.get_model_data(beam_sec=beam_sec, save_file="ModelData.hdf5")
+opsvis = opst.OpsVisPyvista(point_size=2, line_width=3,
+                            colors_dict=None, theme="document",
+                            color_map="coolwarm", on_notebook=False,
+                            results_dir="opstool_output")
+opsvis.model_vis(input_file="ModelData.hdf5",
+                 show_node_label=False, show_ele_label=False,
+                 show_local_crd=False,
+                 show_fix_node=True,
+                 show_constrain_dof=False,
+                 label_size=8,
+                 show_outline=False,
+                 show_beam_sec=True,
+                 opacity=1.0,
+                 save_fig='ModelVis.svg')
+
 from openseespy.opensees import *
 import opsvis as opsv
 import numpy as np

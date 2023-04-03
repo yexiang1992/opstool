@@ -2,7 +2,7 @@ Visualization
 ---------------
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Visualization
 
    src/_vis_mod_vis

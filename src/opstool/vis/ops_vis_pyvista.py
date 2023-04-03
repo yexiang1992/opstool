@@ -90,6 +90,8 @@ class OpsVisPyvista:
         show_local_crd: bool = False,
         show_fix_node: bool = True,
         show_constrain_dof: bool = False,
+        show_beam_sec: bool = False,
+        beam_sec_paras: dict = None,
         label_size: float = 8,
         show_outline: bool = True,
         opacity: float = 1.0,
@@ -118,6 +120,12 @@ class OpsVisPyvista:
             Whether to display the fix nodes.
         show_constrain_dof: bool, default=False
             Whether to display labels for constrained degrees of freedom.
+        show_beam_sec: bool default = False
+            Whether to render the 3d section of beam or truss elements.
+            If True, the Arg `beam_sec` in :py:meth:`opstool.vis.GetFEMdata.get_model_data`
+            must be assigned in advance.
+        beam_sec_paras: dict = None,
+            A dict to control beam section render, optional key: color, opacity, texture.
         label_size: float, default=8
             The foontsize of node and ele label.
         show_outline: bool, default=True
@@ -146,6 +154,8 @@ class OpsVisPyvista:
                    show_local_crd=show_local_crd,
                    show_fix_node=show_fix_node,
                    show_constrain_dof=show_constrain_dof,
+                   show_beam_sec=show_beam_sec,
+                   beam_sec_paras=beam_sec_paras,
                    label_size=label_size,
                    show_outline=show_outline,
                    opacity=opacity,

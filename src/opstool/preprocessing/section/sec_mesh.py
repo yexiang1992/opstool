@@ -162,7 +162,7 @@ class SecMesh:
                                          density=geom.material.density,
                                          color=self.color_map[name])
             geoms.append(geom)
-            mesh_sizes.append(self.mesh_size_map[name] / 50)
+            mesh_sizes.append(self.mesh_size_map[name] / 10)
         geom_obj = CompoundGeometry(geoms)
         mesh_obj = geom_obj.create_mesh(mesh_sizes=mesh_sizes)
         self.section = Section(geom_obj, time_info=False)
@@ -199,6 +199,15 @@ class SecMesh:
                 areas.append(area_)
             self.areas_map[name] = np.array(areas)
             self.centers_map[name] = np.array(centers)
+        centers = []
+        areas = []
+        for name in self.cells_map.keys():
+            centers.append(self.centers_map[name])
+            areas.append(self.areas_map[name])
+        centers = np.vstack(centers)
+        areas = np.hstack(areas)
+        center = areas @ centers / np.sum(areas)
+        self.center = center
 
     def add_rebars(self, rebars_obj):
         """Add rebars.
@@ -686,23 +695,13 @@ class SecMesh:
         ---------
          None
         """
-        centers_map, areas_map = self.get_fiber_data()
-        centers = []
-        areas = []
-        for name in self.cells_map.keys():
-            centers.append(centers_map[name])
-            areas.append(areas_map[name])
-        centers = np.vstack(centers)
-        areas = np.hstack(areas)
-        center = areas @ centers / np.sum(areas)
-        self.center = center
-        self.points -= center
+        self.points -= self.center
         names = self.centers_map.keys()
         for name in names:
-            self.centers_map[name] -= center
+            self.centers_map[name] -= self.center
         # move rebar
         for i, data in enumerate(self.rebar_data):
-            self.rebar_data[i]["rebar_xy"] -= center
+            self.rebar_data[i]["rebar_xy"] -= self.center
         self.is_centring = True
 
     def rotate(self, theta: float = 0):

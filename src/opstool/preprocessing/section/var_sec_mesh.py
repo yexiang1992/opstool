@@ -137,6 +137,8 @@ def vis_var_sec(sec_meshes: list, path: list,
         sec_mesh = sec_meshes[i]
         center0 = cum_coord[i]
         _, vecy, vecz = local_axes[i]
+        if not sec_mesh.is_centring:
+            sec_mesh.centring()
         points = sec_mesh.points
         points = (points[:, 0].reshape((-1, 1)) @ np.reshape(vecy, (1, 3)) +
                   points[:, 1].reshape((-1, 1)) @ np.reshape(vecz, (1, 3)))

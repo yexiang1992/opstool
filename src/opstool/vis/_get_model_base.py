@@ -1,8 +1,10 @@
 import numpy as np
+import triangle as tr
 import openseespy.opensees as ops
 
 from ..utils import (ELE_TAG_PFEM, ELE_TAG_Beam, ELE_TAG_Brick, ELE_TAG_Link,
                      ELE_TAG_Plane, ELE_TAG_Tetrahedron, ELE_TAG_Truss)
+from ..preprocessing.section.sec_mesh import SecMesh
 
 
 def get_node_coords():
@@ -56,12 +58,15 @@ def get_mp_constraint(node_coords, node_index):
             cells.extend([2, 2 * i, 2 * i + 1])
             dof = ops.getRetainedDOFs(tag, tag2)
             dofs.append(dof)
-    max_dof_dim = np.max([len(dof) for dof in dofs])
-    new_dofs = []
-    for dof in dofs:
-        if len(dof) < max_dof_dim:
-            dof.extend([-1] * (max_dof_dim - len(dof)))
-        new_dofs.append(dof)
+    if dofs:
+        max_dof_dim = np.max([len(dof) for dof in dofs])
+        new_dofs = []
+        for dof in dofs:
+            if len(dof) < max_dof_dim:
+                dof.extend([-1] * (max_dof_dim - len(dof)))
+            new_dofs.append(dof)
+    else:
+        new_dofs = dofs
     return np.array(points), np.array(midpoints), new_dofs, cells
 
 
@@ -96,7 +101,7 @@ def get_link_info(ele_tags, node_coords, node_index):
             link_midpoints.append(
                 (node_coords[idx_i] + node_coords[idx_j]) / 2)
             link_lengths.append(
-                np.sqrt(np.sum((node_coords[idx_i] - node_coords[idx_j])**2)))
+                np.sqrt(np.sum((node_coords[idx_i] - node_coords[idx_j]) ** 2)))
             xlocal = ops.eleResponse(ele, "xaxis")
             ylocal = ops.eleResponse(ele, "yaxis")
             zlocal = ops.eleResponse(ele, "zaxis")
@@ -139,7 +144,7 @@ def get_beam_info(ele_tags, node_coords, node_index):
             beam_midpoints.append(
                 (node_coords[idx_i] + node_coords[idx_j]) / 2)
             beam_lengths.append(
-                np.sqrt(np.sum((node_coords[idx_i] - node_coords[idx_j])**2)))
+                np.sqrt(np.sum((node_coords[idx_i] - node_coords[idx_j]) ** 2)))
             xlocal = ops.eleResponse(ele, "xaxis")
             ylocal = ops.eleResponse(ele, "yaxis")
             zlocal = ops.eleResponse(ele, "zaxis")
@@ -162,6 +167,80 @@ def get_beam_info(ele_tags, node_coords, node_index):
     beam_zlocal = np.array(beam_zlocal)
     return (beam_cells, beam_cells_tags, beam_midpoints, beam_lengths,
             beam_xlocal, beam_ylocal, beam_zlocal)
+
+
+def get_beam_sec_info(sec_mesh: dict, node_coords, node_index):
+    if not sec_mesh:
+        return [], [], [], [], [], []
+    for ele, mesh in sec_mesh.items():
+        if not isinstance(mesh, SecMesh):
+            raise ValueError(f"Element with tag {ele} not an instance of SecMesh!")
+    ext_points, ext_cells, int_points, int_cells = [], [], [], []
+    sec_points, sec_cells = [], []
+    for ele_tag, mesh in sec_mesh.items():
+        ele_nodes = ops.eleNodes(ele_tag)
+        node_i, node_j = ele_nodes
+        idx_i, idx_j = node_index[node_i], node_index[node_j]
+        coord_i, coord_j = node_coords[idx_i], node_coords[idx_j]
+        ylocal = ops.eleResponse(ele_tag, "yaxis")
+        zlocal = ops.eleResponse(ele_tag, "zaxis")
+        ylocal = np.array(ylocal) / np.linalg.norm(ylocal) if ylocal else np.array([0., 0., 0.])
+        zlocal = np.array(zlocal) / np.linalg.norm(zlocal) if zlocal else np.array([0., 0., 0.])
+        for name in mesh.group_map.keys():
+            geom = mesh.group_map[name].geom
+            extp = np.array(geom.exterior.coords)
+            extp -= np.array(mesh.center)
+            points = (extp[:, 0].reshape((-1, 1)) @ np.reshape(ylocal, (1, 3)) +
+                      extp[:, 1].reshape((-1, 1)) @ np.reshape(zlocal, (1, 3)))
+            extpi, extpj = points + coord_i, points + coord_j
+            nps = extp.shape[0]
+            for i in range(nps - 1):
+                ext_cells.extend([4, len(ext_points) + i, len(ext_points) + i + nps,
+                                  len(ext_points) + i + nps + 1, len(ext_points) + i + 1])
+            ext_points.extend(list(np.vstack([extpi, extpj])))
+            for intp_ in geom.interiors:
+                intp = np.array(intp_.coords)
+                intp -= mesh.center
+                points = (intp[:, 0].reshape((-1, 1)) @ np.reshape(ylocal, (1, 3)) +
+                          intp[:, 1].reshape((-1, 1)) @ np.reshape(zlocal, (1, 3)))
+                intpi, intpj = points + coord_i, points + coord_j
+                nps = intp.shape[0]
+                for i in range(nps - 1):
+                    int_cells.extend([4, len(int_points) + i, len(int_points) + i + nps,
+                                      len(int_points) + i + nps + 1, len(int_points) + i + 1])
+                int_points.extend(list(np.vstack([intpi, intpj])))
+            # sec mesh
+            pts, seg, holes = [], [], []
+            for i, p in enumerate(extp):
+                pts.append(p)
+                if i < len(extp) - 1:
+                    seg.append([i, i + 1])
+            for intp_ in geom.interiors:
+                intp = np.array(intp_.coords)
+                intp -= mesh.center
+                holes.append(np.mean(intp, axis=0))
+                for i, p in enumerate(intp):
+                    if i < len(intp) - 1:
+                        seg.append([len(pts), len(pts) + 1])
+                    pts.append(p)
+            pts, seg = np.array(pts), np.array(seg)
+            if holes:
+                A = dict(vertices=pts, segments=seg, holes=holes)
+            else:
+                A = dict(vertices=pts, segments=seg)
+            B = tr.triangulate(A, 'qpa1000000000')
+            vertices = B['vertices']
+            points = (vertices[:, 0].reshape((-1, 1)) @ np.reshape(ylocal, (1, 3)) +
+                      vertices[:, 1].reshape((-1, 1)) @ np.reshape(zlocal, (1, 3)))
+            secpi, secpj = points + coord_i, points + coord_j
+            cells = B['triangles']
+            cells = np.vstack([len(sec_points) + cells, cells + len(vertices) + len(sec_points)])
+            cells = np.insert(cells, 0, np.zeros(cells.shape[0]) + 3, axis=1)
+            sec_points.extend(list(np.vstack([secpi, secpj])))
+            sec_cells.append(cells)
+    return (np.array(ext_points), np.array(ext_cells),
+            np.array(int_points), np.array(int_cells),
+            np.array(sec_points), np.vstack(sec_cells))
 
 
 def get_other_line_info(ele_tags, node_index):
@@ -316,7 +395,7 @@ def get_bounds(node_coords):
     return bounds, max_bound, min_bound
 
 
-def get_model_info():
+def get_model_info(sec_mesh: dict):
     # print(ops.constrainedDOFs())   constrainedDOFs
     node_coords, node_index, model_dims, node_tags = get_node_coords()
     fixed_nodes, fixed_coords, fixed_dofs = get_node_fix(
@@ -330,6 +409,8 @@ def get_model_info():
      link_xlocal, link_ylocal, link_zlocal) = get_link_info(ele_tags, node_coords, node_index)
     (beam_cells, beam_cells_tags, beam_midpoints, beam_lengths,
      beam_xlocal, beam_ylocal, beam_zlocal) = get_beam_info(ele_tags, node_coords, node_index)
+    (ext_points, ext_cells, int_points,
+     int_cells, sec_points, sec_cells) = get_beam_sec_info(sec_mesh, node_coords, node_index)
     other_line_cells, other_line_cells_tags = get_other_line_info(
         ele_tags, node_index)
     all_lines_cells, all_lines_cells_tags = get_all_line_info(
@@ -339,8 +420,7 @@ def get_model_info():
         ele_tags, node_index)
     brick_cells, brick_cells_tags = get_bri_info(ele_tags, node_index)
     all_faces_cells = plane_cells + tetrahedron_cells + brick_cells
-    all_faces_cells_tags = plane_cells_tags + \
-        tetrahedron_cells_tags + brick_cells_tags
+    all_faces_cells_tags = plane_cells_tags + tetrahedron_cells_tags + brick_cells_tags
     ele_midpoints = get_ele_mid(ele_tags, node_coords, node_index)
     bounds, max_bound, min_bound = get_bounds(node_coords)
     model_info = dict()
@@ -367,6 +447,9 @@ def get_model_info():
     model_info["beam_xlocal"] = beam_xlocal
     model_info["beam_ylocal"] = beam_ylocal
     model_info["beam_zlocal"] = beam_zlocal
+    model_info["line_sec_ext_points"] = ext_points
+    model_info["line_sec_int_points"] = int_points
+    model_info["line_sec_points"] = sec_points
     model_info["link_midpoints"] = link_midpoints
     model_info["link_lengths"] = link_lengths
     model_info["link_xlocal"] = link_xlocal
@@ -391,6 +474,9 @@ def get_model_info():
     cells["beam_tags"] = beam_cells_tags
     cells["other_line"] = other_line_cells
     cells["other_line_tags"] = other_line_cells_tags
+    cells["line_sec_ext"] = ext_cells
+    cells["line_sec_int"] = int_cells
+    cells["line_sec"] = sec_cells
     for key, value in cells.items():
         cells[key] = np.array(value)
     return model_info, cells
