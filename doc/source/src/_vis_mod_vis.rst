@@ -29,7 +29,7 @@ Here are some guidelines on model visualization and fiber section visualization.
 Quick Model and Eigenmodes Visualization
 =========================================
 
-In addition, ``opstool`` provides functions ``plot_model`` and ``plot_eigen`` to quickly plot model and eigenmodes,
+In addition, ``opstool`` provides functions :py:func:`~opstool.vis.plot_model` and :py:func:`~opstool.vis.plot_eigen` to quickly plot model and eigenmodes,
 which can reduce your code work.
 
 Example

@@ -6,6 +6,7 @@ Model Visualization
 
 .. toctree::
     :maxdepth: 1
+
     api/vis.quick_plot
     api/vis.GetFEMdata
     api/vis.OpsVisPlotly
