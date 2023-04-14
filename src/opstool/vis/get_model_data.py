@@ -258,7 +258,7 @@ class GetFEMdata:
                             num_steps: int = 10000000000000,
                             total_time: float = 10000000000000,
                             stop_cond: bool = False,
-                            save_file: str | bool = "NodeReactionStepData-1.hdf5", ):
+                            save_file: Union[str, bool] = "NodeReactionStepData-1.hdf5", ):
         """Get one step the node reactions data.
 
         Parameters
@@ -334,7 +334,7 @@ class GetFEMdata:
                            num_steps: int = 10000000000000,
                            total_time: float = 10000000000000,
                            stop_cond: bool = False,
-                           save_file: str | bool = "NodeRespStepData-1.hdf5",
+                           save_file: Union[str, bool] = "NodeRespStepData-1.hdf5",
                            model_update: bool = False):
         """Get the node response data one step.
 
@@ -452,7 +452,7 @@ class GetFEMdata:
                             num_steps: int = 10000000000000,
                             total_time: float = 10000000000000,
                             stop_cond: bool = False,
-                            save_file: str | bool = "BeamRespStepData-1.hdf5"
+                            save_file: Union[str, bool] = "BeamRespStepData-1.hdf5"
                             ):
         """Get the response data one step.
 
@@ -527,7 +527,7 @@ class GetFEMdata:
                 for i in range(n):
                     subgrp.create_dataset(f"step{i + 1}", data=value[i])
 
-    def get_fiber_data(self, ele_sec: list[tuple[int, int]], save_file: str | bool = 'FiberData.hdf5'):
+    def get_fiber_data(self, ele_sec: list, save_file: Union[str, bool] = 'FiberData.hdf5'):
         """Get data from the section assigned by parameter ele_sec.
 
         Parameters
@@ -575,7 +575,7 @@ class GetFEMdata:
                             num_steps: int = 10000000000000,
                             total_time: float = 10000000000000,
                             stop_cond: bool = False,
-                            save_file: str | bool = "FiberRespStepData-1.hdf5"):
+                            save_file: Union[str, bool] = "FiberRespStepData-1.hdf5"):
         """Get analysis results data for fiber section one step.
 
         Parameters
@@ -713,7 +713,7 @@ class GetFEMdata:
             f"All responses data saved in [bold {next(self.colors_cycle)}]{filename}[/] !")
 
 
-def _get_fiber_sec_data(ele_tag: int, sec_tag: int = 1) -> ArrayLike:
+def _get_fiber_sec_data(ele_tag: int, sec_tag: int = 1):
     """Get the fiber sec data for a beam element.
 
     Parameters

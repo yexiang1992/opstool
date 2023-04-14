@@ -1,10 +1,10 @@
 import numpy as np
-import triangle as tr
 import openseespy.opensees as ops
+import triangle as tr
 
+from ..preprocessing.section.sec_mesh import SecMesh
 from ..utils import (ELE_TAG_PFEM, ELE_TAG_Beam, ELE_TAG_Brick, ELE_TAG_Link,
                      ELE_TAG_Plane, ELE_TAG_Tetrahedron, ELE_TAG_Truss)
-from ..preprocessing.section.sec_mesh import SecMesh
 
 
 def get_node_coords():
@@ -477,8 +477,8 @@ def get_model_info(sec_mesh: dict):
     cells["line_sec_ext"] = ext_cells
     cells["line_sec_int"] = int_cells
     cells["line_sec"] = sec_cells
-    for key, value in cells.items():
-        cells[key] = np.array(value)
+    # for key, value in cells.items():
+    #     cells[key] = np.array(value)
     return model_info, cells
 
 

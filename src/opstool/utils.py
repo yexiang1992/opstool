@@ -34,14 +34,14 @@ shape_dict = {1: (1, 1), 2: (1, 2), 3: (1, 3), 4: (2, 2), 5: (2, 3),
               46: (7, 7), 47: (7, 7), 48: (7, 7), 49: (7, 7)}
 
 
-def check_file(file_name: str, file_type: Union[str, list[str], tuple[str]]):
+def check_file(file_name: str, file_type: Union[str, list, tuple]):
     """Check file type.
 
     Parameters
     ----------
     file_name: str
         The file to be checked.
-    file_type: str
+    file_type: Union[str, list, tuple]
         The target file type.
 
     Returns

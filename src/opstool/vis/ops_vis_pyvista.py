@@ -55,7 +55,7 @@ class OpsVisPyvista:
         # Initialize the color dict
         colors = dict(
             point="#580f41",
-            line="#037ef3",
+            line="#0504aa",
             face="#00c16e",
             solid="#0cb9c1",
             truss="#7552cc",
@@ -124,8 +124,10 @@ class OpsVisPyvista:
             Whether to render the 3d section of beam or truss elements.
             If True, the Arg `beam_sec` in :py:meth:`opstool.vis.GetFEMdata.get_model_data`
             must be assigned in advance.
-        beam_sec_paras: dict = None,
+        beam_sec_paras: dict defalut = None,
             A dict to control beam section render, optional key: color, opacity, texture.
+            For texture, you can pass an image file with color=None,
+            if texture is None, it will be ignored.
         label_size: float, default=8
             The foontsize of node and ele label.
         show_outline: bool, default=True
@@ -164,7 +166,7 @@ class OpsVisPyvista:
 
     def eigen_vis(
         self,
-        mode_tags: list[int],
+        mode_tags: list,
         input_file: str = 'EigenData.hdf5',
         subplots: bool = False,
         link_views: bool = True,
@@ -472,7 +474,7 @@ class OpsVisPyvista:
 
     def frame_resp_vis(self,
                        input_file: str = "BeamRespStepData-1.hdf5",
-                       ele_tags: list[int] = None,
+                       ele_tags: list = None,
                        slider: bool = False,
                        response: str = "Mz",
                        show_values=True,

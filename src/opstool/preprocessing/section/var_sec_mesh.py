@@ -10,8 +10,8 @@ from shapely import LineString
 pv.set_plot_theme("document")
 
 
-def var_line_string(pointsi: list[list[float, float]],
-                    pointsj: list[list[float, float]],
+def var_line_string(pointsi: list,
+                    pointsj: list,
                     path: list, n_sec: float = 2,
                     loc_sec: list | None = None,
                     closure: bool = False,

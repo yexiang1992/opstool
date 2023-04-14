@@ -1,4 +1,5 @@
 import warnings
+
 import h5py
 import numpy as np
 import pyvista as pv
@@ -32,7 +33,7 @@ def _model_vis(
         for name in grp2.keys():
             cells[name] = grp2[name][...]
 
-    plotter = pv.Plotter(notebook=obj.notebook)
+    plotter = pv.Plotter(notebook=obj.notebook, line_smoothing=True)
     _plot_model(obj, plotter, model_info, cells, opacity)
 
     txt = f"OpenSees 3D View\nNum. of Node:{model_info['num_node']}\nNum. of Ele:{model_info['num_ele']}"
@@ -73,6 +74,7 @@ def _model_vis(
         plotter.view_xy(negative=False)
     if save_fig:
         plotter.save_graphic(save_fig)
+    plotter.enable_anti_aliasing('msaa')
     plotter.show(title=obj.title)
     plotter.close()
 
@@ -100,18 +102,28 @@ def _show_beam_sec(plotter, model_info, cells, paras):
     ext_cells = cells["line_sec_ext"]
     int_cells = cells["line_sec_int"]
     sec_cells = cells["line_sec"]
+    if paras['texture']:
+        texture = pv.read_texture(paras['texture'])
+    else:
+        texture = None
     if len(ext_cells) > 0:
         ext = _generate_mesh(ext_points, ext_cells, kind='face')
+        if texture is not None:
+            ext.texture_map_to_plane(inplace=True)
         plotter.add_mesh(ext, show_edges=False, color=paras['color'],
-                         opacity=paras['opacity'], texture=paras['texture'])
+                         opacity=paras['opacity'], texture=texture)
     if len(int_cells) > 0:
         intt = _generate_mesh(int_points, int_cells, kind='face')
+        if texture is not None:
+            intt.texture_map_to_plane(inplace=True)
         plotter.add_mesh(intt, show_edges=False, color=paras['color'],
-                         opacity=paras['opacity'], texture=paras['texture'])
+                         opacity=paras['opacity'], texture=texture)
     if len(sec_cells) > 0:
         sec = _generate_mesh(sec_points, sec_cells, kind='face')
+        if texture is not None:
+            sec.texture_map_to_plane(inplace=True)
         plotter.add_mesh(sec, show_edges=False, color=paras['color'],
-                         opacity=paras['opacity'], texture=paras['texture'])
+                         opacity=paras['opacity'], texture=texture)
 
 
 def _show_beam_local_axes(plotter, model_info):
@@ -250,7 +262,7 @@ def _show_fix_node(plotter, model_info):
 
 def _eigen_vis(
         obj,
-        mode_tags: list[int],
+        mode_tags: list,
         input_file: str = 'EigenData.hdf5',
         subplots: bool = False,
         link_views: bool = True,
@@ -291,13 +303,13 @@ def _eigen_vis(
             txt = "Mode {}: T = {:.3f} s".format(idx, 1 / f[idx - 1])
             subplot_titles.append(txt)
 
-        plotter = pv.Plotter(notebook=obj.notebook, shape=shape)
+        plotter = pv.Plotter(notebook=obj.notebook, shape=shape, line_smoothing=True)
         for i, idx in enumerate(range(modei, modej + 1)):
             eigen_vec = eigenvector[idx - 1]
             if alpha is None:
                 value_ = np.max(np.sqrt(np.sum(eigen_vec ** 2, axis=1)))
                 alpha_ = (
-                        eigen_data["max_bound"] / obj.bound_fact / value_
+                    eigen_data["max_bound"] / obj.bound_fact / value_
                 )
             else:
                 alpha_ = alpha
@@ -331,7 +343,7 @@ def _eigen_vis(
             plotter.add_text(
                 txt,
                 position="upper_right",
-                font_size=10,
+                font_size=15,
                 # color="black",
                 font="courier",
             )
@@ -349,7 +361,7 @@ def _eigen_vis(
             plotter.link_views()
     # !slide style
     else:
-        plotter = pv.Plotter(notebook=obj.notebook)
+        plotter = pv.Plotter(notebook=obj.notebook, line_smoothing=True)
 
         def create_mesh(value):
             step = int(round(value)) - 1
@@ -357,7 +369,7 @@ def _eigen_vis(
             if alpha is None:
                 value_ = np.max(np.sqrt(np.sum(eigen_vec ** 2, axis=1)))
                 alpha_ = (
-                        eigen_data["max_bound"] / obj.bound_fact / value_
+                    eigen_data["max_bound"] / obj.bound_fact / value_
                 )
             else:
                 alpha_ = alpha
@@ -388,7 +400,7 @@ def _eigen_vis(
             # txt = 'Mode {}\nf = {:.3f} Hz\nT = {:.3f} s'.format(mode_tag, f_, 1 / f_)
             txt = "Mode {}\nT = {:.3f} s".format(step + 1, 1 / f[step])
             plotter.add_text(
-                txt, position="upper_left", font_size=12, font="courier"
+                txt, position="upper_left", font_size=15, font="courier"
             )
             if show_outline:
                 plotter.show_bounds(
@@ -419,6 +431,7 @@ def _eigen_vis(
         plotter.view_xy(negative=False)
     if save_fig:
         plotter.save_graphic(save_fig)
+    plotter.enable_anti_aliasing('msaa')
     plotter.show(title=obj.title)
     plotter.close()
 
@@ -452,7 +465,7 @@ def _eigen_anim(
     if alpha is None:
         value_ = np.max(np.sqrt(np.sum(eigen_vec ** 2, axis=1)))
         alpha_ = (
-                eigen_data["max_bound"] / obj.bound_fact / value_
+            eigen_data["max_bound"] / obj.bound_fact / value_
         )
     else:
         alpha_ = alpha
@@ -463,12 +476,12 @@ def _eigen_anim(
                   eigen_data["coord_no_deform"], eigen_points]
     # -----------------------------------------------------------------------------
     # start plot
-    plotter = pv.Plotter(notebook=obj.notebook)
+    plotter = pv.Plotter(notebook=obj.notebook, line_smoothing=True)
 
     if alpha is None:
         value_ = np.max(np.sqrt(np.sum(eigen_vec ** 2, axis=1)))
         alpha_ = (
-                eigen_data["max_bound"] / obj.bound_fact / value_
+            eigen_data["max_bound"] / obj.bound_fact / value_
         )
     else:
         alpha_ = alpha
@@ -498,7 +511,7 @@ def _eigen_anim(
         "Mode {}\nf = {:.3f} Hz\nT = {:.3f} s".format(
             mode_tag, f_, 1 / f_),
         position="upper_right",
-        font_size=12,
+        font_size=15,
         # color="black",
         font="courier",
     )
@@ -551,6 +564,7 @@ def _eigen_anim(
         )
         plotter.write_frame()
     # ----------------------------------------------------------------------------------
+    plotter.enable_anti_aliasing('msaa')
     plotter.show(title=obj.title)
     plotter.close()
 
@@ -592,7 +606,7 @@ def _react_vis(obj,
     else:
         reactidx_dict = dict(fx=0, fy=1, fz=2, mx=3, my=4, mz=5)
 
-    plotter = pv.Plotter(notebook=obj.notebook)
+    plotter = pv.Plotter(notebook=obj.notebook, line_smoothing=True)
 
     def create_mesh(value):
         step = int(round(value)) - 1
@@ -686,6 +700,7 @@ def _react_vis(obj,
         plotter.view_xy(negative=False)
     if save_fig:
         plotter.save_graphic(save_fig)
+    plotter.enable_anti_aliasing('msaa')
     plotter.show(title=obj.title)
     plotter.close()
 
@@ -772,7 +787,7 @@ def _deform_vis(
     # ------------------------------------------------------------------------
     # Start plot
     # -------------------------------------------------------------------------
-    plotter = pv.Plotter(notebook=obj.notebook)
+    plotter = pv.Plotter(notebook=obj.notebook, line_smoothing=True)
 
     def create_mesh(value):
         step = int(round(value)) - 1
@@ -872,6 +887,7 @@ def _deform_vis(
         plotter.view_xy(negative=False)
     if save_fig:
         plotter.save_graphic(save_fig)
+    plotter.enable_anti_aliasing('msaa')
     plotter.show(title=obj.title)
     plotter.close()
 
@@ -951,7 +967,7 @@ def _deform_anim(
         alpha_ = 0
     # -----------------------------------------------------------------------------
     # start plot
-    plotter = pv.Plotter(notebook=obj.notebook)
+    plotter = pv.Plotter(notebook=obj.notebook, line_smoothing=True)
 
     def creat_mesh(step):
         if model_update:
@@ -1033,13 +1049,14 @@ def _deform_anim(
         plotter.write_frame()
 
     # ----------------------------------------------------------------------------------
+    plotter.enable_anti_aliasing('msaa')
     plotter.show(title=obj.title)
     plotter.close()
 
 
 def _frame_resp_vis(obj,
                     input_file: str = "BeamRespStepData-1.hdf5",
-                    ele_tags: list[int] = None,
+                    ele_tags: list = None,
                     slider: bool = False,
                     response: str = "Mz",
                     show_values=True,
@@ -1128,7 +1145,7 @@ def _frame_resp_vis(obj,
     # ------------------------------------------------------------------------
     # start plot
     # -------------------------------------------------------------------------
-    plotter = pv.Plotter(notebook=obj.notebook)
+    plotter = pv.Plotter(notebook=obj.notebook, line_smoothing=True)
 
     def create_mesh(value):
         step = int(round(value)) - 1
@@ -1257,6 +1274,7 @@ def _frame_resp_vis(obj,
         plotter.view_xy(negative=False)
     if save_fig:
         plotter.save_graphic(save_fig)
+    plotter.enable_anti_aliasing('msaa')
     plotter.show(title=obj.title)
     plotter.close()
 

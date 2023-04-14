@@ -58,12 +58,12 @@ class SecMesh:
         self.color_map = dict()
         self.is_centring = False
 
-    def assign_group(self, group: dict[str, any]):
+    def assign_group(self, group: dict):
         """Assign the group dict for each mesh.
 
         Parameters
         ------------
-        group : dict
+        group : dict[str, any]
             A dict of name as key, geometry obj as value.
 
         Returns
@@ -73,7 +73,7 @@ class SecMesh:
         self.group_map = group
         return self
 
-    def assign_mesh_size(self, mesh_size: dict[str, float]):
+    def assign_mesh_size(self, mesh_size: dict):
         """Assign the mesh size dict for each mesh.
 
         Parameters
@@ -95,7 +95,7 @@ class SecMesh:
         self.mesh_size_map = mesh_size
         return self
 
-    def assign_ops_matTag(self, mat_tag: dict[str, int]):
+    def assign_ops_matTag(self, mat_tag: dict):
         """Assign the mesh size dict for each mesh.
 
         Parameters
@@ -117,7 +117,7 @@ class SecMesh:
         self.mat_ops_map = mat_tag
         return self
 
-    def assign_group_color(self, colors):
+    def assign_group_color(self, colors: dict):
         """Assign the color dict to plot the section.
 
         Parameters
@@ -1069,7 +1069,7 @@ class Rebars:
 
     def add_rebar_line(
             self,
-            points: list[list[float, float]],
+            points: list,
             dia: float,
             gap: float = 0.1,
             n: int = None,
@@ -1123,7 +1123,7 @@ class Rebars:
 
     def add_rebar_circle(
             self,
-            xo: list[float, float],
+            xo: list,
             radius: float,
             dia: float,
             gap: float = 0.1,
@@ -1242,8 +1242,8 @@ def add_material(
 
 
 def add_polygon(
-        outline: list[list[float, float]],
-        holes: list[list[list[float, float]]] = None,
+        outline: list,
+        holes: list = None,
         material=None,
 ):
     """Add polygon plane geom obj.
@@ -1272,7 +1272,7 @@ def add_polygon(
 
 
 def add_circle(
-        xo: list[float, float],
+        xo: list,
         radius: float,
         holes=None,
         angle1=0.0,
@@ -1338,7 +1338,7 @@ def _lines_subdivide(x, y, gap):
     return new_line
 
 
-def offset(points: list[list[float, float]], d: float):
+def offset(points: list, d: float):
     """Offsets closed polygons, same as :py:func:`opstool.preprocessing.poly_offset`
 
     Parameters
@@ -1365,7 +1365,7 @@ def offset(points: list[list[float, float]], d: float):
     return list(ply_off.exterior.coords)
 
 
-def poly_offset(points: list[list[float, float]], d: float):
+def poly_offset(points: list, d: float):
     """Offsets closed polygons, same as :py:func:`opstool.preprocessing.offset`
 
     Parameters
@@ -1382,7 +1382,7 @@ def poly_offset(points: list[list[float, float]], d: float):
     return offset(points=points, d=d)
 
 
-def line_offset(points: list[list[float, float]], d: float):
+def line_offset(points: list, d: float):
     """Offset a distance from a non-closed line ring on its right or its left side.
 
     Parameters

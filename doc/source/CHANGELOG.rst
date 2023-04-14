@@ -1,6 +1,12 @@
 Changelog
 =============
 
+v0.7.3
+--------------------
+- Added the quick visualization function :py:func:`opstool.vis.plot_model` and :py:func:`opstool.vis.plot_eigen`
+- Updated class :class:`opstool.analysis.SmartAnalyze`
+- Updated args `show_beam_sec` and `beam_sec_paras` in :py:meth:`opstool.vis.OpsVisPyvista.model_vis`.
+
 v0.7.2
 --------------------
 - Added functions :py:func:`opstool.preprocessing.poly_offset` and :py:func:`opstool.preprocessing.line_offset`

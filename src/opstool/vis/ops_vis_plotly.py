@@ -148,7 +148,7 @@ class OpsVisPlotly:
 
     def eigen_vis(
         self,
-        mode_tags: list[int],
+        mode_tags: list,
         input_file: str = 'EigenData.hdf5',
         subplots: bool = False,
         alpha: float = None,
@@ -430,7 +430,7 @@ class OpsVisPlotly:
 
     def frame_resp_vis(self,
                        input_file: str = "BeamRespStepData-1.hdf5",
-                       ele_tags: list[int] = None,
+                       ele_tags: list = None,
                        slider: bool = False,
                        response: str = "Mz",
                        show_values=True,

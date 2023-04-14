@@ -142,7 +142,8 @@ def _model_vis(
         for name in grp2.keys():
             cells[name] = grp2[name][...]
     for name, value in cells.items():
-        cells[name] = _reshape_cell(value)
+        if "_tags" not in name:
+            cells[name] = _reshape_cell(value)
     fig = _plot_model(obj, model_info, cells,
                       show_node_label=show_node_label,
                       show_ele_label=show_ele_label,
@@ -168,7 +169,7 @@ def _plot_model(obj, model_info, cells,
                 show_constrain_dof: bool = False,
                 label_size: float = 8,
                 show_outline: bool = True,
-                opacity: float = 1.0,):
+                opacity: float = 1.0, ):
     fig = go.Figure()
     plotter = []
     points_no_deform = model_info["coord_no_deform"]
@@ -193,13 +194,13 @@ def _plot_model(obj, model_info, cells,
                                         mode="lines", name=names[ii],
                                         connectgaps=False, hoverinfo="skip"))
             x, y, z = [face_mid_points[:, j] for j in range(3)]
+            labels_ = [f"tag: {kk}" for kk in face_cells_tags[ii]]  # hover label
             plotter.append(
                 go.Scatter3d(x=x, y=y, z=z,
                              marker=dict(size=obj.point_size, color=face_colors[ii],
                                          symbol='circle-open'),
                              mode="markers", name=names[ii],
-                             customdata=face_cells_tags[ii],
-                             hovertemplate='<b>tag: %{customdata}</b>'))
+                             hovertemplate='<b>%{text}</b>', text=labels_, ))
     # >>> line plot
     line_cells = [cells["truss"], cells["link"],
                   cells["beam"], cells["other_line"]]
@@ -220,13 +221,14 @@ def _plot_model(obj, model_info, cells,
                                             color=line_colors[i], width=line_widths[i]),
                                         mode="lines", name=names[i],
                                         connectgaps=False, hoverinfo="skip"))
-            x, y, z = [line_mid_points[:, j] for j in range(3)]  # hover label
+            x, y, z = [line_mid_points[:, j] for j in range(3)]
+            labels_ = [f"tag: {kk}" for kk in line_cells_tags[i]]  # hover label
             plotter.append(go.Scatter3d(x=x, y=y, z=z,
                                         marker=dict(size=obj.point_size, color=line_colors[i],
                                                     symbol='circle-open'),
                                         mode="markers", name=names[i],
-                                        customdata=line_cells_tags[i],
-                                        hovertemplate='<b>tag: %{customdata}</b>'))
+                                        hovertemplate='<b>%{text}</b>',
+                                        text=labels_, ))
     # point plot
     node_labels = [str(i) for i in model_info["NodeTags"]]
     x, y, z = [points_no_deform[:, j] for j in range(3)]
@@ -443,7 +445,7 @@ def _show_mp_constraint(obj, plotter, model_info, show_dofs):
 
 def _eigen_vis(
         obj,
-        mode_tags: list[int],
+        mode_tags: list,
         input_file: str = 'EigenData.hdf5',
         subplots: bool = False,
         alpha: float = None,
@@ -873,7 +875,7 @@ def _react_vis(obj,
             txt_plot = go.Scatter3d(x=x, y=y, z=z, text=labels,
                                     textfont=dict(color="#6e750e",
                                                   size=10),
-                                    mode="text", hoverinfo='skip',)
+                                    mode="text", hoverinfo='skip', )
             fig.add_trace(txt_plot)
         # max min point plot
         labels = [
@@ -896,7 +898,7 @@ def _react_vis(obj,
         line_cells = []
         for point1, point2 in zip(node_coords, line_ends):
             line_points.extend([point2, point1])
-            line_cells.extend([2, len(line_points)-2, len(line_points)-1])
+            line_cells.extend([2, len(line_points) - 2, len(line_points) - 1])
         line_cells = np.reshape(line_cells, (-1, 3))
         line_plot = _generate_line_mesh(points=line_points, cells=line_cells,
                                         line_width=obj.line_width * 2, color=color_dict[direct])
@@ -959,7 +961,7 @@ def _react_vis(obj,
         )
     else:  # a sing step
         idx = np.argmax([np.max(np.abs(react[:, reactidx_dict[direct]]))
-                        for react in node_react_steps])
+                         for react in node_react_steps])
         creat_plot(idx)
         f = node_react_steps[idx][:, reactidx_dict[direct]]
         idxmax, idxmin = np.argmax(f), np.argmin(f)
@@ -1431,7 +1433,7 @@ def _deform_anim(
 
 def _frame_resp_vis(obj,
                     input_file: str = "BeamRespStepData-1.hdf5",
-                    ele_tags: list[int] = None,
+                    ele_tags: list = None,
                     slider: bool = False,
                     response: str = "Mz",
                     show_values=True,
@@ -2103,12 +2105,12 @@ def _creat_arrows(points, cells, color,
     x_, y_, z_ = [], [], []
     u, v, w = [], [], []
     for p in cells:
-        x_.append(x[p[1]] + arrow_starting_ratio*(x[p[2]] - x[p[1]]))
-        y_.append(y[p[1]] + arrow_starting_ratio*(y[p[2]] - y[p[1]]))
-        z_.append(z[p[1]] + arrow_starting_ratio*(z[p[2]] - z[p[1]]))
-        u.append(arrow_tip_ratio*(x[p[2]] - x[p[1]]))
-        v.append(arrow_tip_ratio*(y[p[2]] - y[p[1]]))
-        w.append(arrow_tip_ratio*(z[p[2]] - z[p[1]]))
+        x_.append(x[p[1]] + arrow_starting_ratio * (x[p[2]] - x[p[1]]))
+        y_.append(y[p[1]] + arrow_starting_ratio * (y[p[2]] - y[p[1]]))
+        z_.append(z[p[1]] + arrow_starting_ratio * (z[p[2]] - z[p[1]]))
+        u.append(arrow_tip_ratio * (x[p[2]] - x[p[1]]))
+        v.append(arrow_tip_ratio * (y[p[2]] - y[p[1]]))
+        w.append(arrow_tip_ratio * (z[p[2]] - z[p[1]]))
     arrow_plot = []
     for i in range(len(cells)):
         if anchor_tip:

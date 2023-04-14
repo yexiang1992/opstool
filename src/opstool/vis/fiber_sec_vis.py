@@ -7,7 +7,6 @@ import numpy as np
 import matplotlib
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
-from typing import Union
 from ..utils import shape_dict
 
 
@@ -99,7 +98,7 @@ class FiberSecVis:
                         key: str,
                         step: int = None,
                         show_variable: str = "strain",
-                        show_mats: Union[int, list[int], tuple[int]] = None,
+                        show_mats=None,
                         ):
 
         if key not in self.key_names:
@@ -164,7 +163,7 @@ class FiberSecVis:
                  ele_tag: int, sec_tag: int,
                  step: int = None,
                  show_variable: str = "strain",
-                 show_mats: Union[int, list[int], tuple[int]] = None,
+                 show_mats=None,
                  ):
         """fiber section response vis.
 
@@ -256,7 +255,7 @@ class FiberSecVis:
                   output_file: str,
                   ele_tag: int, sec_tag: int,
                   show_variable: str = "strain",
-                  show_mats: Union[int, list[int], tuple[int]] = None,
+                  show_mats=None,
                   framerate: int = 24,
                   ):
         """fiber section response animation.
