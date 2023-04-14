@@ -1,6 +1,7 @@
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 import openseespy.opensees as ops
+
 from ._smart_analyze import SmartAnalyze
 
 
@@ -26,7 +27,7 @@ class MomentCurvature:
                 axis: str = "y",
                 max_phi: float = 1.0,
                 incr_phi: float = 1e-4,
-                post_peak_ratio: float = 0.7,
+                post_peak_ratio: float = 0.8,
                 smart_analyze: bool = True):
         """Performing Moment-Curvature Analysis.
 
@@ -305,7 +306,7 @@ def _analyze(sec_tag,
              P=0,
              axis="y",
              max_phi=1,
-             incr_phi=1e-4,
+             incr_phi=1e-5,
              stop_ratio=0.7,
              smart_analyze=True):
     _create_model(sec_tag=sec_tag)
@@ -329,10 +330,12 @@ def _analyze(sec_tag,
         userControl = {
             "analysis": "Static",
             "testType": "NormDispIncr",
-            "testTol": 1.0e-10,
+            "testTol": 1.0e-8,
+            "tryAlterAlgoTypes": True,
+            "algoTypes": [10, 40, 30, 20],
             "relaxation": 0.5,
-            "minStep": 1.0e-8,
-            "printPer": 10,
+            "minStep": 1.0e-12,
+            "printPer": 10000000000,
             "debugMode": False,
         }
         analysis = SmartAnalyze(analysis_type="Static", **userControl)
