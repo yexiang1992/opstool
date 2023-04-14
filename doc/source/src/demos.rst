@@ -13,6 +13,7 @@ OpenSeesPy Model Visualization
    notebooks/demos_dam.ipynb
    notebooks/demos_pier.ipynb
    notebooks/demos_beam_sec_render.ipynb
+   notebooks/demos_Megatall
 
 Fiber Section Mesh Generation
 -------------------------------
