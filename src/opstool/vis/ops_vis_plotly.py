@@ -1,9 +1,16 @@
 """
 Visualizing OpenSeesPy model
 """
-
-from ._plotly_base import (_deform_anim, _deform_vis, _eigen_anim, _eigen_vis,
-                           _frame_resp_vis, _model_vis, _react_vis)
+import plotly.io as pio
+from ._plotly_base import (
+    _deform_anim,
+    _deform_vis,
+    _eigen_anim,
+    _eigen_vis,
+    _frame_resp_vis,
+    _model_vis,
+    _react_vis,
+)
 
 
 class OpsVisPlotly:
@@ -31,6 +38,10 @@ class OpsVisPlotly:
         ‘tropic’, ‘turbid’, ‘turbo’, ‘twilight’, ‘viridis’, ‘ylgn’, ‘ylgnbu’, ‘ylorbr’, ‘ylorrd’].
     on_notebook: bool, default=False
         Whether work in a jupyter notebook.
+
+        .. note::
+            This argument is deprecated since v0.8.0, you can call the ``show`` method to display figure.
+
     results_dir: str, default="opstool_output"
         The dir that results saved.
 
@@ -41,22 +52,21 @@ class OpsVisPlotly:
 
     def __init__(
         self,
-        point_size: float = 5,
-        line_width: float = 5,
+        point_size: float = 2,
+        line_width: float = 4,
         colors_dict: dict = None,
         theme: str = "plotly",
         color_map: str = "jet",
         on_notebook: bool = False,
-        results_dir: str = "opstool_output"
+        results_dir: str = "opstool_output",
     ):
         # ------------------------------
         self.point_size = point_size
         self.line_width = line_width
         self.title = "OpenSeesVispy"
-        # Initialize the color dict
         colors = dict(
             point="#580f41",
-            line="#037ef3",
+            line="#0504aa",
             face="#00c16e",
             solid="#0cb9c1",
             truss="#7552cc",
@@ -72,16 +82,60 @@ class OpsVisPlotly:
         self.color_solid = colors["solid"]
         self.color_truss = colors["truss"]
         self.color_link = colors["link"]
-        self.color_constraint = colors['constraint']
-        # -------------------------------------------------
+        self.color_constraint = colors["constraint"]
         self.theme = theme
         self.color_map = color_map
-
         self.notebook = on_notebook
-        # -------------------------------------------------
         self.out_dir = results_dir
-        # -------------------------------------------------
         self.bound_fact = 30
+
+    def write_html(self, fig, filepath, **kwargs):
+        """Write a figure to an HTML file representation.
+
+        .. note::
+            Added since v0.8.0.
+            The purpose is to replace the argument ``save_html`` in various visualization method.
+
+        Parameters
+        -----------
+        fig: Figure object.
+        filepath: str, output file path.
+            A string representing a local file path or a writeable object
+            (e.g. a pathlib.Path object or an open file descriptor).
+        kwargs:
+            Available key parameters see
+            https://plotly.com/python-api-reference/generated/plotly.io.write_html.html?highlight=write#plotly.io.write_html.
+        """
+        pio.write_html(fig, filepath, **kwargs)
+
+    def show(self, fig, *args, **kwargs):
+        """Show a figure using either the default renderer(s) or the renderer(s) specified by the renderer argument.
+
+        .. note::
+            Added since v0.8.0.
+
+        Parameters
+        ----------
+        fig : Figure object.
+        renderer : str or None (default None)
+            A string containing the names of one or more registered renderers (separated by ‘+’ characters) or None.
+            If None, then the default renderers specified in plotly.io.renderers.default are used.
+        validate : bool (default True))
+            True if the figure should be validated before being shown, False otherwise.
+        width : int or float
+            An integer or float that determines the number of pixels wide the plot is.
+            The default is set in plotly.js.
+        height : int or float
+            An integer or float that determines the number of pixels wide the plot is.
+            The default is set in plotly.js.
+        config : dict
+            A dict of parameters to configure the figure. The defaults are set in plotly.js.
+
+        Returns
+        --------
+        None
+        """
+        fig.show(*args, **kwargs)
 
     def model_vis(
         self,
@@ -89,12 +143,14 @@ class OpsVisPlotly:
         show_node_label: bool = False,
         show_ele_label: bool = False,
         show_local_crd: bool = False,
+        local_crd_alpha: float = 1.0,
         show_fix_node: bool = True,
+        fix_node_alpha: float = 1.0,
         show_constrain_dof: bool = False,
         label_size: float = 8,
         show_outline: bool = True,
         opacity: float = 1.0,
-        save_html: str = 'ModelVis.html'
+        save_html: str = None,
     ):
         """
         Visualize the model in the current domain.
@@ -115,8 +171,12 @@ class OpsVisPlotly:
             Whether to display the ele label.
         show_local_crd: bool, default=False
             Whether to display the local axes of beam and link elements.
+        local_crd_alpha: float, default=1.0
+            On existing displays, the scaling factor for the local axis sizes.
         show_fix_node: bool, default=True
             Whether to display the fix nodes.
+        fix_node_alpha: float, default=1.0
+            On existing displays, the scaling factor for the boundary symbol sizes.
         show_constrain_dof: bool, default=False
             Whether to display labels for constrained degrees of freedom.
         label_size: float, default=8
@@ -125,38 +185,47 @@ class OpsVisPlotly:
             Whether to show the axis frame.
         opacity: float, default=1.0
             Plane and solid element transparency.
-        save_html: str, default='ModelVis.html'
+        save_html: str, default=None
             The html file name to output. If False, the html file will not be generated.
+
+            .. note::
+                This argument is deprecated since v0.8.0, you can call the ``write_html`` method to
+                write an html file.
 
         Returns
         --------
-        None
+        Plotly Figure object
+            You can call the ``write_html`` method to output an html file, and the ``show`` method will display it.
 
         """
-        _model_vis(self,
-                   input_file=input_file,
-                   show_node_label=show_node_label,
-                   show_ele_label=show_ele_label,
-                   show_local_crd=show_local_crd,
-                   show_fix_node=show_fix_node,
-                   show_constrain_dof=show_constrain_dof,
-                   label_size=label_size,
-                   show_outline=show_outline,
-                   opacity=opacity,
-                   save_html=save_html
-                   )
+        return _model_vis(
+            self,
+            input_file=input_file,
+            show_node_label=show_node_label,
+            show_ele_label=show_ele_label,
+            show_local_crd=show_local_crd,
+            local_crd_alpha=local_crd_alpha,
+            show_fix_node=show_fix_node,
+            fix_node_alpha=fix_node_alpha,
+            show_constrain_dof=show_constrain_dof,
+            label_size=label_size,
+            show_outline=show_outline,
+            opacity=opacity,
+            save_html=save_html,
+        )
 
     def eigen_vis(
         self,
         mode_tags: list,
-        input_file: str = 'EigenData.hdf5',
+        input_file: str = "EigenData.hdf5",
         subplots: bool = False,
-        alpha: float = None,
+        alpha: float = 1.0,
         show_outline: bool = False,
         show_origin: bool = False,
+        label_size: float = 15,
         opacity: float = 1.0,
         show_face_line: bool = True,
-        save_html: str = "EigenVis"
+        save_html: str = None,
     ):
         """Eigenvalue Analysis Visualization.
 
@@ -174,8 +243,8 @@ class OpsVisPlotly:
 
         subplots: bool, default=False
             If True, subplots in a figure. If False, plot in a slide style.
-        alpha: float, default=None
-            Model scaling factor, the default value is 1/5 of the model boundary according to the maximum deformation.
+        alpha: float, default=1.0
+            Model scaling factor, scale further on existing display.
         show_outline: bool, default=True
             Whether to display the axes.
         show_origin: bool, default=False
@@ -184,35 +253,44 @@ class OpsVisPlotly:
             Plane and solid element transparency.
         show_face_line: bool, default=True
             If True, the edges of plate and solid elements will be displayed.
-        save_html: str, default='EigenVis.html'
+        save_html: str, default=None
             The html file name to output. If False, the html file will not be generated.
 
+            .. note::
+                This argument is deprecated since v0.8.0, you can call the ``write_html`` method to
+                write an html file.
+
         Returns
-        -------
-        None
+        --------
+        Plotly Figure object
+            You can call the ``write_html`` method to output an html file, and the ``show`` method will display it.
         """
-        _eigen_vis(self,
-                   mode_tags=mode_tags,
-                   input_file=input_file,
-                   subplots=subplots,
-                   alpha=alpha,
-                   show_outline=show_outline,
-                   show_origin=show_origin,
-                   opacity=opacity,
-                   show_face_line=show_face_line,
-                   save_html=save_html)
+        return _eigen_vis(
+            self,
+            mode_tags=mode_tags,
+            input_file=input_file,
+            subplots=subplots,
+            alpha=alpha,
+            show_outline=show_outline,
+            show_origin=show_origin,
+            label_size=label_size,
+            opacity=opacity,
+            show_face_line=show_face_line,
+            save_html=save_html,
+        )
 
     def eigen_anim(
         self,
         mode_tag: int = 1,
-        input_file: str = 'EigenData.hdf5',
+        input_file: str = "EigenData.hdf5",
         n_cycle: int = 5,
-        alpha: float = None,
+        alpha: float = 1.0,
         show_outline: bool = False,
+        label_size: float = 15,
         opacity: float = 1,
         framerate: int = 3,
         show_face_line: bool = True,
-        save_html: str = "EigenAnimation"
+        save_html: str = None,
     ):
         """Animation of Modal Analysis.
 
@@ -227,11 +305,11 @@ class OpsVisPlotly:
             .. warning::
                 Be careful not to include any path, only filename,
                 the file will be loaded from the directory ``results_dir``.
-        
+
         n_cycle: int, default = 5,
             The number of cycles in the positive and negative directions of the modal deformation.
-        alpha: float, default=None
-            Scaling factor, the default value is 1/5 of the model boundary according to the maximum deformation.
+        alpha: float, default=1.0
+            Model scaling factor, scale further on existing display.
         show_outline: bool, default=False
             Whether to display the axes.
         opacity: float, default=1.0
@@ -240,39 +318,48 @@ class OpsVisPlotly:
             The number of frames per second.
         show_face_line: bool, default=True
             If True, the edges of plate and solid elements will be displayed.
-        save_html: str, default='EigenAnimation.html'
+        save_html: str, default=None
             The html file name to output. If False, the html file will not be generated.
 
-        Returns
-        -------
-        None
-        """
-        _eigen_anim(self,
-                    mode_tag=mode_tag,
-                    input_file=input_file,
-                    n_cycle=n_cycle,
-                    alpha=alpha,
-                    show_outline=show_outline,
-                    opacity=opacity,
-                    framerate=framerate,
-                    show_face_line=show_face_line,
-                    save_html=save_html
-                    )
+            .. note::
+                This argument is deprecated since v0.8.0, you can call the ``write_html`` method to
+                write an html file.
 
-    def react_vis(self,
-                  input_file: str = "NodeReactionStepData-1.hdf5",
-                  slider: bool = False,
-                  direction: str = "Fz",
-                  show_values: bool = True,
-                  show_outline: bool = False,
-                  save_html: str = "ReactionVis"):
+        Returns
+        --------
+        Plotly Figure object
+            You can call the ``write_html`` method to output an html file, and the ``show`` method will display it.
+        """
+        return _eigen_anim(
+            self,
+            mode_tag=mode_tag,
+            input_file=input_file,
+            n_cycle=n_cycle,
+            alpha=alpha,
+            show_outline=show_outline,
+            label_size=label_size,
+            opacity=opacity,
+            framerate=framerate,
+            show_face_line=show_face_line,
+            save_html=save_html,
+        )
+
+    def react_vis(
+        self,
+        input_file: str = "NodeReactionStepData-1.hdf5",
+        slider: bool = False,
+        direction: str = "Fz",
+        show_values: bool = True,
+        show_outline: bool = False,
+        save_html: str = None,
+    ):
         """Plot the node reactions.
 
         Parameters
         ----------
         input_file : str, optional, default="NodeReactionStepData-1.hdf5"
             The filename that eigen data saved by
-            :py:meth:`opstool.vis.GetFEMdata.get_node_react_step` or 
+            :py:meth:`opstool.vis.GetFEMdata.get_node_react_step` or
             :py:meth:`opstool.vis.GetFEMdata.save_resp_all`.
 
             .. warning::
@@ -289,29 +376,40 @@ class OpsVisPlotly:
             If True, will show the reaction values.
         show_outline: bool, default=False
             Whether to display the axes.
-        save_html: str, default='ReactionVis.html'
+        save_html: str, default=None
             The html file name to output. If False, the html file will not be generated.
-        """
-        _react_vis(self, input_file=input_file,
-                   slider=slider,
-                   direction=direction,
-                   show_values=show_values,
-                   show_outline=show_outline,
-                   save_html=save_html)
 
+            .. note::
+                This argument is deprecated since v0.8.0, you can call the ``write_html`` method to
+                write an html file.
+
+        Returns
+        --------
+        Plotly Figure object
+            You can call the ``write_html`` method to output an html file, and the ``show`` method will display it.
+        """
+        return _react_vis(
+            self,
+            input_file=input_file,
+            slider=slider,
+            direction=direction,
+            show_values=show_values,
+            show_outline=show_outline,
+            save_html=save_html,
+        )
 
     def deform_vis(
         self,
         input_file: str = "NodeRespStepData-1.hdf5",
         slider: bool = False,
         response: str = "disp",
-        alpha: float = None,
+        alpha: float = 1.0,
         show_outline: bool = False,
         show_origin: bool = False,
         show_face_line: bool = True,
         opacity: float = 1,
-        save_html: str = "DefoVis",
-        model_update: bool = False
+        save_html: str = None,
+        model_update: bool = False,
     ):
         """Visualize the deformation of the model at a certain analysis step.
 
@@ -319,7 +417,7 @@ class OpsVisPlotly:
         ----------
         input_file: str, default = "NodeRespStepData-1.hdf5",
             The filename that node responses data saved by
-            :py:meth:`opstool.vis.GetFEMdata.get_node_resp_step` or 
+            :py:meth:`opstool.vis.GetFEMdata.get_node_resp_step` or
             :py:meth:`opstool.vis.GetFEMdata.save_resp_all`.
 
             .. warning::
@@ -331,8 +429,8 @@ class OpsVisPlotly:
             If False, the step that max response will display.
         response: str, default='disp'
             Response type. Optional, "disp", "vel", "accel".
-        alpha: float, default=None
-            Scaling factor, the default value is 1/5 of the model boundary according to the maximum deformation.
+        alpha: float, default=1.0
+            Model scaling factor, scale further on existing display.
         show_outline: bool, default=False
             Whether to display the axes.
         show_origin: bool, default=False
@@ -341,8 +439,13 @@ class OpsVisPlotly:
             If True, the edges of plate and solid elements will be displayed.
         opacity: float, default=1.0
             Plane and solid element transparency.
-        save_html: str, default='DefoVis.html'
+        save_html: str, default=None
             The html file name to output. If False, the html file will not be generated.
+
+            .. note::
+                This argument is deprecated since v0.8.0, you can call the ``write_html`` method to
+                write an html file.
+
         model_update: bool, default False
             whether to update the model domain data at each analysis step,
             this will be useful if model data has changed.
@@ -350,33 +453,35 @@ class OpsVisPlotly:
             This parameter must same as that in :py:meth:`opstool.vis.GetFEMdata.get_node_resp_step`.
 
         Returns
-        -------
-        None
+        --------
+        Plotly Figure object
+            You can call the ``write_html`` method to output an html file, and the ``show`` method will display it.
         """
-        _deform_vis(self,
-                    input_file=input_file,
-                    slider=slider,
-                    response=response,
-                    alpha=alpha,
-                    show_outline=show_outline,
-                    show_origin=show_origin,
-                    show_face_line=show_face_line,
-                    opacity=opacity,
-                    save_html=save_html,
-                    model_update=model_update
-                    )
+        return _deform_vis(
+            self,
+            input_file=input_file,
+            slider=slider,
+            response=response,
+            alpha=alpha,
+            show_outline=show_outline,
+            show_origin=show_origin,
+            show_face_line=show_face_line,
+            opacity=opacity,
+            save_html=save_html,
+            model_update=model_update,
+        )
 
     def deform_anim(
         self,
         input_file: str = "NodeRespStepData-1.hdf5",
         response: str = "disp",
-        alpha: float = None,
+        alpha: float = 1.0,
         show_outline: bool = False,
         opacity: float = 1,
         framerate: int = 24,
         show_face_line: bool = True,
-        save_html: str = "DefoAnimation",
-        model_update: bool = False
+        save_html: str = None,
+        model_update: bool = False,
     ):
         """Deformation animation of the model.
 
@@ -384,7 +489,7 @@ class OpsVisPlotly:
         ----------
         input_file: str, default = "NodeRespStepData-1.hdf5",
             The filename that node responses data saved by
-            :py:meth:`opstool.vis.GetFEMdata.get_node_resp_step` or 
+            :py:meth:`opstool.vis.GetFEMdata.get_node_resp_step` or
             :py:meth:`opstool.vis.GetFEMdata.save_resp_all`.
 
             .. warning::
@@ -393,8 +498,8 @@ class OpsVisPlotly:
 
         response: str, default='disp'
             Response type. Optional, "disp", "vel", "accel".
-        alpha: float, default=None
-            Scaling factor, the default value is 1/5 of the model boundary according to the maximum deformation.
+        alpha: float, default=1.0
+            Model scaling factor, scale further on existing display.
         show_outline: bool, default=False
             Whether to display the axes.
         show_face_line: bool, default=True
@@ -403,8 +508,13 @@ class OpsVisPlotly:
             The number of frames per second.
         opacity: float, default=1.0
             Plane and solid element transparency.
-        save_html: str, default='DefoAnimation.html'
+        save_html: str, default=None
             The html file name to output. If False, the html file will not be generated.
+
+            .. note::
+                This argument is deprecated since v0.8.0, you can call the ``write_html`` method to
+                write an html file.
+
         model_update: bool, default False
             whether to update the model domain data at each analysis step,
             this will be useful if model data has changed.
@@ -412,32 +522,35 @@ class OpsVisPlotly:
             This parameter must same as that in :py:meth:`opstool.vis.GetFEMdata.get_node_resp_step`.
 
         Returns
-        -------
-        None
+        --------
+        Plotly Figure object
+            You can call the ``write_html`` method to output an html file, and the ``show`` method will display it.
         """
 
-        _deform_anim(self,
-                     input_file=input_file,
-                     response=response,
-                     alpha=alpha,
-                     show_outline=show_outline,
-                     opacity=opacity,
-                     framerate=framerate,
-                     show_face_line=show_face_line,
-                     save_html=save_html,
-                     model_update=model_update
-                     )
+        return _deform_anim(
+            self,
+            input_file=input_file,
+            response=response,
+            alpha=alpha,
+            show_outline=show_outline,
+            opacity=opacity,
+            framerate=framerate,
+            show_face_line=show_face_line,
+            save_html=save_html,
+            model_update=model_update,
+        )
 
-    def frame_resp_vis(self,
-                       input_file: str = "BeamRespStepData-1.hdf5",
-                       ele_tags: list = None,
-                       slider: bool = False,
-                       response: str = "Mz",
-                       show_values=True,
-                       alpha: float = None,
-                       opacity: float = 1,
-                       save_html: str = "FrameRespVis"
-                       ):
+    def frame_resp_vis(
+        self,
+        input_file: str = "BeamRespStepData-1.hdf5",
+        ele_tags: list = None,
+        slider: bool = False,
+        response: str = "Mz",
+        show_values=True,
+        alpha: float = 1.0,
+        opacity: float = 1,
+        save_html: str = None,
+    ):
         """
         Display the force response of frame elements.
 
@@ -445,7 +558,7 @@ class OpsVisPlotly:
         ----------
         input_file: str, default = "BeamRespStepData-1.hdf5",
             The filename that beam frame elements responses data saved by
-            :py:meth:`opstool.vis.GetFEMdata.get_frame_resp_step` or 
+            :py:meth:`opstool.vis.GetFEMdata.get_frame_resp_step` or
             :py:meth:`opstool.vis.GetFEMdata.save_resp_all`.
 
             .. warning::
@@ -461,20 +574,30 @@ class OpsVisPlotly:
             Response type. Optional, "Fx", "Fy", "Fz", "My", "Mz", "Mx".
         show_values: bool, default=True
             If True, will show the response values.
-        alpha: float, default=None
-            Scaling factor.
+        alpha: float, default=1.0
+            Model scaling factor, scale further on existing display.
         opacity: float, default=1.0
             Plane and solid element transparency.
-        save_html: str, default='FrameRespVis.html'
+        save_html: str, default=None
             The html file name to output. If False, the html file will not be generated.
+
+            .. note::
+                This argument is deprecated since v0.8.0, you can call the ``write_html`` method to
+                write an html file.
+
+        Returns
+        --------
+        Plotly Figure object
+            You can call the ``write_html`` method to output an html file, and the ``show`` method will display it.
         """
-        _frame_resp_vis(self,
-                        input_file=input_file,
-                        ele_tags=ele_tags,
-                        slider=slider,
-                        response=response,
-                        show_values=show_values,
-                        alpha=alpha,
-                        opacity=opacity,
-                        save_html=save_html
-                        )
+        return _frame_resp_vis(
+            self,
+            input_file=input_file,
+            ele_tags=ele_tags,
+            slider=slider,
+            response=response,
+            show_values=show_values,
+            alpha=alpha,
+            opacity=opacity,
+            save_html=save_html,
+        )

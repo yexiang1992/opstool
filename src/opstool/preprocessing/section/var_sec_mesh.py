@@ -4,19 +4,25 @@ import re
 
 import numpy as np
 import pyvista as pv
+
 # from sectionproperties.pre.geometry import Geometry
 from shapely import LineString
 
 pv.set_plot_theme("document")
 
 
-def var_line_string(pointsi: list,
-                    pointsj: list,
-                    path: list, n_sec: float = 2,
-                    loc_sec: list | None = None,
-                    closure: bool = False,
-                    y_degree: int = 1, y_sym_plane: str = "j-0",
-                    z_degree: int = 2, z_sym_plane: str = "j-0"):
+def var_line_string(
+    pointsi: list,
+    pointsj: list,
+    path: list,
+    n_sec: float = 2,
+    loc_sec: list | None = None,
+    closure: bool = False,
+    y_degree: int = 1,
+    y_sym_plane: str = "j-0",
+    z_degree: int = 2,
+    z_sym_plane: str = "j-0",
+):
     """Returns the varied line string.
 
     Parameters
@@ -73,18 +79,25 @@ def var_line_string(pointsi: list,
     for x in cum_length:
         points_ = []
         for i in range(len(yi)):
-            y = _get_coord(0, yi[i], length, yj[i], x,
-                           degree=y_degree, sym_plane=y_sym_plane)
-            z = _get_coord(0, zi[i], length, zj[i], x,
-                           degree=z_degree, sym_plane=z_sym_plane)
+            y = _get_coord(
+                0, yi[i], length, yj[i], x, degree=y_degree, sym_plane=y_sym_plane
+            )
+            z = _get_coord(
+                0, zi[i], length, zj[i], x, degree=z_degree, sym_plane=z_sym_plane
+            )
             points_.append((y, z))
         cum_points.append(points_)
     return cum_points
 
 
-def vis_var_sec(sec_meshes: list, path: list,
-                n_sec: float = 2, loc_sec: list | None = None,
-                on_notebook: bool = False, show_outline: bool = True):
+def vis_var_sec(
+    sec_meshes: list,
+    path: list,
+    n_sec: float = 2,
+    loc_sec: list | None = None,
+    on_notebook: bool = False,
+    show_outline: bool = True,
+):
     """Visualize varied section meshes.
 
     .. warning::
@@ -115,12 +128,14 @@ def vis_var_sec(sec_meshes: list, path: list,
     plotter = pv.Plotter(notebook=on_notebook)
     cum_coord = np.array(cum_coord, dtype=np.float32)
     point_plot1 = pv.PolyData(cum_coord)
-    plotter.add_mesh(point_plot1, color='black',
-                     point_size=5, render_points_as_spheres=True)
+    plotter.add_mesh(
+        point_plot1, color="black", point_size=5, render_points_as_spheres=True
+    )
     path = np.array(path, dtype=np.float32)
     point_plot2 = pv.PolyData(path)
-    plotter.add_mesh(point_plot2, color='#8f1402',
-                     point_size=10, render_points_as_spheres=True)
+    plotter.add_mesh(
+        point_plot2, color="#8f1402", point_size=10, render_points_as_spheres=True
+    )
     line_cells = []
     for i in range(len(path) - 1):
         line_cells.extend([2, i, i + 1])
@@ -128,7 +143,7 @@ def vis_var_sec(sec_meshes: list, path: list,
     line_plot = _generate_mesh(path, line_cells, kind="line")
     plotter.add_mesh(
         line_plot,
-        color='black',
+        color="black",
         render_lines_as_tubes=False,
         line_width=2,
     )
@@ -140,14 +155,13 @@ def vis_var_sec(sec_meshes: list, path: list,
         if not sec_mesh.is_centring:
             sec_mesh.centring()
         points = sec_mesh.points
-        points = (points[:, 0].reshape((-1, 1)) @ np.reshape(vecy, (1, 3)) +
-                  points[:, 1].reshape((-1, 1)) @ np.reshape(vecz, (1, 3)))
+        points = points[:, 0].reshape((-1, 1)) @ np.reshape(vecy, (1, 3)) + points[
+            :, 1
+        ].reshape((-1, 1)) @ np.reshape(vecz, (1, 3))
         points += center0
         for name, faces in sec_mesh.cells_map.items():
             faces = np.insert(faces, 0, values=3, axis=1)
-            face_plot = _generate_mesh(
-                points, faces, kind="face"
-            )
+            face_plot = _generate_mesh(points, faces, kind="face")
             plotter.add_mesh(
                 face_plot, color=sec_mesh.color_map[name], show_edges=True, opacity=1
             )
@@ -155,8 +169,9 @@ def vis_var_sec(sec_meshes: list, path: list,
             color = rdata["color"]
             r = rdata["dia"] / 2
             rebar_xy = np.array(rdata["rebar_xy"])
-            rebar_xy = (rebar_xy[:, 0].reshape((-1, 1)) @ np.reshape(vecy, (1, 3)) +
-                        rebar_xy[:, 1].reshape((-1, 1)) @ np.reshape(vecz, (1, 3)))
+            rebar_xy = rebar_xy[:, 0].reshape((-1, 1)) @ np.reshape(
+                vecy, (1, 3)
+            ) + rebar_xy[:, 1].reshape((-1, 1)) @ np.reshape(vecz, (1, 3))
             rebar_xy += center0
             spheres = []
             for coord in rebar_xy:
@@ -226,16 +241,16 @@ def _get_coord(x1, y1, x2, y2, x, degree=1, sym_plane="j-0"):
         y = y1 + (y2 - y1) * (x - x1) / (x2 - x1)
     elif degree == 2:
         d = float(re.findall(r"\d+\.?\d*", sym_plane)[0])
-        if sym_plane[0].lower() == 'j':
-            a = (y2 - y1) / (x2 ** 2 - x1 ** 2 - 2 * (x2 + d) * (x2 - x1))
+        if sym_plane[0].lower() == "j":
+            a = (y2 - y1) / (x2**2 - x1**2 - 2 * (x2 + d) * (x2 - x1))
             b = -2 * a * (x2 + d)
-            c = y1 - a * x1 ** 2 - b * x1
-            y = a * x ** 2 + b * x + c
-        elif sym_plane[0].lower() == 'i':
-            a = (y2 - y1) / (x2 ** 2 - x1 ** 2 - 2 * (x1 - d) * (x2 - x1))
+            c = y1 - a * x1**2 - b * x1
+            y = a * x**2 + b * x + c
+        elif sym_plane[0].lower() == "i":
+            a = (y2 - y1) / (x2**2 - x1**2 - 2 * (x1 - d) * (x2 - x1))
             b = -2 * a * (x1 - d)
-            c = y1 - a * x1 ** 2 - b * x1
-            y = a * x ** 2 + b * x + c
+            c = y1 - a * x1**2 - b * x1
+            y = a * x**2 + b * x + c
         else:
             raise ValueError(f"Error arg sym_plane={sym_plane}!")
     else:
@@ -422,6 +437,7 @@ def get_legendre_loc(n_sec: int):
         xi[9] = 0.973906528517172
     loc = 0.5 * (xi + 1.0)
     return loc
+
 
 # class VarSecMesh:
 #     """A class for generating meshes with variable fiber cross-sections.

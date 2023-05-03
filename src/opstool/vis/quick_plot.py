@@ -1,22 +1,23 @@
-
 from .get_model_data import GetFEMdata
 from .ops_vis_pyvista import OpsVisPyvista
 from .ops_vis_plotly import OpsVisPlotly
 
 
-def plot_model(backend: str = "pyvista",
-               point_size: float = 1,
-               line_width: float = 3,
-               colors_dict: dict = None,
-               on_notebook: bool = False,
-               show_node_label: bool = False,
-               show_ele_label: bool = False,
-               show_local_crd: bool = False,
-               show_fix_node: bool = True,
-               show_constrain_dof: bool = False,
-               label_size: float = 8,
-               show_outline: bool = True,
-               opacity: float = 1.0):
+def plot_model(
+    backend: str = "pyvista",
+    point_size: float = 1,
+    line_width: float = 3,
+    colors_dict: dict = None,
+    on_notebook: bool = False,
+    show_node_label: bool = False,
+    show_ele_label: bool = False,
+    show_local_crd: bool = False,
+    show_fix_node: bool = True,
+    show_constrain_dof: bool = False,
+    label_size: float = 8,
+    show_outline: bool = True,
+    opacity: float = 1.0,
+):
     """Plot model quickly.
 
     Parameters
@@ -51,52 +52,68 @@ def plot_model(backend: str = "pyvista",
     ModelData = GetFEMdata(results_dir="opstool_output")
     ModelData.get_model_data(save_file="ModelData.hdf5")
     if backend.lower() == "pyvista":
-        opsvis = OpsVisPyvista(point_size=point_size, line_width=line_width,
-                               colors_dict=colors_dict, theme="document",
-                               color_map="jet", on_notebook=on_notebook,
-                               results_dir="opstool_output")
-        opsvis.model_vis(input_file="ModelData.hdf5",
-                         show_node_label=show_node_label,
-                         show_ele_label=show_ele_label,
-                         show_local_crd=show_local_crd,
-                         show_fix_node=show_fix_node,
-                         show_constrain_dof=show_constrain_dof,
-                         label_size=label_size,
-                         show_outline=show_outline,
-                         opacity=opacity,
-                         save_fig=None)
+        opsvis = OpsVisPyvista(
+            point_size=point_size,
+            line_width=line_width,
+            colors_dict=colors_dict,
+            theme="document",
+            color_map="jet",
+            on_notebook=on_notebook,
+            results_dir="opstool_output",
+        )
+        opsvis.model_vis(
+            input_file="ModelData.hdf5",
+            show_node_label=show_node_label,
+            show_ele_label=show_ele_label,
+            show_local_crd=show_local_crd,
+            show_fix_node=show_fix_node,
+            show_constrain_dof=show_constrain_dof,
+            label_size=label_size,
+            show_outline=show_outline,
+            opacity=opacity,
+            save_fig=None,
+        )
     elif backend.lower() == "plotly":
-        opsvis = OpsVisPlotly(point_size=point_size, line_width=line_width,
-                              colors_dict=colors_dict, theme="plotly",
-                              color_map="jet", on_notebook=on_notebook,
-                              results_dir="opstool_output")
-        opsvis.model_vis(input_file="ModelData.hdf5",
-                         show_node_label=show_node_label,
-                         show_ele_label=show_ele_label,
-                         show_local_crd=show_local_crd,
-                         show_fix_node=show_fix_node,
-                         show_constrain_dof=show_constrain_dof,
-                         label_size=label_size,
-                         show_outline=show_outline,
-                         opacity=opacity,
-                         save_html='ModelVis.html')
+        opsvis = OpsVisPlotly(
+            point_size=point_size,
+            line_width=line_width,
+            colors_dict=colors_dict,
+            theme="plotly",
+            color_map="jet",
+            on_notebook=on_notebook,
+            results_dir="opstool_output",
+        )
+        opsvis.model_vis(
+            input_file="ModelData.hdf5",
+            show_node_label=show_node_label,
+            show_ele_label=show_ele_label,
+            show_local_crd=show_local_crd,
+            show_fix_node=show_fix_node,
+            show_constrain_dof=show_constrain_dof,
+            label_size=label_size,
+            show_outline=show_outline,
+            opacity=opacity,
+            save_html="ModelVis.html",
+        )
     else:
         raise ValueError("Arg backend must be one of ['pyvista', 'plotly']!")
 
 
-def plot_eigen(mode_tags: list,
-               solver: str = "-genBandArpack",
-               backend: str = "pyvista",
-               point_size: float = 1,
-               line_width: float = 3,
-               on_notebook: bool = False,
-               subplots: bool = False,
-               link_views: bool = True,
-               alpha: float = None,
-               show_outline: bool = False,
-               show_origin: bool = False,
-               opacity: float = 1.0,
-               show_face_line: bool = True):
+def plot_eigen(
+    mode_tags: list,
+    solver: str = "-genBandArpack",
+    backend: str = "pyvista",
+    point_size: float = 1,
+    line_width: float = 3,
+    on_notebook: bool = False,
+    subplots: bool = False,
+    link_views: bool = True,
+    alpha: float = None,
+    show_outline: bool = False,
+    show_origin: bool = False,
+    opacity: float = 1.0,
+    show_face_line: bool = True,
+):
     """Fast eigen visualization.
 
     Parameters
@@ -130,30 +147,58 @@ def plot_eigen(mode_tags: list,
         If True, the edges of plate and solid elements will be displayed.
     """
     ModelData = GetFEMdata(results_dir="opstool_output")
-    ModelData.get_eigen_data(mode_tag=mode_tags[-1], solver=solver,
-                             save_file='EigenData.hdf5')
+    ModelData.get_eigen_data(
+        mode_tag=mode_tags[-1], solver=solver, save_file="EigenData.hdf5"
+    )
     if backend.lower() == "pyvista":
-        opsvis = OpsVisPyvista(point_size=point_size, line_width=line_width,
-                               theme="document", color_map="jet",
-                               on_notebook=on_notebook,
-                               results_dir="opstool_output")
-        opsvis.eigen_vis(input_file='EigenData.hdf5',
-                         mode_tags=mode_tags, subplots=subplots,
-                         alpha=alpha, show_outline=show_outline,
-                         show_origin=show_origin, opacity=opacity,
-                         show_face_line=show_face_line,
-                         link_views=link_views,
-                         save_fig=None)
+        opsvis = OpsVisPyvista(
+            point_size=point_size,
+            line_width=line_width,
+            theme="document",
+            color_map="jet",
+            on_notebook=on_notebook,
+            results_dir="opstool_output",
+        )
+        opsvis.eigen_vis(
+            input_file="EigenData.hdf5",
+            mode_tags=mode_tags,
+            subplots=subplots,
+            alpha=alpha,
+            show_outline=show_outline,
+            show_origin=show_origin,
+            opacity=opacity,
+            show_face_line=show_face_line,
+            link_views=link_views,
+            save_fig=None,
+        )
     elif backend.lower() == "plotly":
-        opsvis = OpsVisPlotly(point_size=point_size, line_width=line_width,
-                              theme="plotly", color_map="jet",
-                              on_notebook=on_notebook,
-                              results_dir="opstool_output")
-        opsvis.eigen_vis(input_file='EigenData.hdf5',
-                         mode_tags=mode_tags, subplots=subplots,
-                         alpha=alpha, show_outline=show_outline,
-                         show_origin=show_origin, opacity=opacity,
-                         show_face_line=show_face_line,
-                         save_html="EigenVis.html")
+        opsvis = OpsVisPlotly(
+            point_size=point_size,
+            line_width=line_width,
+            theme="plotly",
+            color_map="jet",
+            on_notebook=on_notebook,
+            results_dir="opstool_output",
+        )
+        opsvis.eigen_vis(
+            input_file="EigenData.hdf5",
+            mode_tags=mode_tags,
+            subplots=subplots,
+            alpha=alpha,
+            show_outline=show_outline,
+            show_origin=show_origin,
+            opacity=opacity,
+            show_face_line=show_face_line,
+            save_html="EigenVis.html",
+        )
     else:
         raise ValueError("Arg backend must be one of ['pyvista', 'plotly']!")
+
+
+# def plot_node_resp(disp_file, dof_num, ):
+#     ModelData = GetFEMdata(results_dir="opstool_output")
+#     ModelData.get_model_data(save_file="ModelData.hdf5")
+#     disp_data = np.loadtxt(disp_file)
+#     step_num = disp_data.shape[0]
+#     for i in range(step_num):
+#         np.reshape(disp_data[i], (-1, dof_num))

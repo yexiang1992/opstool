@@ -11,8 +11,14 @@ from numpy.typing import ArrayLike
 from rich import print
 
 from ..utils import check_file
-from ._get_model_base import (get_beam_info2, get_beam_resp, get_model_info,
-                              get_node_coords, get_node_react, get_node_resp)
+from ._get_model_base import (
+    get_beam_info2,
+    get_beam_resp,
+    get_model_info,
+    get_node_coords,
+    get_node_react,
+    get_node_resp,
+)
 
 
 class GetFEMdata:
@@ -26,7 +32,6 @@ class GetFEMdata:
     """
 
     def __init__(self, results_dir: str = "opstool_output"):
-
         self.out_dir = results_dir
         if not os.path.exists(self.out_dir):
             os.makedirs(self.out_dir)
@@ -53,7 +58,7 @@ class GetFEMdata:
         self.step_react_track = 0
 
         self.beam_infos = dict()
-        self.beam_resp_names = ['localForces']
+        self.beam_resp_names = ["localForces"]
         # 'basicDeformations'
         self.beam_resp_step = dict()
         # ["N_1", "Vy_1", "Vz_1", "T_1", "My_1", "Mz_1",
@@ -75,8 +80,18 @@ class GetFEMdata:
         self.step_fiber_track = 0
 
         # terminal print colors
-        colors = ['#00aeff', '#3369e7', '#8e43e7', '#b84592', '#ff4f81',
-                  '#ff6c5f', '#ffc168', '#2dde98', '#1cc7d0', '#49a942']
+        colors = [
+            "#00aeff",
+            "#3369e7",
+            "#8e43e7",
+            "#b84592",
+            "#ff4f81",
+            "#ff6c5f",
+            "#ffc168",
+            "#2dde98",
+            "#1cc7d0",
+            "#49a942",
+        ]
         self.colors_cycle = cycle(colors)
 
     def reset_model_state(self):
@@ -96,8 +111,8 @@ class GetFEMdata:
             self.model_info_steps[name] = []
         for name in self.cells.keys():
             self.cells_steps[name] = []
-        self.model_info_steps['step_track'] = 0
-        self.cells_steps['step_track'] = 0
+        self.model_info_steps["step_track"] = 0
+        self.cells_steps["step_track"] = 0
 
     def _reset_node_react(self):
         self.step_react_track = 0
@@ -137,8 +152,9 @@ class GetFEMdata:
 
         # Beam Element Analysis Step Response Data
 
-    def get_model_data(self, beam_sec: dict = None,
-                       save_file: Union[str, bool] = "ModelData.hdf5"):
+    def get_model_data(
+        self, beam_sec: dict = None, save_file: Union[str, bool] = "ModelData.hdf5"
+    ):
         """Get data from the current model domain.
         The data will saved to file ``results_dir`` + ``save_file`` in hdf5 style.
 
@@ -158,14 +174,14 @@ class GetFEMdata:
 
         """
         if save_file:
-            check_file(save_file, ['.hdf5', '.h5', '.he5'])
+            check_file(save_file, [".hdf5", ".h5", ".he5"])
         # --------------------------------
         model_info, cells = get_model_info(sec_mesh=beam_sec)
         self.model_info.update(model_info)
         self.cells.update(cells)
         self.get_model_data_finished = True
         if save_file:
-            output_filename = self.out_dir + '/' + save_file
+            output_filename = self.out_dir + "/" + save_file
             with h5py.File(output_filename, "w") as f:
                 grp1 = f.create_group("ModelInfo")
                 for name, value in self.model_info.items():
@@ -174,13 +190,14 @@ class GetFEMdata:
                 for name, value in self.cells.items():
                     grp2.create_dataset(name, data=value)
             print(
-                f"Model data saved in [bold {next(self.colors_cycle)}]{output_filename}[/]!")
+                f"Model data saved in [bold {next(self.colors_cycle)}]{output_filename}[/]!"
+            )
 
     def get_eigen_data(
-            self,
-            mode_tag: int = 1,
-            solver: str = "-genBandArpack",
-            save_file: str = 'EigenData.hdf5',
+        self,
+        mode_tag: int = 1,
+        solver: str = "-genBandArpack",
+        save_file: str = "EigenData.hdf5",
     ):
         """Get eigenvalue Analysis Data.
         The data will saved to file ``results_dir`` + ``save_file``.
@@ -206,7 +223,7 @@ class GetFEMdata:
         """
         # ----------------------------------
         if save_file:
-            check_file(save_file, ['.hdf5', '.h5', '.he5'])
+            check_file(save_file, [".hdf5", ".h5", ".he5"])
         self.get_model_data(save_file=False)
         self.reset_eigen_state()
         # ----------------------------------
@@ -244,21 +261,24 @@ class GetFEMdata:
         self.eigen.update(self.cells)
         # ----------------------------------------------------------------
         if save_file:
-            output_filename = self.out_dir + '/' + save_file
+            output_filename = self.out_dir + "/" + save_file
             with h5py.File(output_filename, "w") as f:
                 grp = f.create_group("EigenInfo")
                 for name, value in self.eigen.items():
                     grp.create_dataset(name, data=value)
             print(
-                f"Eigen data saved in [bold {next(self.colors_cycle)}]{output_filename}[/] !")
+                f"Eigen data saved in [bold {next(self.colors_cycle)}]{output_filename}[/] !"
+            )
 
-    def get_node_react_step(self,
-                            dynamic: bool = False,
-                            rayleigh: bool = False,
-                            num_steps: int = 10000000000000,
-                            total_time: float = 10000000000000,
-                            stop_cond: bool = False,
-                            save_file: Union[str, bool] = "NodeReactionStepData-1.hdf5", ):
+    def get_node_react_step(
+        self,
+        dynamic: bool = False,
+        rayleigh: bool = False,
+        num_steps: int = 10000000000000,
+        total_time: float = 10000000000000,
+        stop_cond: bool = False,
+        save_file: Union[str, bool] = "NodeReactionStepData-1.hdf5",
+    ):
         """Get one step the node reactions data.
 
         Parameters
@@ -290,20 +310,25 @@ class GetFEMdata:
         """
         args = []
         if dynamic:
-            args.append('-dynamic')
+            args.append("-dynamic")
         if rayleigh:
-            args.append('-rayleigh')
+            args.append("-rayleigh")
         ops.reactions(*args)
         fixed_nodes = ops.getFixedNodes()
         self.node_react_steps.append(get_node_react(fixed_nodes))
         self.step_react_track += 1
         # --------------------------------
         if save_file:
-            if self.step_node_track >= num_steps or ops.getTime() >= total_time or stop_cond:
-                output_filename = self.out_dir + '/' + save_file
+            if (
+                self.step_node_track >= num_steps
+                or ops.getTime() >= total_time
+                or stop_cond
+            ):
+                output_filename = self.out_dir + "/" + save_file
                 self._save_node_react_step(output_filename, "w")
                 print(
-                    f"Node reaction data saved in [bold {next(self.colors_cycle)}]{output_filename}[/] !")
+                    f"Node reaction data saved in [bold {next(self.colors_cycle)}]{output_filename}[/] !"
+                )
 
     def _save_node_react_step(self, filename: str, mode: str = "w"):
         _, _, model_dims, _ = get_node_coords()
@@ -327,15 +352,16 @@ class GetFEMdata:
             f.create_dataset("NodeReactTags", data=fixed_nodes)
             grp = f.create_group("NodeReactSteps")
             for i in range(n):
-                grp.create_dataset(
-                    f"step{i + 1}", data=self.node_react_steps[i])
+                grp.create_dataset(f"step{i + 1}", data=self.node_react_steps[i])
 
-    def get_node_resp_step(self,
-                           num_steps: int = 10000000000000,
-                           total_time: float = 10000000000000,
-                           stop_cond: bool = False,
-                           save_file: Union[str, bool] = "NodeRespStepData-1.hdf5",
-                           model_update: bool = False):
+    def get_node_resp_step(
+        self,
+        num_steps: int = 10000000000000,
+        total_time: float = 10000000000000,
+        stop_cond: bool = False,
+        save_file: Union[str, bool] = "NodeRespStepData-1.hdf5",
+        model_update: bool = False,
+    ):
         """Get the node response data one step.
 
         .. note::
@@ -376,7 +402,7 @@ class GetFEMdata:
         None
         """
         if save_file:
-            check_file(save_file, ['.hdf5', '.h5', '.he5'])
+            check_file(save_file, [".hdf5", ".h5", ".he5"])
         if model_update:
             self.get_model_data(save_file=False)
         else:
@@ -384,22 +410,21 @@ class GetFEMdata:
                 self.get_model_data()
 
         node_tags = self.model_info["NodeTags"]
-        (node_disp, node_vel, node_accel,
-         node_deform_coord) = get_node_resp(node_tags)
+        (node_disp, node_vel, node_accel, node_deform_coord) = get_node_resp(node_tags)
 
         self.node_resp_steps["disp"].append(node_disp)
         self.node_resp_steps["vel"].append(node_vel)
         self.node_resp_steps["accel"].append(node_accel)
 
         if model_update:
-            if self.step_node_track == self.model_info_steps['step_track']:
+            if self.step_node_track == self.model_info_steps["step_track"]:
                 for name in self.model_info.keys():
                     self.model_info_steps[name].append(self.model_info[name])
-                self.model_info_steps['step_track'] += 1
-            if self.step_node_track == self.cells_steps['step_track']:
+                self.model_info_steps["step_track"] += 1
+            if self.step_node_track == self.cells_steps["step_track"]:
                 for name in self.cells.keys():
                     self.cells_steps[name].append(self.cells[name])
-                self.cells_steps['step_track'] += 1
+                self.cells_steps["step_track"] += 1
         else:
             if self.step_node_track == 0:
                 self.model_info_steps.update(self.model_info)
@@ -409,38 +434,39 @@ class GetFEMdata:
         self.step_node_track += 1
         # --------------------------------
         if save_file:
-            if self.step_node_track >= num_steps or ops.getTime() >= total_time or stop_cond:
-                output_filename = self.out_dir + '/' + save_file
+            if (
+                self.step_node_track >= num_steps
+                or ops.getTime() >= total_time
+                or stop_cond
+            ):
+                output_filename = self.out_dir + "/" + save_file
                 self._save_node_resp_step(output_filename, "w")
                 print(
-                    f"Node response data saved in [bold {next(self.colors_cycle)}]{output_filename}[/] !")
+                    f"Node response data saved in [bold {next(self.colors_cycle)}]{output_filename}[/] !"
+                )
 
-    def _save_node_resp_step(self,
-                             filename: str,
-                             mode: str = "w"):
+    def _save_node_resp_step(self, filename: str, mode: str = "w"):
         with h5py.File(filename, mode) as f:
-            n = len(self.node_resp_steps['disp'])
+            n = len(self.node_resp_steps["disp"])
             if "Nsteps" not in f.keys():
                 f.create_dataset("Nsteps", data=n)
             grp1 = f.create_group("ModelInfoSteps")
             grp2 = f.create_group("CellSteps")
             grp3 = f.create_group("NodeRespSteps")
             for name, value in self.model_info_steps.items():
-                if name not in ['step_track']:
+                if name not in ["step_track"]:
                     if self.model_update:
                         subgrp = grp1.create_group(name)
                         for i in range(n):
-                            subgrp.create_dataset(
-                                f"step{i + 1}", data=value[i])
+                            subgrp.create_dataset(f"step{i + 1}", data=value[i])
                     else:
                         grp1.create_dataset(name, data=value)
             for name, value in self.cells_steps.items():
-                if name not in ['step_track']:
+                if name not in ["step_track"]:
                     if self.model_update:
                         subgrp = grp2.create_group(name)
                         for i in range(n):
-                            subgrp.create_dataset(
-                                f"step{i + 1}", data=value[i])
+                            subgrp.create_dataset(f"step{i + 1}", data=value[i])
                     else:
                         grp2.create_dataset(name, data=value)
             for name, value in self.node_resp_steps.items():
@@ -448,12 +474,13 @@ class GetFEMdata:
                 for i in range(n):
                     subgrp.create_dataset(f"step{i + 1}", data=value[i])
 
-    def get_frame_resp_step(self,
-                            num_steps: int = 10000000000000,
-                            total_time: float = 10000000000000,
-                            stop_cond: bool = False,
-                            save_file: Union[str, bool] = "BeamRespStepData-1.hdf5"
-                            ):
+    def get_frame_resp_step(
+        self,
+        num_steps: int = 10000000000000,
+        total_time: float = 10000000000000,
+        stop_cond: bool = False,
+        save_file: Union[str, bool] = "BeamRespStepData-1.hdf5",
+    ):
         """Get the response data one step.
 
         .. note::
@@ -489,33 +516,45 @@ class GetFEMdata:
         None
         """
         if save_file:
-            check_file(save_file, ['.hdf5', '.h5', '.he5'])
+            check_file(save_file, [".hdf5", ".h5", ".he5"])
 
-        (beam_tags, beam_node_coords, beam_cells,
-         xlocals, ylocals, zlocals, bounds) = get_beam_info2()
-        self.beam_infos['beam_tags'] = beam_tags
-        self.beam_infos['beam_node_coords'] = beam_node_coords
-        self.beam_infos['beam_cells'] = beam_cells
-        self.beam_infos['xlocal'] = xlocals
-        self.beam_infos['ylocal'] = ylocals
-        self.beam_infos['zlocal'] = zlocals
-        self.beam_infos['bounds'] = bounds
+        (
+            beam_tags,
+            beam_node_coords,
+            beam_cells,
+            xlocals,
+            ylocals,
+            zlocals,
+            bounds,
+        ) = get_beam_info2()
+        self.beam_infos["beam_tags"] = beam_tags
+        self.beam_infos["beam_node_coords"] = beam_node_coords
+        self.beam_infos["beam_cells"] = beam_cells
+        self.beam_infos["xlocal"] = xlocals
+        self.beam_infos["ylocal"] = ylocals
+        self.beam_infos["zlocal"] = zlocals
+        self.beam_infos["bounds"] = bounds
 
         beam_resp_steps = get_beam_resp(beam_tags)
-        self.beam_resp_step['localForces'].append(beam_resp_steps)
+        self.beam_resp_step["localForces"].append(beam_resp_steps)
         # ----------------------------------------------------------------
         self.step_beam_track += 1
         # ------------------------------------------
         if save_file:
-            if self.step_beam_track >= num_steps or ops.getTime() >= total_time or stop_cond:
-                output_filename = self.out_dir + '/' + save_file
+            if (
+                self.step_beam_track >= num_steps
+                or ops.getTime() >= total_time
+                or stop_cond
+            ):
+                output_filename = self.out_dir + "/" + save_file
                 self._save_frame_resp_step(output_filename, "w")
                 print(
-                    f"Frame elements response data saved in [bold {next(self.colors_cycle)}]{output_filename}[/] !")
+                    f"Frame elements response data saved in [bold {next(self.colors_cycle)}]{output_filename}[/] !"
+                )
 
     def _save_frame_resp_step(self, filename: str, mode: str = "w"):
         with h5py.File(filename, mode) as f:
-            n = len(self.beam_resp_step['localForces'])
+            n = len(self.beam_resp_step["localForces"])
             if "Nsteps" not in f.keys():
                 f.create_dataset("Nsteps", data=n)
             grp1 = f.create_group("BeamInfos")
@@ -527,7 +566,9 @@ class GetFEMdata:
                 for i in range(n):
                     subgrp.create_dataset(f"step{i + 1}", data=value[i])
 
-    def get_fiber_data(self, ele_sec: list, save_file: Union[str, bool] = 'FiberData.hdf5'):
+    def get_fiber_data(
+        self, ele_sec: list, save_file: Union[str, bool] = "FiberData.hdf5"
+    ):
         """Get data from the section assigned by parameter ele_sec.
 
         Parameters
@@ -549,7 +590,7 @@ class GetFEMdata:
         None
         """
         if save_file:
-            check_file(save_file, ['.hdf5', '.h5', '.he5'])
+            check_file(save_file, [".hdf5", ".h5", ".he5"])
         self.fiber_sec_tags.extend(ele_sec)
         for ele_sec_i in self.fiber_sec_tags:
             key = f"{ele_sec_i[0]}-{ele_sec_i[1]}"
@@ -564,18 +605,21 @@ class GetFEMdata:
             self.fiber_sec_data[key] = fiber_data
         # ---------------------------------------------
         if save_file:
-            output_filename = self.out_dir + '/' + save_file
+            output_filename = self.out_dir + "/" + save_file
             with h5py.File(output_filename, "w") as f:
                 for name, value in self.fiber_sec_data.items():
                     f.create_dataset(name, data=value)
             print(
-                f"Fiber section data saved in [bold {next(self.colors_cycle)}]{output_filename}[/] !")
+                f"Fiber section data saved in [bold {next(self.colors_cycle)}]{output_filename}[/] !"
+            )
 
-    def get_fiber_resp_step(self,
-                            num_steps: int = 10000000000000,
-                            total_time: float = 10000000000000,
-                            stop_cond: bool = False,
-                            save_file: Union[str, bool] = "FiberRespStepData-1.hdf5"):
+    def get_fiber_resp_step(
+        self,
+        num_steps: int = 10000000000000,
+        total_time: float = 10000000000000,
+        stop_cond: bool = False,
+        save_file: Union[str, bool] = "FiberRespStepData-1.hdf5",
+    ):
         """Get analysis results data for fiber section one step.
 
         Parameters
@@ -606,7 +650,7 @@ class GetFEMdata:
         None
         """
         if save_file:
-            check_file(save_file, ['.hdf5', '.h5', '.he5'])
+            check_file(save_file, [".hdf5", ".h5", ".he5"])
 
         if self.step_fiber_track == 0:
             for ele_sec_i in self.fiber_sec_tags:
@@ -619,10 +663,19 @@ class GetFEMdata:
             key = f"{ele_sec_i[0]}-{ele_sec_i[1]}"
             fiber_data = _get_fiber_sec_data(ele_tag, sec_tag)
             defo_fo = ops.eleResponse(
-                ele_tag, "section", sec_tag, "forceAndDeformation")
+                ele_tag, "section", sec_tag, "forceAndDeformation"
+            )
             if len(defo_fo) == 4:
-                defo_fo = [defo_fo[0], defo_fo[1], 0., 0.,
-                           defo_fo[2], defo_fo[3], 0., 0.]
+                defo_fo = [
+                    defo_fo[0],
+                    defo_fo[1],
+                    0.0,
+                    0.0,
+                    defo_fo[2],
+                    defo_fo[3],
+                    0.0,
+                    0.0,
+                ]
             sec_defo_fo = np.array([defo_fo] * len(fiber_data), dtype=float)
             data = np.hstack([fiber_data, sec_defo_fo])
             self.fiber_sec_step_data[key].append(data)
@@ -630,11 +683,16 @@ class GetFEMdata:
         self.step_fiber_track += 1
         # ------------------------
         if save_file:
-            if self.step_fiber_track >= num_steps or ops.getTime() >= total_time or stop_cond:
-                output_filename = self.out_dir + '/' + save_file
+            if (
+                self.step_fiber_track >= num_steps
+                or ops.getTime() >= total_time
+                or stop_cond
+            ):
+                output_filename = self.out_dir + "/" + save_file
                 self._save_fiber_resp_step(output_filename, "w")
                 print(
-                    f"Fiber section responses data saved in [bold {next(self.colors_cycle)}]{output_filename}[/] !")
+                    f"Fiber section responses data saved in [bold {next(self.colors_cycle)}]{output_filename}[/] !"
+                )
 
     def _save_fiber_resp_step(self, filename: str, mode: str = "w"):
         with h5py.File(filename, mode) as f:
@@ -646,11 +704,12 @@ class GetFEMdata:
                 for i in range(self.step_fiber_track):
                     subgrp.create_dataset(f"step{i + 1}", data=value[i])
 
-    def get_resp_step(self,
-                      dynamic: bool = False,
-                      rayleigh: bool = False,
-                      model_update: bool = False,
-                      ):
+    def get_resp_step(
+        self,
+        dynamic: bool = False,
+        rayleigh: bool = False,
+        model_update: bool = False,
+    ):
         """Get all currently supported responses in one step.
 
         .. note::
@@ -666,18 +725,17 @@ class GetFEMdata:
             whether to update the model domain data at each analysis step,
             this will be useful if model data has changed.
             For example, some elements and nodes were removed.
-            This parameter is currently only valid for getting node response data, i.e., 
+            This parameter is currently only valid for getting node response data, i.e.,
             :meth:`opstool.vis.GetFEMdata.get_node_resp_step`.
         """
         self.get_node_resp_step(save_file=False, model_update=model_update)
-        self.get_node_react_step(
-            dynamic=dynamic, rayleigh=rayleigh, save_file=False)
+        self.get_node_react_step(dynamic=dynamic, rayleigh=rayleigh, save_file=False)
         self.get_frame_resp_step(save_file=False)
         self.get_fiber_resp_step(save_file=False)
 
-    def save_resp_all(self,
-                      save_file: str = "RespStepData-1.hdf5",
-                      reset_state: bool = True):
+    def save_resp_all(
+        self, save_file: str = "RespStepData-1.hdf5", reset_state: bool = True
+    ):
         """Save all responses data for all analysis steps at once.
         This means you need to call it after the loop is over.
 
@@ -696,21 +754,22 @@ class GetFEMdata:
         reset_state : bool, optional, by default True
             If True, the response data from previous analysis cases will be cleared, otherwise it will be included.
         """
-        filename = self.out_dir + '/' + save_file
+        filename = self.out_dir + "/" + save_file
         if os.path.isfile(filename):
             os.remove(filename)
         if self.node_resp_steps["disp"]:
             self._save_node_resp_step(filename, "w")
         if self.node_react_steps:
             self._save_node_react_step(filename, "a")
-        if self.beam_resp_step['localForces']:
+        if self.beam_resp_step["localForces"]:
             self._save_frame_resp_step(filename, "a")
         if self.fiber_sec_step_data:
             self._save_fiber_resp_step(filename, "a")
         if reset_state:
             self.reset_steps_state()
         print(
-            f"All responses data saved in [bold {next(self.colors_cycle)}]{filename}[/] !")
+            f"All responses data saved in [bold {next(self.colors_cycle)}]{filename}[/] !"
+        )
 
 
 def _get_fiber_sec_data(ele_tag: int, sec_tag: int = 1):

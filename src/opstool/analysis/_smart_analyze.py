@@ -71,7 +71,7 @@ class SmartAnalyze:
         The first flag will be used by default when tryAlterAlgoTypes is False.
         The algorithm command in the model will be ignored.
         If you need other algorithm, try a user-defined algorithm. See the following section.
-    UserAlgoArgs: list, 
+    UserAlgoArgs: list,
         User-defined algorithm parameters, 100 is required in algoTypes,
         and the parameters must be included in the list, for example:
         algoTypes = [10, 20, 100],
@@ -188,31 +188,55 @@ class SmartAnalyze:
         if analysis_type not in ("Transient", "Static"):
             raise ValueError("analysis_type must Transient or Static!")
         # default
-        self.control = {'analysis': analysis_type, 'testType': "EnergyIncr", 'testTol': 1.0e-10,
-                        'testIterTimes': 10, 'testPrintFlag': 0, 'tryAddTestTimes': False,
-                        'normTol': 1.0e3, 'testIterTimesMore': 50, 'tryLooseTestTol': False,
-                        'looseTestTolTo': 1.0, 'tryAlterAlgoTypes': False,
-                        'algoTypes': [40, 10, 20, 30, 50, 60, 70, 90], "UserAlgoArgs": None,
-                        'initialStep': None, 'relaxation': 0.5, 'minStep': 1.0e-6,
-                        'printPer': 50, 'debugMode': False}
-        self.control['looseTestTolTo'] = 100 * self.control['testTol']
+        self.control = {
+            "analysis": analysis_type,
+            "testType": "EnergyIncr",
+            "testTol": 1.0e-10,
+            "testIterTimes": 10,
+            "testPrintFlag": 0,
+            "tryAddTestTimes": False,
+            "normTol": 1.0e3,
+            "testIterTimesMore": 50,
+            "tryLooseTestTol": False,
+            "looseTestTolTo": 1.0,
+            "tryAlterAlgoTypes": False,
+            "algoTypes": [40, 10, 20, 30, 50, 60, 70, 90],
+            "UserAlgoArgs": None,
+            "initialStep": None,
+            "relaxation": 0.5,
+            "minStep": 1.0e-6,
+            "printPer": 50,
+            "debugMode": False,
+        }
+        self.control["looseTestTolTo"] = 100 * self.control["testTol"]
         for name in kargs.keys():
             if name not in self.control.keys():
                 raise ValueError(f"arg {name} error!")
         self.control.update(kargs)
-        self.eps = 1.E-12
+        self.eps = 1.0e-12
         self.logo = "[bold magenta]SmartAnalyze:[/bold magenta]"
 
         # initial test commands
-        ops.test(self.control['testType'], self.control['testTol'],
-                 self.control['testIterTimes'], self.control['testPrintFlag'])
-        self._setAlgorithm(self.control['algoTypes'][0], self.control["UserAlgoArgs"])
+        ops.test(
+            self.control["testType"],
+            self.control["testTol"],
+            self.control["testIterTimes"],
+            self.control["testPrintFlag"],
+        )
+        self._setAlgorithm(self.control["algoTypes"][0], self.control["UserAlgoArgs"])
 
-        self.current = {'startTime': time.time(), 'algoIndex': 0,
-                        'testIterTimes': self.control['testIterTimes'],
-                        'testTol': self.control['testTol'], 'counter': 0,
-                        'progress': 0, 'segs': 0, 'step': 0.0,
-                        'node': 0, 'dof': 0}
+        self.current = {
+            "startTime": time.time(),
+            "algoIndex": 0,
+            "testIterTimes": self.control["testIterTimes"],
+            "testTol": self.control["testTol"],
+            "counter": 0,
+            "progress": 0,
+            "segs": 0,
+            "step": 0.0,
+            "node": 0,
+            "dof": 0,
+        }
 
     def transient_split(self, npts: int):
         """Step Segmentation for Transient Analysis.
@@ -227,7 +251,7 @@ class SmartAnalyze:
         -------
         A list to loop.
         """
-        self.current['segs'] = npts
+        self.current["segs"] = npts
         return list(range(1, npts + 1))
 
     def static_split(self, targets: list, maxStep: float = None):
@@ -253,7 +277,8 @@ class SmartAnalyze:
             raise ValueError("targets must be 1D!")
         if len(targets) == 1 and maxStep is None:
             raise ValueError(
-                "When targets has only one element, maxStep must be passed in!")
+                "When targets has only one element, maxStep must be passed in!"
+            )
         if targets[0] != 0.0:
             targets = np.insert(targets, 0, 0.0)
         if maxStep is None:
@@ -284,11 +309,11 @@ class SmartAnalyze:
                     segs.append(-maxStep)
                     j += 1
                 segs.append(section + j * maxStep)
-        self.current['segs'] = len(segs)
+        self.current["segs"] = len(segs)
         return segs
 
     def _get_time(self):
-        return time.time() - self.current['startTime']
+        return time.time() - self.current["startTime"]
 
     def TransientAnalyze(self, dt: float):
         """Single Step Transient Analysis.
@@ -302,40 +327,52 @@ class SmartAnalyze:
         -------
         Return 0 if successful, otherwise returns a negative number.
         """
-        if self.control['analysis'] != "Transient":
+        if self.control["analysis"] != "Transient":
             raise ValueError("Transient! Please check parameter input!")
-        self.control['initialStep'] = dt
+        self.control["initialStep"] = dt
 
-        ops.analysis(self.control['analysis'])
+        ops.analysis(self.control["analysis"])
 
-        ok = self._RecursiveAnalyze(self.control['initialStep'], 0, self.control['testIterTimes'],
-                                    self.control['testTol'], self.control.copy(), self.current.copy())
+        ok = self._RecursiveAnalyze(
+            self.control["initialStep"],
+            0,
+            self.control["testIterTimes"],
+            self.control["testTol"],
+            self.control.copy(),
+            self.current.copy(),
+        )
         if ok < 0:
             color = _get_random_color()
             custime = f"[{color}]{self._get_time():.3f}[/{color}]"
-            print(
-                f">>> {self.logo} Analyze failed. Time consumption: {custime} s.")
+            print(f">>> {self.logo} Analyze failed. Time consumption: {custime} s.")
             return ok
 
-        self.current['progress'] += 1
-        self.current['counter'] += 1
-        if self.current['segs'] > 0:
+        self.current["progress"] += 1
+        self.current["counter"] += 1
+        if self.current["segs"] > 0:
             color = _get_random_color()
-            if self.control['debugMode']:
+            if self.control["debugMode"]:
                 value1 = f"[bold {color}]{100 * self.current['progress'] / self.current['segs']:.3f}[/bold {color}]"
                 value2 = f"[bold {color}]{self._get_time():.3f}[/bold {color}]"
-                print(f"* {self.logo} progress {value1} %. Time consumption: {value2} s.")
-            elif self.current['counter'] >= self.control['printPer']:
+                print(
+                    f"* {self.logo} progress {value1} %. Time consumption: {value2} s."
+                )
+            elif self.current["counter"] >= self.control["printPer"]:
                 value1 = f"[bold {color}]{100 * self.current['progress'] / self.current['segs']:.3f}[/bold {color}]"
                 value2 = f"[bold {color}]{self._get_time():.3f}[/bold {color}]"
-                print(f"* {self.logo} progress {value1} %. Time consumption: {value2} s.")
-                self.current['counter'] = 0
-        if (self.current['segs'] > 0) and (self.current['progress'] >= self.current['segs']):
+                print(
+                    f"* {self.logo} progress {value1} %. Time consumption: {value2} s."
+                )
+                self.current["counter"] = 0
+        if (self.current["segs"] > 0) and (
+            self.current["progress"] >= self.current["segs"]
+        ):
             color = _get_random_color()
             custime = f"[{color}]{self._get_time():.3f}[/{color}]"
             print(
-                f">>> {self.logo} [{color}]Successfully finished[/{color}]! Time consumption: {custime} s.")
-            return 0
+                f">>> {self.logo} [{color}]Successfully finished[/{color}]! Time consumption: {custime} s."
+            )
+        return 0
 
     def StaticAnalyze(self, node: int, dof: int, seg: float):
         """Single step static analysis and applies to displacement control only.
@@ -353,48 +390,66 @@ class SmartAnalyze:
         -------
         Return 0 if successful, otherwise returns a negative number.
         """
-        if self.control['analysis'] != "Static":
+        if self.control["analysis"] != "Static":
             raise ValueError("Static! Please check parameter input!")
-        self.control['initialStep'] = seg
-        self.current['node'] = node
-        self.current['dof'] = dof
-        self.current['step'] = seg
+        self.control["initialStep"] = seg
+        self.current["node"] = node
+        self.current["dof"] = dof
+        self.current["step"] = seg
 
-        ops.integrator('DisplacementControl', node, dof, seg)
-        ops.analysis(self.control['analysis'])
+        ops.integrator("DisplacementControl", node, dof, seg)
+        ops.analysis(self.control["analysis"])
 
-        ok = self._RecursiveAnalyze(seg, 0, self.control['testIterTimes'], self.control['testTol'],
-                                    self.control.copy(), self.current.copy())
+        ok = self._RecursiveAnalyze(
+            seg,
+            0,
+            self.control["testIterTimes"],
+            self.control["testTol"],
+            self.control.copy(),
+            self.current.copy(),
+        )
         if ok < 0:
             color = _get_random_color()
             value = f"[bold {color}]{self._get_time():.3f}[/bold {color}]"
-            print(
-                f">>> {self.logo} Analyze failed. Time consumption: {value} s.")
+            print(f">>> {self.logo} Analyze failed. Time consumption: {value} s.")
             return -1
-        self.current['progress'] += 1
-        self.current['counter'] += 1
-        if self.current['segs'] > 0:
+        self.current["progress"] += 1
+        self.current["counter"] += 1
+        if self.current["segs"] > 0:
             color = _get_random_color()
-            if self.control['debugMode']:
+            if self.control["debugMode"]:
                 value1 = f"[bold {color}]{100 * self.current['progress'] / self.current['segs']:.3f}[/bold {color}]"
                 value2 = f"[bold {color}]{self._get_time():.3f}[/bold {color}]"
-                print(f"* {self.logo} progress {value1} %. Time consumption: {value2} s.")
-            elif self.current['counter'] >= self.control['printPer']:
+                print(
+                    f"* {self.logo} progress {value1} %. Time consumption: {value2} s."
+                )
+            elif self.current["counter"] >= self.control["printPer"]:
                 value1 = f"[bold {color}]{100 * self.current['progress'] / self.current['segs']:.3f}[/bold {color}]"
                 value2 = f"[bold {color}]{self._get_time():.3f}[/bold {color}]"
-                print(f"* {self.logo} progress {value1} %. Time consumption: {value2} s.")
-                self.current['counter'] = 0
+                print(
+                    f"* {self.logo} progress {value1} %. Time consumption: {value2} s."
+                )
+                self.current["counter"] = 0
 
-        if (self.current['segs'] > 0) and (self.current['progress'] >= self.current['segs']):
+        if (self.current["segs"] > 0) and (
+            self.current["progress"] >= self.current["segs"]
+        ):
             color = _get_random_color()
             value = f"[bold {color}]{self._get_time():.3f}[/bold {color}]"
             print(
-                f">>> {self.logo} [{color}]Successfully finished[/{color}]! Time consumption: {value} s.")
+                f">>> {self.logo} [{color}]Successfully finished[/{color}]! Time consumption: {value} s."
+            )
         return 0
 
-    def _RecursiveAnalyze(self, step: float, algoIndex: int,
-                          testIterTimes: int, testTol: float,
-                          vcontrol: dict, vcurrent: dict):
+    def _RecursiveAnalyze(
+        self,
+        step: float,
+        algoIndex: int,
+        testIterTimes: int,
+        testTol: float,
+        vcontrol: dict,
+        vcurrent: dict,
+    ):
         """RecursiveAnalyze.
 
         Parameters
@@ -420,99 +475,144 @@ class SmartAnalyze:
             Analysis flag, if < 0, analysis failed; elsewise = 0 success.
         """
 
-        if vcontrol['debugMode']:
+        if vcontrol["debugMode"]:
             color = _get_random_color()
-            values = f"[bold {color}]step=%.3e, algoIndex=%i, testIterTimes=%i, testTol=%.3e[/bold {color}]" % (
-                step, vcontrol['algoTypes'][algoIndex], testIterTimes, testTol)
+            values = (
+                f"[bold {color}]step=%.3e, algoIndex=%i, testIterTimes=%i, testTol=%.3e[/bold {color}]"
+                % (step, vcontrol["algoTypes"][algoIndex], testIterTimes, testTol)
+            )
             print(f"*** {self.logo} Run Recursive: {values}\n")
 
-        if algoIndex != vcurrent['algoIndex']:
+        if algoIndex != vcurrent["algoIndex"]:
             color = _get_random_color()
             values = f"[bold {color}]%i[/bold {color}]" % (
-                vcontrol['algoTypes'][algoIndex])
+                vcontrol["algoTypes"][algoIndex]
+            )
             print(f">>> {self.logo} Setting algorithm to {values}\n")
-            self._setAlgorithm(vcontrol['algoTypes'][algoIndex], self.control["UserAlgoArgs"])
-            vcurrent['algoIndex'] = algoIndex
+            self._setAlgorithm(
+                vcontrol["algoTypes"][algoIndex], self.control["UserAlgoArgs"]
+            )
+            vcurrent["algoIndex"] = algoIndex
 
-        if testIterTimes != vcurrent['testIterTimes'] or testTol != vcurrent['testTol']:
-            if testIterTimes != vcurrent['testIterTimes']:
+        if testIterTimes != vcurrent["testIterTimes"] or testTol != vcurrent["testTol"]:
+            if testIterTimes != vcurrent["testIterTimes"]:
                 color = _get_random_color()
                 values = f"[bold {color}]%i[/bold {color}]" % testIterTimes
-                print(
-                    f">>> {self.logo} Setting test iteration times to {values}\n")
-                vcurrent['testIterTimes'] = testIterTimes
-            if testTol != vcurrent['testTol']:
+                print(f">>> {self.logo} Setting test iteration times to {values}\n")
+                vcurrent["testIterTimes"] = testIterTimes
+            if testTol != vcurrent["testTol"]:
                 color = _get_random_color()
                 print(
-                    f">>> {self.logo} Setting test tolerance to [bold {color}]%f[/bold {color}]\n" % testTol)
-                vcurrent['testTol'] = testTol
-            ops.test(vcontrol['testType'], testTol,
-                     testIterTimes, vcontrol['testPrintFlag'])
+                    f">>> {self.logo} Setting test tolerance to [bold {color}]%f[/bold {color}]\n"
+                    % testTol
+                )
+                vcurrent["testTol"] = testTol
+            ops.test(
+                vcontrol["testType"], testTol, testIterTimes, vcontrol["testPrintFlag"]
+            )
         # static step size
-        if vcontrol['analysis'] == 'Static' and vcurrent['step'] != step:
+        if vcontrol["analysis"] == "Static" and vcurrent["step"] != step:
             color = _get_random_color()
             print(
-                f">>> {self.logo} Setting step to [bold {color}]%.3e[/bold {color}]\n" % step)
-            ops.integrator('DisplacementControl',
-                           vcurrent['node'], vcurrent['dof'], step)
-            vcurrent['step'] = step
+                f">>> {self.logo} Setting step to [bold {color}]%.3e[/bold {color}]\n"
+                % step
+            )
+            ops.integrator(
+                "DisplacementControl", vcurrent["node"], vcurrent["dof"], step
+            )
+            vcurrent["step"] = step
         # trial analyze once
-        if vcontrol['analysis'] == 'Static':
+        if vcontrol["analysis"] == "Static":
             ok = ops.analyze(1)
         else:
             ok = ops.analyze(1, step)
         if ok == 0:
             return 0
         # If not convergence, add test iteration times. Use current step, algorithm and test tolerance.
-        if vcontrol['tryAddTestTimes'] and testIterTimes != vcontrol['testIterTimesMore']:
+        if (
+            vcontrol["tryAddTestTimes"]
+            and testIterTimes != vcontrol["testIterTimesMore"]
+        ):
             norm = ops.testNorm()
             color = _get_random_color()
-            if norm[-1] < vcontrol['normTol']:
-                print(f">>> {self.logo} Adding test times to [bold {color}]%i[/bold {color}].\n" % (
-                    vcontrol['testIterTimesMore']))
-                return self._RecursiveAnalyze(step, algoIndex, vcontrol['testIterTimesMore'],
-                                              testTol, vcontrol, vcurrent)
+            if norm[-1] < vcontrol["normTol"]:
+                print(
+                    f">>> {self.logo} Adding test times to [bold {color}]%i[/bold {color}].\n"
+                    % (vcontrol["testIterTimesMore"])
+                )
+                return self._RecursiveAnalyze(
+                    step,
+                    algoIndex,
+                    vcontrol["testIterTimesMore"],
+                    testTol,
+                    vcontrol,
+                    vcurrent,
+                )
             else:
-                print(f">>> {self.logo} Not adding test times for norm [bold {color}]%.3e[/bold {color}].\n" % (
-                    norm[-1]))
+                print(
+                    f">>> {self.logo} Not adding test times for norm [bold {color}]%.3e[/bold {color}].\n"
+                    % (norm[-1])
+                )
 
         # Change algorithm. Set back test iteration times.
-        if vcontrol['tryAlterAlgoTypes'] and (algoIndex + 1) < len(vcontrol['algoTypes']):
+        if vcontrol["tryAlterAlgoTypes"] and (algoIndex + 1) < len(
+            vcontrol["algoTypes"]
+        ):
             algoIndex += 1
             color = _get_random_color()
-            print(f">>> {self.logo} Setting algorithm to [bold {color}]%i[/bold {color}].\n" % (
-                vcontrol['algoTypes'][algoIndex]))
-            return self._RecursiveAnalyze(step, algoIndex, testIterTimes, testTol, vcontrol, vcurrent)
+            print(
+                f">>> {self.logo} Setting algorithm to [bold {color}]%i[/bold {color}].\n"
+                % (vcontrol["algoTypes"][algoIndex])
+            )
+            return self._RecursiveAnalyze(
+                step, algoIndex, testIterTimes, testTol, vcontrol, vcurrent
+            )
 
         # If step length is too small, try add test tolerance. set algorithm and test iteration times back.
         # Split the current step into two steps.
-        stepNew = step * vcontrol['relaxation']
-        if 0 < stepNew < vcontrol['minStep']:
-            stepNew = vcontrol['minStep']
-        if 0 > stepNew > -vcontrol['minStep']:
-            stepNew = -vcontrol['minStep']
-        if np.abs(stepNew) < vcontrol['minStep']:
+        stepNew = step * vcontrol["relaxation"]
+        # if 0 < stepNew < vcontrol['minStep']:
+        #     stepNew = vcontrol['minStep']
+        # if 0 > stepNew > -vcontrol['minStep']:
+        #     stepNew = -vcontrol['minStep']
+        if np.abs(stepNew) < vcontrol["minStep"]:
             color = _get_random_color()
             print(
-                f">>> {self.logo} current step [bold {color}]%.3e[/bold {color}] beyond the min step!\n" % stepNew)
-            if vcontrol['tryLooseTestTol'] and vcurrent['testTol'] != vcontrol['looseTestTolTo']:
+                f">>> {self.logo} current step [bold {color}]%.3e[/bold {color}] beyond the min step!\n"
+                % stepNew
+            )
+            if (
+                vcontrol["tryLooseTestTol"]
+                and vcurrent["testTol"] != vcontrol["looseTestTolTo"]
+            ):
                 print(
-                    f"!!! {self.logo} Warning: [bold {color}]Loosing test tolerance[/bold {color}]\n")
-                return self._RecursiveAnalyze(step, 0, vcontrol['testIterTimes'],
-                                              vcontrol['looseTestTolTo'], vcontrol, vcurrent)
+                    f"!!! {self.logo} Warning: [bold {color}]Loosing test tolerance[/bold {color}]\n"
+                )
+                return self._RecursiveAnalyze(
+                    step,
+                    0,
+                    vcontrol["testIterTimes"],
+                    vcontrol["looseTestTolTo"],
+                    vcontrol,
+                    vcurrent,
+                )
             # Here, all methods have been tried. Return negative value.
             return -1
 
         stepRest = step - stepNew
         color = _get_random_color()
-        print(f">>> {self.logo} Dividing the current step [bold {color}]%.3e into %.3e and %.3e[/bold {color}]\n" % (
-            step, stepNew, stepRest))
+        print(
+            f">>> {self.logo} Dividing the current step [bold {color}]%.3e into %.3e and %.3e[/bold {color}]\n"
+            % (step, stepNew, stepRest)
+        )
         ok = self._RecursiveAnalyze(
-            stepNew, 0, testIterTimes, testTol, vcontrol, vcurrent)
+            stepNew, 0, testIterTimes, testTol, vcontrol, vcurrent
+        )
         if ok < 0:
             return -1
         ok = self._RecursiveAnalyze(
-            stepRest, 0, testIterTimes, testTol, vcontrol, vcurrent)
+            stepRest, 0, testIterTimes, testTol, vcontrol, vcurrent
+        )
         if ok < 0:
             return -1
         return 0
@@ -522,198 +622,261 @@ class SmartAnalyze:
 
         def case0():
             print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]Linear ...[/bold {color}]")
-            ops.algorithm('Linear')
+                f"> {self.logo} Setting algorithm to  [bold {color}]Linear ...[/bold {color}]"
+            )
+            ops.algorithm("Linear")
 
         def case1():
             print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]Linear -initial ...[/bold {color}]")
-            ops.algorithm('Linear', "-Initial")
+                f"> {self.logo} Setting algorithm to  [bold {color}]Linear -initial ...[/bold {color}]"
+            )
+            ops.algorithm("Linear", "-Initial")
 
         def case2():
             print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]Linear -secant ...[/bold {color}]")
-            ops.algorithm('Linear', "-Secant")
+                f"> {self.logo} Setting algorithm to  [bold {color}]Linear -secant ...[/bold {color}]"
+            )
+            ops.algorithm("Linear", "-Secant")
 
         def case3():
             print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]Linear -factorOnce ...[/bold {color}]")
-            ops.algorithm('Linear', "-FactorOnce")
+                f"> {self.logo} Setting algorithm to  [bold {color}]Linear -factorOnce ...[/bold {color}]"
+            )
+            ops.algorithm("Linear", "-FactorOnce")
 
         def case4():
             print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]Linear -initial -factorOnce ...[/bold {color}]")
-            ops.algorithm('Linear', "-Initial", "-FactorOnce")
+                f"> {self.logo} Setting algorithm to  [bold {color}]Linear -initial -factorOnce ...[/bold {color}]"
+            )
+            ops.algorithm("Linear", "-Initial", "-FactorOnce")
 
         def case5():
             print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]Linear -secant -factorOnce ...[/bold {color}]")
-            ops.algorithm('Linear', "-Secant", "-FactorOnce")
+                f"> {self.logo} Setting algorithm to  [bold {color}]Linear -secant -factorOnce ...[/bold {color}]"
+            )
+            ops.algorithm("Linear", "-Secant", "-FactorOnce")
 
         def case10():
             print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]Newton ...[/bold {color}]")
-            ops.algorithm('Newton')
+                f"> {self.logo} Setting algorithm to  [bold {color}]Newton ...[/bold {color}]"
+            )
+            ops.algorithm("Newton")
 
         def case11():
             print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]Newton -initial ...[/bold {color}]")
-            ops.algorithm('Newton', "-Initial")
+                f"> {self.logo} Setting algorithm to  [bold {color}]Newton -initial ...[/bold {color}]"
+            )
+            ops.algorithm("Newton", "-Initial")
 
         def case12():
             print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]Newton -initialThenCurrent ...[/bold {color}]")
-            ops.algorithm('Newton', "-intialThenCurrent")
+                f"> {self.logo} Setting algorithm to  [bold {color}]Newton -initialThenCurrent ...[/bold {color}]"
+            )
+            ops.algorithm("Newton", "-intialThenCurrent")
 
         def case13():
             print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]Newton -Secant ...[/bold {color}]")
-            ops.algorithm('Newton', "-Secant")
+                f"> {self.logo} Setting algorithm to  [bold {color}]Newton -Secant ...[/bold {color}]"
+            )
+            ops.algorithm("Newton", "-Secant")
 
         def case20():
             print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]NewtonLineSearch ...[/bold {color}]")
-            ops.algorithm('NewtonLineSearch')
+                f"> {self.logo} Setting algorithm to  [bold {color}]NewtonLineSearch ...[/bold {color}]"
+            )
+            ops.algorithm("NewtonLineSearch")
 
         def case21():
-            print(f"> {self.logo} Setting algorithm to "
-                  f"[bold {color}]NewtonLineSearch -type Bisection ...[/bold {color}]")
-            ops.algorithm('NewtonLineSearch', "-type", "Bisection")
+            print(
+                f"> {self.logo} Setting algorithm to "
+                f"[bold {color}]NewtonLineSearch -type Bisection ...[/bold {color}]"
+            )
+            ops.algorithm("NewtonLineSearch", "-type", "Bisection")
 
         def case22():
-            print(f"> {self.logo} Setting algorithm to "
-                  f"[bold {color}]NewtonLineSearch -type Secant ...[/bold {color}]")
-            ops.algorithm('NewtonLineSearch', "-type", "Secant")
+            print(
+                f"> {self.logo} Setting algorithm to "
+                f"[bold {color}]NewtonLineSearch -type Secant ...[/bold {color}]"
+            )
+            ops.algorithm("NewtonLineSearch", "-type", "Secant")
 
         def case23():
-            print(f"> {self.logo} Setting algorithm to "
-                  f"[bold {color}]NewtonLineSearch -type RegulaFalsi ...[/bold {color}]")
-            ops.algorithm('NewtonLineSearch', "-type", "RegulaFalsi")
+            print(
+                f"> {self.logo} Setting algorithm to "
+                f"[bold {color}]NewtonLineSearch -type RegulaFalsi ...[/bold {color}]"
+            )
+            ops.algorithm("NewtonLineSearch", "-type", "RegulaFalsi")
 
         def case24():
-            print(f"> {self.logo} Setting algorithm to "
-                  f"[bold {color}]NewtonLineSearch -type LinearInterpolated ...[/bold {color}]")
-            ops.algorithm('NewtonLineSearch', "-type", "LinearInterpolated")
+            print(
+                f"> {self.logo} Setting algorithm to "
+                f"[bold {color}]NewtonLineSearch -type LinearInterpolated ...[/bold {color}]"
+            )
+            ops.algorithm("NewtonLineSearch", "-type", "LinearInterpolated")
 
         def case25():
-            print(f"> {self.logo} Setting algorithm to "
-                  f"[bold {color}]NewtonLineSearch -type InitialInterpolated ...[/bold {color}]")
-            ops.algorithm('NewtonLineSearch', "-type", "InitialInterpolated")
+            print(
+                f"> {self.logo} Setting algorithm to "
+                f"[bold {color}]NewtonLineSearch -type InitialInterpolated ...[/bold {color}]"
+            )
+            ops.algorithm("NewtonLineSearch", "-type", "InitialInterpolated")
 
         def case30():
             print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]Modified Newton ...[/bold {color}]")
-            ops.algorithm('ModifiedNewton')
+                f"> {self.logo} Setting algorithm to  [bold {color}]Modified Newton ...[/bold {color}]"
+            )
+            ops.algorithm("ModifiedNewton")
 
         def case31():
             print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]ModifiedNewton -initial ...[/bold {color}]")
-            ops.algorithm('ModifiedNewton', "-initial")
+                f"> {self.logo} Setting algorithm to  [bold {color}]ModifiedNewton -initial ...[/bold {color}]"
+            )
+            ops.algorithm("ModifiedNewton", "-initial")
 
         def case32():
             print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]ModifiedNewton -secant ...[/bold {color}]")
-            ops.algorithm('ModifiedNewton', "-secant")
+                f"> {self.logo} Setting algorithm to  [bold {color}]ModifiedNewton -secant ...[/bold {color}]"
+            )
+            ops.algorithm("ModifiedNewton", "-secant")
 
         def case40():
             print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]KrylovNewton ...[/bold {color}]")
-            ops.algorithm('KrylovNewton')
+                f"> {self.logo} Setting algorithm to  [bold {color}]KrylovNewton ...[/bold {color}]"
+            )
+            ops.algorithm("KrylovNewton")
 
         def case41():
-            print(f"> {self.logo} Setting algorithm to "
-                  f"[bold {color}]KrylovNewton -iterate initial ...[/bold {color}]")
-            ops.algorithm('KrylovNewton', "-iterate", 'initial')
+            print(
+                f"> {self.logo} Setting algorithm to "
+                f"[bold {color}]KrylovNewton -iterate initial ...[/bold {color}]"
+            )
+            ops.algorithm("KrylovNewton", "-iterate", "initial")
 
         def case42():
-            print(f"> {self.logo} Setting algorithm to "
-                  f"[bold {color}]KrylovNewton -increment initial ...[/bold {color}]")
-            ops.algorithm('KrylovNewton', "-increment", 'initial')
+            print(
+                f"> {self.logo} Setting algorithm to "
+                f"[bold {color}]KrylovNewton -increment initial ...[/bold {color}]"
+            )
+            ops.algorithm("KrylovNewton", "-increment", "initial")
 
         def case43():
-            print(f"> {self.logo} Setting algorithm to "
-                  f"[bold {color}]KrylovNewton -iterate initial -increment initial ...[/bold {color}]")
-            ops.algorithm('KrylovNewton', "-iterate", 'initial', "-increment", 'initial')
+            print(
+                f"> {self.logo} Setting algorithm to "
+                f"[bold {color}]KrylovNewton -iterate initial -increment initial ...[/bold {color}]"
+            )
+            ops.algorithm(
+                "KrylovNewton", "-iterate", "initial", "-increment", "initial"
+            )
 
         def case44():
             print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]KrylovNewton -maxDim 10[/bold {color}]")
-            ops.algorithm('KrylovNewton', "-maxDim", 10)
+                f"> {self.logo} Setting algorithm to  [bold {color}]KrylovNewton -maxDim 10[/bold {color}]"
+            )
+            ops.algorithm("KrylovNewton", "-maxDim", 10)
 
         def case45():
-            print(f"> {self.logo} Setting algorithm to "
-                  f"[bold {color}]KrylovNewton -iterate initial -increment initial -maxDim 10[/bold {color}]")
-            ops.algorithm('KrylovNewton', "-iterate", 'initial', "-increment", 'initial', "-maxDim", 10)
+            print(
+                f"> {self.logo} Setting algorithm to "
+                f"[bold {color}]KrylovNewton -iterate initial -increment initial -maxDim 10[/bold {color}]"
+            )
+            ops.algorithm(
+                "KrylovNewton",
+                "-iterate",
+                "initial",
+                "-increment",
+                "initial",
+                "-maxDim",
+                10,
+            )
 
         def case50():
             print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]SecantNewton ...[/bold {color}]")
-            ops.algorithm('SecantNewton')
+                f"> {self.logo} Setting algorithm to  [bold {color}]SecantNewton ...[/bold {color}]"
+            )
+            ops.algorithm("SecantNewton")
 
         def case51():
-            print(f"> {self.logo} Setting algorithm to "
-                  f"[bold {color}]SecantNewton -iterate initial ...[/bold {color}]")
-            ops.algorithm('SecantNewton', "-iterate", 'initial')
+            print(
+                f"> {self.logo} Setting algorithm to "
+                f"[bold {color}]SecantNewton -iterate initial ...[/bold {color}]"
+            )
+            ops.algorithm("SecantNewton", "-iterate", "initial")
 
         def case52():
-            print(f"> {self.logo} Setting algorithm to "
-                  f"[bold {color}]SecantNewton -increment initial  ...[/bold {color}]")
-            ops.algorithm('SecantNewton', "-increment", 'initial')
+            print(
+                f"> {self.logo} Setting algorithm to "
+                f"[bold {color}]SecantNewton -increment initial  ...[/bold {color}]"
+            )
+            ops.algorithm("SecantNewton", "-increment", "initial")
 
         def case53():
-            print(f"> {self.logo} Setting algorithm to "
-                  f"[bold {color}]SecantNewton -iterate initial -increment initial ...[/bold {color}]")
-            ops.algorithm('SecantNewton', "-iterate", 'initial', "-increment", 'initial')
+            print(
+                f"> {self.logo} Setting algorithm to "
+                f"[bold {color}]SecantNewton -iterate initial -increment initial ...[/bold {color}]"
+            )
+            ops.algorithm(
+                "SecantNewton", "-iterate", "initial", "-increment", "initial"
+            )
 
         def case60():
             print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]BFGS ...[/bold {color}]")
-            ops.algorithm('BFGS')
+                f"> {self.logo} Setting algorithm to  [bold {color}]BFGS ...[/bold {color}]"
+            )
+            ops.algorithm("BFGS")
 
         def case61():
             print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]BFGS -initial...[/bold {color}]")
-            ops.algorithm('BFGS', "-initial")
+                f"> {self.logo} Setting algorithm to  [bold {color}]BFGS -initial...[/bold {color}]"
+            )
+            ops.algorithm("BFGS", "-initial")
 
         def case62():
             print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]BFGS -secant ...[/bold {color}]")
-            ops.algorithm('BFGS', "-secant")
+                f"> {self.logo} Setting algorithm to  [bold {color}]BFGS -secant ...[/bold {color}]"
+            )
+            ops.algorithm("BFGS", "-secant")
 
         def case70():
             print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]Broyden ...[/bold {color}]")
-            ops.algorithm('Broyden')
+                f"> {self.logo} Setting algorithm to  [bold {color}]Broyden ...[/bold {color}]"
+            )
+            ops.algorithm("Broyden")
 
         def case71():
             print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]Broyden -initial ...[/bold {color}]")
-            ops.algorithm('Broyden', "-initial")
+                f"> {self.logo} Setting algorithm to  [bold {color}]Broyden -initial ...[/bold {color}]"
+            )
+            ops.algorithm("Broyden", "-initial")
 
         def case72():
             print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]Broyden -secant ...[/bold {color}]")
-            ops.algorithm('Broyden', "-secant")
+                f"> {self.logo} Setting algorithm to  [bold {color}]Broyden -secant ...[/bold {color}]"
+            )
+            ops.algorithm("Broyden", "-secant")
 
         def case80():
             print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]PeriodicNewton ...[/bold {color}]")
-            ops.algorithm('PeriodicNewton')
+                f"> {self.logo} Setting algorithm to  [bold {color}]PeriodicNewton ...[/bold {color}]"
+            )
+            ops.algorithm("PeriodicNewton")
 
         def case81():
             print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]PeriodicNewton -maxDim, 10 ...[/bold {color}]")
-            ops.algorithm('PeriodicNewton', "-maxDim", 10)
+                f"> {self.logo} Setting algorithm to  [bold {color}]PeriodicNewton -maxDim, 10 ...[/bold {color}]"
+            )
+            ops.algorithm("PeriodicNewton", "-maxDim", 10)
 
         def case90():
             print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]ExpressNewton ...[/bold {color}]")
-            ops.algorithm('ExpressNewton')
+                f"> {self.logo} Setting algorithm to  [bold {color}]ExpressNewton ...[/bold {color}]"
+            )
+            ops.algorithm("ExpressNewton")
 
         def case91():
             print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]ExpressNewton -InitialTangent ...[/bold {color}]")
-            ops.algorithm('ExpressNewton', "-InitialTangent")
+                f"> {self.logo} Setting algorithm to  [bold {color}]ExpressNewton -InitialTangent ...[/bold {color}]"
+            )
+            ops.algorithm("ExpressNewton", "-InitialTangent")
 
         def case100():
             # User algorithm0
@@ -723,16 +886,47 @@ class SmartAnalyze:
         def default():
             raise ValueError("!!! SmartAnalyze: ERROR! WRONG Algorithm Type!")
 
-        switch = {0: case0, 1: case1, 2: case2, 3: case3, 4: case4, 5: case5,
-                  10: case10, 11: case11, 12: case12, 13: case13,
-                  20: case20, 21: case21, 22: case22, 23: case23, 24: case24, 25: case25,
-                  30: case30, 31: case31, 32: case32,
-                  40: case40, 41: case41, 42: case42, 43: case43, 44: case44, 45: case45,
-                  50: case50, 51: case51, 52: case52, 53: case53,
-                  60: case60, 61: case61, 62: case62,
-                  70: case70, 71: case71, 72: case72,
-                  80: case80, 81: case81,
-                  90: case90, 91: case91,
-                  100: case100}
+        switch = {
+            0: case0,
+            1: case1,
+            2: case2,
+            3: case3,
+            4: case4,
+            5: case5,
+            10: case10,
+            11: case11,
+            12: case12,
+            13: case13,
+            20: case20,
+            21: case21,
+            22: case22,
+            23: case23,
+            24: case24,
+            25: case25,
+            30: case30,
+            31: case31,
+            32: case32,
+            40: case40,
+            41: case41,
+            42: case42,
+            43: case43,
+            44: case44,
+            45: case45,
+            50: case50,
+            51: case51,
+            52: case52,
+            53: case53,
+            60: case60,
+            61: case61,
+            62: case62,
+            70: case70,
+            71: case71,
+            72: case72,
+            80: case80,
+            81: case81,
+            90: case90,
+            91: case91,
+            100: case100,
+        }
 
         switch.get(algotype, default)()

@@ -5,8 +5,15 @@ Visualizing OpenSeesPy model based on pyvista
 import pyvista as pv
 
 from ..utils import check_file
-from ._pyvista_base import (_deform_anim, _deform_vis, _eigen_anim, _eigen_vis,
-                            _frame_resp_vis, _model_vis, _react_vis)
+from ._pyvista_base import (
+    _deform_anim,
+    _deform_vis,
+    _eigen_anim,
+    _eigen_vis,
+    _frame_resp_vis,
+    _model_vis,
+    _react_vis,
+)
 
 
 class OpsVisPyvista:
@@ -43,10 +50,10 @@ class OpsVisPyvista:
         point_size: float = 1,
         line_width: float = 3,
         colors_dict: dict = None,
-        theme: str = 'document',
+        theme: str = "document",
         color_map: str = "jet",
         on_notebook: bool = False,
-        results_dir: str = "opstool_output"
+        results_dir: str = "opstool_output",
     ):
         # ------------------------------
         self.point_size = point_size
@@ -71,7 +78,7 @@ class OpsVisPyvista:
         self.color_solid = colors["solid"]
         self.color_truss = colors["truss"]
         self.color_link = colors["link"]
-        self.color_constraint = colors['constraint']
+        self.color_constraint = colors["constraint"]
         # -------------------------------------------------
         self.theme = theme
         pv.set_plot_theme(theme)
@@ -87,15 +94,19 @@ class OpsVisPyvista:
         input_file: str = "ModelData.hdf5",
         show_node_label: bool = False,
         show_ele_label: bool = False,
+        label_size: float = 10,
         show_local_crd: bool = False,
+        local_crd_alpha: float = 1.0,
         show_fix_node: bool = True,
+        fix_node_alpha: float = 1.0,
+        show_load: bool = False,
+        load_alpha: float = 1.0,
         show_constrain_dof: bool = False,
         show_beam_sec: bool = False,
         beam_sec_paras: dict = None,
-        label_size: float = 8,
         show_outline: bool = True,
         opacity: float = 1.0,
-        save_fig: str = None
+        save_fig: str = "ModelVis.svg",
     ):
         """
         Visualize the model in the current domain.
@@ -116,8 +127,26 @@ class OpsVisPyvista:
             Whether to display the ele label.
         show_local_crd: bool, default=False
             Whether to display the local axes of beam and link elements.
+        local_crd_alpha: float, default=1.0
+            On existing displays, the scaling factor for the local axis sizes.
         show_fix_node: bool, default=True
             Whether to display the fix nodes.
+        fix_node_alpha: float, default=1.0
+            On existing displays, the scaling factor for the boundary symbol sizes.
+        show_load: bool, default = False
+            Whether to display node and beam element loads.
+            The sizes of the arrow are related to the size of its load.
+            If you want to further control the size, you can use `load_alpha`.
+            Currently only supported beam element load types include
+            <beamUniform2D, beamUniform3D, beamPoint2D, beamPoint3D>.
+
+            .. note::
+                Please make sure that all dofs (or directions) have values
+                when adding the ``load`` or ``eleLoad`` command,
+                even if the value is 0.
+
+        load_alpha: float, default = 1.0
+            On existing displays, the scaling factor for the load arrow sizes.
         show_constrain_dof: bool, default=False
             Whether to display labels for constrained degrees of freedom.
         show_beam_sec: bool default = False
@@ -129,7 +158,7 @@ class OpsVisPyvista:
             For texture, you can pass an image file with color=None,
             if texture is None, it will be ignored.
         label_size: float, default=8
-            The foontsize of node and ele label.
+            The foontsize of node and ele labels, as well as local axis labels.
         show_outline: bool, default=True
             Whether to show the axis frame.
         opacity: float, default=1.0
@@ -148,34 +177,40 @@ class OpsVisPyvista:
         --------
         None
         """
-        check_file(save_fig, ['.svg', '.eps', '.ps', 'pdf', '.tex'])
-        _model_vis(self,
-                   input_file=input_file,
-                   show_node_label=show_node_label,
-                   show_ele_label=show_ele_label,
-                   show_local_crd=show_local_crd,
-                   show_fix_node=show_fix_node,
-                   show_constrain_dof=show_constrain_dof,
-                   show_beam_sec=show_beam_sec,
-                   beam_sec_paras=beam_sec_paras,
-                   label_size=label_size,
-                   show_outline=show_outline,
-                   opacity=opacity,
-                   save_fig=save_fig
-                   )
+        check_file(save_fig, [".svg", ".eps", ".ps", "pdf", ".tex"])
+        _model_vis(
+            self,
+            input_file=input_file,
+            show_node_label=show_node_label,
+            show_ele_label=show_ele_label,
+            show_local_crd=show_local_crd,
+            local_crd_alpha=local_crd_alpha,
+            show_fix_node=show_fix_node,
+            fix_node_alpha=fix_node_alpha,
+            show_load=show_load,
+            load_alpha=load_alpha,
+            show_constrain_dof=show_constrain_dof,
+            show_beam_sec=show_beam_sec,
+            beam_sec_paras=beam_sec_paras,
+            label_size=label_size,
+            show_outline=show_outline,
+            opacity=opacity,
+            save_fig=save_fig,
+        )
 
     def eigen_vis(
         self,
         mode_tags: list,
-        input_file: str = 'EigenData.hdf5',
+        input_file: str = "EigenData.hdf5",
         subplots: bool = False,
         link_views: bool = True,
-        alpha: float = None,
+        alpha: float = 1.0,
         show_outline: bool = False,
         show_origin: bool = False,
+        label_size: float = 15,
         opacity: float = 1.0,
         show_face_line: bool = True,
-        save_fig: str = "EigenVis.svg"
+        save_fig: str = "EigenVis.svg",
     ):
         """Eigenvalue Analysis Visualization.
 
@@ -195,8 +230,8 @@ class OpsVisPyvista:
             If True, subplots in a figure. If False, plot in a slider style.
         link_views: bool, default=True
             If True, link the views’ cameras, only usefuly when subplots is True.
-        alpha: float, default=None
-            Model scaling factor, the default value is 1/5 of the model boundary according to the maximum deformation.
+        alpha: float, default=1.0
+            Model scaling factor, scale further on existing display.
         show_outline: bool, default=True
             Whether to display the axes.
         show_origin: bool, default=False
@@ -219,7 +254,7 @@ class OpsVisPyvista:
         --------
         None
         """
-        check_file(save_fig, ['.svg', '.eps', '.ps', 'pdf', '.tex'])
+        check_file(save_fig, [".svg", ".eps", ".ps", "pdf", ".tex"])
         _eigen_vis(
             self,
             mode_tags=mode_tags,
@@ -229,22 +264,24 @@ class OpsVisPyvista:
             alpha=alpha,
             show_outline=show_outline,
             show_origin=show_origin,
+            label_size=label_size,
             opacity=opacity,
             show_face_line=show_face_line,
-            save_fig=save_fig
+            save_fig=save_fig,
         )
 
     def eigen_anim(
         self,
         mode_tag: int = 1,
-        input_file: str = 'EigenData.hdf5',
+        input_file: str = "EigenData.hdf5",
         n_cycle: int = 5,
-        alpha: float = None,
+        alpha: float = 1.0,
         show_outline: bool = False,
+        label_size: float = 15,
         opacity: float = 1,
         framerate: int = 3,
         show_face_line: bool = True,
-        save_fig: str = "EigenAnimation.gif"
+        save_fig: str = "EigenAnimation.gif",
     ):
         """Animation of Modal Analysis.
 
@@ -262,8 +299,8 @@ class OpsVisPyvista:
 
         n_cycle: int, default = 5,
             The number of cycles in the positive and negative directions of the modal deformation.
-        alpha: float, default=None
-            Scaling factor, the default value is 1/5 of the model boundary according to the maximum deformation.
+        alpha: float, default=1.0
+            Scaling factor, scale further on existing display.
         show_outline: bool, default=False
             Whether to display the axes.
         opacity: float, default=1.0
@@ -280,33 +317,37 @@ class OpsVisPyvista:
         --------
         None
         """
-        check_file(save_fig, ['.gif', '.mp4'])
-        _eigen_anim(self,
-                    mode_tag=mode_tag,
-                    input_file=input_file,
-                    n_cycle=n_cycle,
-                    alpha=alpha,
-                    show_outline=show_outline,
-                    opacity=opacity,
-                    framerate=framerate,
-                    show_face_line=show_face_line,
-                    save_fig=save_fig
-                    )
-    
-    def react_vis(self,
-                  input_file: str = "NodeReactionStepData-1.hdf5",
-                  slider: bool = False,
-                  direction: str = "Fz",
-                  show_values: bool = True,
-                  show_outline: bool = False,
-                  save_fig: str = "ReactionVis.svg"):
+        check_file(save_fig, [".gif", ".mp4"])
+        _eigen_anim(
+            self,
+            mode_tag=mode_tag,
+            input_file=input_file,
+            n_cycle=n_cycle,
+            alpha=alpha,
+            show_outline=show_outline,
+            label_size=label_size,
+            opacity=opacity,
+            framerate=framerate,
+            show_face_line=show_face_line,
+            save_fig=save_fig,
+        )
+
+    def react_vis(
+        self,
+        input_file: str = "NodeReactionStepData-1.hdf5",
+        slider: bool = False,
+        direction: str = "Fz",
+        show_values: bool = True,
+        show_outline: bool = False,
+        save_fig: str = "ReactionVis.svg",
+    ):
         """Plot the node reactions.
 
         Parameters
         ----------
         input_file : str, optional, default="NodeReactionStepData-1.hdf5"
             The filename that eigen data saved by
-            :py:meth:`opstool.vis.GetFEMdata.get_node_react_step` or 
+            :py:meth:`opstool.vis.GetFEMdata.get_node_react_step` or
             :py:meth:`opstool.vis.GetFEMdata.save_resp_all`.
 
             .. warning::
@@ -327,25 +368,28 @@ class OpsVisPyvista:
             The output file name, must end with `.gif` or `.mp4`.
             You can export to any folder, such as "C:mydir/myfile.gif", but the folder `mydir` must exist.
         """
-        _react_vis(self, input_file=input_file,
-                   slider=slider,
-                   direction=direction,
-                   show_values=show_values,
-                   show_outline=show_outline,
-                   save_fig=save_fig)
+        _react_vis(
+            self,
+            input_file=input_file,
+            slider=slider,
+            direction=direction,
+            show_values=show_values,
+            show_outline=show_outline,
+            save_fig=save_fig,
+        )
 
     def deform_vis(
         self,
         input_file: str = "NodeRespStepData-1.hdf5",
         slider: bool = False,
         response: str = "disp",
-        alpha: float = None,
+        alpha: float = 1.0,
         show_outline: bool = False,
         show_origin: bool = False,
         show_face_line: bool = True,
         opacity: float = 1,
         save_fig: str = "DefoVis.svg",
-        model_update: bool = False
+        model_update: bool = False,
     ):
         """Visualize the deformation of the model at a certain analysis step.
 
@@ -364,8 +408,8 @@ class OpsVisPyvista:
             If False, the step that max response will display.
         response: str, default='disp'
             Response type. Optional, "disp", "vel", "accel".
-        alpha: float, default=None
-            Scaling factor, the default value is 1/5 of the model boundary according to the maximum deformation.
+        alpha: float, default=1.0
+            Scaling factor, scale further on existing display.
         show_outline: bool, default=False
             Whether to display the axes.
         show_origin: bool, default=False
@@ -394,7 +438,7 @@ class OpsVisPyvista:
         --------
         None
         """
-        check_file(save_fig, ['.svg', '.eps', '.ps', 'pdf', '.tex'])
+        check_file(save_fig, [".svg", ".eps", ".ps", "pdf", ".tex"])
         _deform_vis(
             self,
             input_file=input_file,
@@ -406,20 +450,20 @@ class OpsVisPyvista:
             show_face_line=show_face_line,
             opacity=opacity,
             save_fig=save_fig,
-            model_update=model_update
+            model_update=model_update,
         )
 
     def deform_anim(
         self,
         input_file: str = "NodeRespStepData-1.hdf5",
         response: str = "disp",
-        alpha: float = None,
+        alpha: float = 1.0,
         show_outline: bool = False,
         opacity: float = 1,
         framerate: int = 24,
         show_face_line: bool = True,
         save_fig: str = "DefoAnimation.gif",
-        model_update: bool = False
+        model_update: bool = False,
     ):
         """Deformation animation of the model.
 
@@ -435,8 +479,8 @@ class OpsVisPyvista:
 
         response: str, default='disp'
             Response type. Optional, "disp", "vel", "accel".
-        alpha: float, default=None
-            Scaling factor, the default value is 1/5 of the model boundary according to the maximum deformation.
+        alpha: float, default=1.0
+            Scaling factor, scale further on existing display.
         show_outline: bool, default=False
             Whether to display the axes.
         show_face_line: bool, default=True
@@ -458,7 +502,7 @@ class OpsVisPyvista:
         --------
         None
         """
-        check_file(save_fig, ['.gif', '.mp4'])
+        check_file(save_fig, [".gif", ".mp4"])
         _deform_anim(
             self,
             input_file=input_file,
@@ -469,19 +513,20 @@ class OpsVisPyvista:
             framerate=framerate,
             show_face_line=show_face_line,
             save_fig=save_fig,
-            model_update=model_update
+            model_update=model_update,
         )
 
-    def frame_resp_vis(self,
-                       input_file: str = "BeamRespStepData-1.hdf5",
-                       ele_tags: list = None,
-                       slider: bool = False,
-                       response: str = "Mz",
-                       show_values=True,
-                       alpha: float = None,
-                       opacity: float = 1,
-                       save_fig: str = "FrameRespVis.svg"
-                       ):
+    def frame_resp_vis(
+        self,
+        input_file: str = "BeamRespStepData-1.hdf5",
+        ele_tags: list = None,
+        slider: bool = False,
+        response: str = "Mz",
+        show_values=True,
+        alpha: float = 1.0,
+        opacity: float = 1,
+        save_fig: str = "FrameRespVis.svg",
+    ):
         """
         Display the force response of frame elements.
 
@@ -504,8 +549,8 @@ class OpsVisPyvista:
             Response type. Optional, "Fx", "Fy", "Fz", "My", "Mz", "Mx".
         show_values: bool, default=True
             If True, will show the response values.
-        alpha: float, default=None
-            Scaling factor.
+        alpha: float, default=1.0
+            Scaling factor, scale further on existing display..
         opacity: float, default=1.0
             Plane and solid element transparency.
         save_fig: str, default='FrameRespVis.svg'
@@ -522,14 +567,15 @@ class OpsVisPyvista:
         --------
         None
         """
-        check_file(save_fig, ['.svg', '.eps', '.ps', 'pdf', '.tex'])
-        _frame_resp_vis(self,
-                        input_file=input_file,
-                        ele_tags=ele_tags,
-                        slider=slider,
-                        response=response,
-                        show_values=show_values,
-                        alpha=alpha,
-                        opacity=opacity,
-                        save_fig=save_fig
-                        )
+        check_file(save_fig, [".svg", ".eps", ".ps", "pdf", ".tex"])
+        _frame_resp_vis(
+            self,
+            input_file=input_file,
+            ele_tags=ele_tags,
+            slider=slider,
+            response=response,
+            show_values=show_values,
+            alpha=alpha,
+            opacity=opacity,
+            save_fig=save_fig,
+        )

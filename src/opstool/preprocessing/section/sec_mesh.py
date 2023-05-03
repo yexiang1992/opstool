@@ -31,7 +31,6 @@ class SecMesh:
     """
 
     def __init__(self, sec_name: str = "My Section"):
-
         self.sec_name = sec_name
 
         # * mesh obj
@@ -155,14 +154,16 @@ class SecMesh:
         # mat_names = [geom.material.name for geom in self.group_map.values()]
         for name, geom in self.group_map.items():
             # if len(mat_names) != len(set(mat_names)):
-            geom.material = add_material(name=name,
-                                         elastic_modulus=geom.material.elastic_modulus,
-                                         poissons_ratio=geom.material.poissons_ratio,
-                                         yield_strength=geom.material.yield_strength,
-                                         density=geom.material.density,
-                                         color=self.color_map[name])
+            geom.material = add_material(
+                name=name,
+                elastic_modulus=geom.material.elastic_modulus,
+                poissons_ratio=geom.material.poissons_ratio,
+                yield_strength=geom.material.yield_strength,
+                density=geom.material.density,
+                color=self.color_map[name],
+            )
             geoms.append(geom)
-            mesh_sizes.append(self.mesh_size_map[name] / 10)
+            mesh_sizes.append(self.mesh_size_map[name])
         geom_obj = CompoundGeometry(geoms)
         mesh_obj = geom_obj.create_mesh(mesh_sizes=mesh_sizes)
         self.section = Section(geom_obj, time_info=False)
@@ -269,7 +270,7 @@ class SecMesh:
                 rebar_areas = []
                 for xy in rebar_xy:
                     rebar_coords.append(xy)
-                    rebar_areas.append(np.pi / 4 * dia ** 2)
+                    rebar_areas.append(np.pi / 4 * dia**2)
                 all_rebar_area += np.sum(rebar_areas)
             rho_rebar = all_rebar_area / area
         else:
@@ -293,10 +294,13 @@ class SecMesh:
         )
         self.sec_props = sec_props
 
-    def get_sec_props(self, Eref: float = 1.0,
-                      Gref: float = None,
-                      display_results: bool = False,
-                      plot_centroids: bool = False):
+    def get_sec_props(
+        self,
+        Eref: float = 1.0,
+        Gref: float = None,
+        display_results: bool = False,
+        plot_centroids: bool = False,
+    ):
         """
         Solving Section Geometry Properties by Finite Element Method, by ``sectionproperties`` pacakge.
         See `sectionproperties doc <https://sectionproperties.readthedocs.io/en/latest/rst/post.html
@@ -357,13 +361,40 @@ class SecMesh:
         self._run_sec_props(Eref, Gref, section)
         if display_results:
             # section.display_results()
-            syms = ["A", "Asy", "Asz", "centroid", "Iy", "Iz", "Iyz",
-                    "Wyt", "Wyb", "Wzt", "Wzb", "J", "phi", "mass", "rho_rebar"]
-            defs = ["Cross-sectional area", "Shear area y-axis", "Shear area z-axis", "Elastic centroid",
-                    "Moment of inertia y-axis", "Moment of inertia z-axis", "Product of inertia",
-                    "Section moduli of top fibres y-axis", "Section moduli of bottom fibres y-axis",
-                    "Section moduli of top fibres z-axis", "Section moduli of bottom fibres z-axis",
-                    "Torsion constant", "Principal axis angle", "Section mass", "Ratio of reinforcement"]
+            syms = [
+                "A",
+                "Asy",
+                "Asz",
+                "centroid",
+                "Iy",
+                "Iz",
+                "Iyz",
+                "Wyt",
+                "Wyb",
+                "Wzt",
+                "Wzb",
+                "J",
+                "phi",
+                "mass",
+                "rho_rebar",
+            ]
+            defs = [
+                "Cross-sectional area",
+                "Shear area y-axis",
+                "Shear area z-axis",
+                "Elastic centroid",
+                "Moment of inertia y-axis",
+                "Moment of inertia z-axis",
+                "Product of inertia",
+                "Section moduli of top fibres y-axis",
+                "Section moduli of bottom fibres y-axis",
+                "Section moduli of top fibres z-axis",
+                "Section moduli of bottom fibres z-axis",
+                "Torsion constant",
+                "Principal axis angle",
+                "Section mass",
+                "Ratio of reinforcement",
+            ]
             table = Table(title="Section Properties")
             table.add_column("Symbol", style="cyan", no_wrap=True)
             table.add_column("Value", style="magenta")
@@ -372,19 +403,21 @@ class SecMesh:
                 if sym_ != "centroid":
                     table.add_row(sym_, f"{self.sec_props[sym_]:.3E}", def_)
                 else:
-                    table.add_row(sym_,
-                                  f"({self.sec_props[sym_][0]:.3E}, {self.sec_props[sym_][1]:.3E})",
-                                  def_)
+                    table.add_row(
+                        sym_,
+                        f"({self.sec_props[sym_][0]:.3E}, {self.sec_props[sym_][1]:.3E})",
+                        def_,
+                    )
             console = Console()
             console.print(table)
         if plot_centroids:
             section.plot_centroids()
         return self.sec_props
 
-    def get_frame_props(self, Eref: float = 1.0,
-                        Gref: float = None,
-                        display_results: bool = False):
-        """Calculates and returns the properties required for a frame analysis. 
+    def get_frame_props(
+        self, Eref: float = 1.0, Gref: float = None, display_results: bool = False
+    ):
+        """Calculates and returns the properties required for a frame analysis.
         See `sectionproperties doc <https://sectionproperties.readthedocs.io/en/latest/rst/api.html
         #sectionproperties.analysis.section.Section.calculate_frame_properties>`_
 
@@ -436,15 +469,15 @@ class SecMesh:
             Gref = 0.5 * Eref
         # self.section.calculate_geometric_properties()
         (ea, ixx_c, iyy_c, ixy_c, j, phi) = self.section.calculate_frame_properties(
-            solver_type='direct')
+            solver_type="direct"
+        )
         cx, cy = self.section.get_c()
         mass, ga = 0, 0
         for el in self.section.elements:
             (area_, _, _, _, _, _, _, g, rho) = el.geometric_properties()
             mass += area_ * rho
             ga += area_ * g
-        self.section.section_props.calculate_centroidal_properties(
-            self.section.mesh)
+        self.section.section_props.calculate_centroidal_properties(self.section.mesh)
         zxx_plus, zxx_minus, zyy_plus, zyy_minus = self.section.get_z()
         E_eff = self.section.section_props.ea / self.section.section_props.area
         G_eff = ga / self.section.section_props.area
@@ -461,7 +494,7 @@ class SecMesh:
                 rebar_areas = []
                 for xy in rebar_xy:
                     rebar_coords.append(xy)
-                    rebar_areas.append(np.pi / 4 * dia ** 2)
+                    rebar_areas.append(np.pi / 4 * dia**2)
                 all_rebar_area += np.sum(rebar_areas)
             rho_rebar = all_rebar_area / area
         else:
@@ -482,13 +515,36 @@ class SecMesh:
             rho_rebar=rho_rebar,
         )
         if display_results:
-            syms = ["A", "centroid", "Iy", "Iz", "Iyz",
-                    "Wyt", "Wyb", "Wzt", "Wzb", "J", "phi", "mass", "rho_rebar"]
-            defs = ["Cross-sectional area", "Elastic centroid",
-                    "Moment of inertia y-axis", "Moment of inertia z-axis", "Product of inertia",
-                    "Section moduli of top fibres y-axis", "Section moduli of bottom fibres y-axis",
-                    "Section moduli of top fibres z-axis", "Section moduli of bottom fibres z-axis",
-                    "Torsion constant", "Principal axis angle", "Section mass", "Ratio of reinforcement"]
+            syms = [
+                "A",
+                "centroid",
+                "Iy",
+                "Iz",
+                "Iyz",
+                "Wyt",
+                "Wyb",
+                "Wzt",
+                "Wzb",
+                "J",
+                "phi",
+                "mass",
+                "rho_rebar",
+            ]
+            defs = [
+                "Cross-sectional area",
+                "Elastic centroid",
+                "Moment of inertia y-axis",
+                "Moment of inertia z-axis",
+                "Product of inertia",
+                "Section moduli of top fibres y-axis",
+                "Section moduli of bottom fibres y-axis",
+                "Section moduli of top fibres z-axis",
+                "Section moduli of bottom fibres z-axis",
+                "Torsion constant",
+                "Principal axis angle",
+                "Section mass",
+                "Ratio of reinforcement",
+            ]
             table = Table(title="Frame Section Properties")
             table.add_column("Symbol", style="cyan", no_wrap=True)
             table.add_column("Value", style="magenta")
@@ -497,20 +553,30 @@ class SecMesh:
                 if sym_ != "centroid":
                     table.add_row(sym_, f"{sec_props[sym_]:.3E}", def_)
                 else:
-                    table.add_row(sym_,
-                                  f"({sec_props[sym_][0]:.3E}, {sec_props[sym_][1]:.3E})",
-                                  def_)
+                    table.add_row(
+                        sym_,
+                        f"({sec_props[sym_][0]:.3E}, {sec_props[sym_][1]:.3E})",
+                        def_,
+                    )
             console = Console()
             console.print(table)
         self.frame_sec_props = sec_props
         return sec_props
 
-    def get_stress(self, N: float = 0, Vy: float = 0, Vz: float = 0,
-                   Myy: float = 0, Mzz: float = 0, Mxx: float = 0,
-                   plot_stress: str = None,
-                   cmap: str = 'coolwarm', normalize: bool = True):
+    def get_stress(
+        self,
+        N: float = 0,
+        Vy: float = 0,
+        Vz: float = 0,
+        Myy: float = 0,
+        Mzz: float = 0,
+        Mxx: float = 0,
+        plot_stress: str = None,
+        cmap: str = "coolwarm",
+        normalize: bool = True,
+    ):
         """Calculates the cross-section stress resulting from design actions and returns
-        a list of dictionaries containing the cross-section stresses for each region by 
+        a list of dictionaries containing the cross-section stresses for each region by
         method :py:meth:`~opstool.preprocessing.SecMesh.assign_group`.
 
         .. note::
@@ -585,95 +651,193 @@ class SecMesh:
         plot_stress = plot_stress.lower()
         if (not self.frame_sec_props) and (not self.sec_props):
             _ = self.get_frame_props()
-        if self.section.section_props.omega is None and (Vy != 0 or Vz != 0 or Mxx != 0):
+        if self.section.section_props.omega is None and (
+            Vy != 0 or Vz != 0 or Mxx != 0
+        ):
             _ = self.get_sec_props()
-        stress_post = self.section.calculate_stress(N=N, Vx=Vy, Vy=Vz,
-                                                    Mxx=Myy, Myy=Mzz, Mzz=Mxx)
-        name_map = dict(xx="sig_zz", xy="sig_zx", xz="sig_zy", xyz="sig_zxy",
-                        p1="sig_1", p3="sig_3", vm="sig_vm", n_xx="sig_zz_n",
-                        myy_xx="sig_zz_mxx", mzz_xx="sig_zz_myy", m_xx="sig_zz_m",
-                        mxx_xy="sig_zx_mzz", mxx_xz="sig_zy_mzz", mxx_xyz="sig_zxy_mzz",
-                        vy_xy="sig_zx_vx", vy_xz="sig_zy_vx", vy_xyz="sig_zxy_vx",
-                        vz_xy="sig_zx_vy", vz_xz="sig_zy_vy", vz_xyz="sig_zxy_vy",
-                        v_xy="sig_zx_v", v_xz="sig_zy_v", v_xyz="sig_zxy_v")
+        stress_post = self.section.calculate_stress(
+            N=N, Vx=Vy, Vy=Vz, Mxx=Myy, Myy=Mzz, Mzz=Mxx
+        )
+        name_map = dict(
+            xx="sig_zz",
+            xy="sig_zx",
+            xz="sig_zy",
+            xyz="sig_zxy",
+            p1="sig_1",
+            p3="sig_3",
+            vm="sig_vm",
+            n_xx="sig_zz_n",
+            myy_xx="sig_zz_mxx",
+            mzz_xx="sig_zz_myy",
+            m_xx="sig_zz_m",
+            mxx_xy="sig_zx_mzz",
+            mxx_xz="sig_zy_mzz",
+            mxx_xyz="sig_zxy_mzz",
+            vy_xy="sig_zx_vx",
+            vy_xz="sig_zy_vx",
+            vy_xyz="sig_zxy_vx",
+            vz_xy="sig_zx_vy",
+            vz_xz="sig_zy_vy",
+            vz_xyz="sig_zxy_vy",
+            v_xy="sig_zx_v",
+            v_xz="sig_zy_v",
+            v_xyz="sig_zxy_v",
+        )
 
         if plot_stress:
             # ------------Primary Stress Plots
             if plot_stress == "n_xx":
-                stress_post.plot_stress_n_zz(title=r'Stress Contour Plot - $\sigma_{xx,N}$',
-                                             cmap=cmap, normalize=normalize)
+                stress_post.plot_stress_n_zz(
+                    title=r"Stress Contour Plot - $\sigma_{xx,N}$",
+                    cmap=cmap,
+                    normalize=normalize,
+                )
             elif plot_stress == "myy_xx":
-                stress_post.plot_stress_mxx_zz(title=r'Stress Contour Plot - $\sigma_{xx,Myy}$',
-                                               cmap=cmap, normalize=normalize)
+                stress_post.plot_stress_mxx_zz(
+                    title=r"Stress Contour Plot - $\sigma_{xx,Myy}$",
+                    cmap=cmap,
+                    normalize=normalize,
+                )
             elif plot_stress == "mzz_xx":
-                stress_post.plot_stress_myy_zz(title=r'Stress Contour Plot - $\sigma_{xx,Mzz}$',
-                                               cmap=cmap, normalize=normalize)
+                stress_post.plot_stress_myy_zz(
+                    title=r"Stress Contour Plot - $\sigma_{xx,Mzz}$",
+                    cmap=cmap,
+                    normalize=normalize,
+                )
             elif plot_stress == "m_xx":
-                stress_post.plot_stress_m_zz(title=r'Stress Contour Plot - $\sigma_{xx,\Sigma M}$',
-                                             cmap=cmap, normalize=normalize)
+                stress_post.plot_stress_m_zz(
+                    title=r"Stress Contour Plot - $\sigma_{xx,\Sigma M}$",
+                    cmap=cmap,
+                    normalize=normalize,
+                )
             elif plot_stress == "mxx_xy":
-                stress_post.plot_stress_mzz_zx(title='Stress Contour Plot - $\\tau_{xy,Mxx}$',
-                                               cmap=cmap, normalize=normalize)
+                stress_post.plot_stress_mzz_zx(
+                    title="Stress Contour Plot - $\\tau_{xy,Mxx}$",
+                    cmap=cmap,
+                    normalize=normalize,
+                )
             elif plot_stress == "mxx_xz":
-                stress_post.plot_stress_mzz_zy(title='Stress Contour Plot - $\\tau_{xz,Mxx}$',
-                                               cmap=cmap, normalize=normalize)
+                stress_post.plot_stress_mzz_zy(
+                    title="Stress Contour Plot - $\\tau_{xz,Mxx}$",
+                    cmap=cmap,
+                    normalize=normalize,
+                )
             elif plot_stress == "mxx_xyz":
-                stress_post.plot_stress_mzz_zxy(title='Stress Contour Plot - $\\tau_{xyz,Mxx}$',
-                                                cmap=cmap, normalize=normalize)
+                stress_post.plot_stress_mzz_zxy(
+                    title="Stress Contour Plot - $\\tau_{xyz,Mxx}$",
+                    cmap=cmap,
+                    normalize=normalize,
+                )
             elif plot_stress == "vy_xy":
-                stress_post.plot_stress_vx_zx(title='Stress Contour Plot - $\\tau_{xy,Vy}$',
-                                              cmap=cmap, normalize=normalize)
+                stress_post.plot_stress_vx_zx(
+                    title="Stress Contour Plot - $\\tau_{xy,Vy}$",
+                    cmap=cmap,
+                    normalize=normalize,
+                )
             elif plot_stress == "vy_xz":
-                stress_post.plot_stress_vx_zy(title='Stress Contour Plot - $\\tau_{xz,Vy}$',
-                                              cmap=cmap, normalize=normalize)
+                stress_post.plot_stress_vx_zy(
+                    title="Stress Contour Plot - $\\tau_{xz,Vy}$",
+                    cmap=cmap,
+                    normalize=normalize,
+                )
             elif plot_stress == "vy_xyz":
-                stress_post.plot_stress_vx_zxy(title=r"Stress Contour Plot - $\tau_{xyz,Vy}",
-                                               cmap=cmap, normalize=normalize)
+                stress_post.plot_stress_vx_zxy(
+                    title=r"Stress Contour Plot - $\tau_{xyz,Vy}",
+                    cmap=cmap,
+                    normalize=normalize,
+                )
             elif plot_stress == "vz_xy":
-                stress_post.plot_stress_vy_zx(title='Stress Contour Plot - $\\tau_{xy,Vz}$',
-                                              cmap=cmap, normalize=normalize)
+                stress_post.plot_stress_vy_zx(
+                    title="Stress Contour Plot - $\\tau_{xy,Vz}$",
+                    cmap=cmap,
+                    normalize=normalize,
+                )
             elif plot_stress == "vz_xz":
-                stress_post.plot_stress_vy_zy(title='Stress Contour Plot - $\\tau_{xz,Vz}$',
-                                              cmap=cmap, normalize=normalize)
+                stress_post.plot_stress_vy_zy(
+                    title="Stress Contour Plot - $\\tau_{xz,Vz}$",
+                    cmap=cmap,
+                    normalize=normalize,
+                )
             elif plot_stress == "vz_xyz":
-                stress_post.plot_stress_vy_zxy(title='Stress Contour Plot - $\\tau_{xyz,Vz}$',
-                                               cmap=cmap, normalize=normalize)
+                stress_post.plot_stress_vy_zxy(
+                    title="Stress Contour Plot - $\\tau_{xyz,Vz}$",
+                    cmap=cmap,
+                    normalize=normalize,
+                )
             elif plot_stress == "v_xy":
-                stress_post.plot_stress_v_zx(title='Stress Contour Plot - $\\tau_{xy,V}$',
-                                             cmap=cmap, normalize=normalize)
+                stress_post.plot_stress_v_zx(
+                    title="Stress Contour Plot - $\\tau_{xy,V}$",
+                    cmap=cmap,
+                    normalize=normalize,
+                )
             elif plot_stress == "v_xz":
-                stress_post.plot_stress_v_zy(title='Stress Contour Plot - $\\tau_{xz,V}$',
-                                             cmap=cmap, normalize=normalize)
+                stress_post.plot_stress_v_zy(
+                    title="Stress Contour Plot - $\\tau_{xz,V}$",
+                    cmap=cmap,
+                    normalize=normalize,
+                )
             elif plot_stress == "v_xyz":
-                stress_post.plot_stress_v_zxy(title='Stress Contour Plot - $\\tau_{xyz,V}$',
-                                              cmap=cmap, normalize=normalize)
+                stress_post.plot_stress_v_zxy(
+                    title="Stress Contour Plot - $\\tau_{xyz,V}$",
+                    cmap=cmap,
+                    normalize=normalize,
+                )
             # ------------Combined Stress Plots
             elif plot_stress == "xx":
-                stress_post.plot_stress_zz(title=r'Stress Contour Plot - $\sigma_{xx}$',
-                                           cmap=cmap, normalize=normalize)
+                stress_post.plot_stress_zz(
+                    title=r"Stress Contour Plot - $\sigma_{xx}$",
+                    cmap=cmap,
+                    normalize=normalize,
+                )
             elif plot_stress == "xy":
-                stress_post.plot_stress_zx(title='Stress Contour Plot - $\\tau_{xy}$',
-                                           cmap=cmap, normalize=normalize)
+                stress_post.plot_stress_zx(
+                    title="Stress Contour Plot - $\\tau_{xy}$",
+                    cmap=cmap,
+                    normalize=normalize,
+                )
             elif plot_stress == "xz":
-                stress_post.plot_stress_zy(title='Stress Contour Plot - $\\tau_{xz}$',
-                                           cmap=cmap, normalize=normalize)
+                stress_post.plot_stress_zy(
+                    title="Stress Contour Plot - $\\tau_{xz}$",
+                    cmap=cmap,
+                    normalize=normalize,
+                )
             elif plot_stress == "xyz":
-                stress_post.plot_stress_zxy(title='Stress Contour Plot - $\\tau_{xyz}$',
-                                            cmap=cmap, normalize=normalize)
+                stress_post.plot_stress_zxy(
+                    title="Stress Contour Plot - $\\tau_{xyz}$",
+                    cmap=cmap,
+                    normalize=normalize,
+                )
             elif plot_stress == "p1":
-                stress_post.plot_stress_1(title=r'Stress Contour Plot - $\sigma_{1}$',
-                                          cmap=cmap, normalize=normalize)
+                stress_post.plot_stress_1(
+                    title=r"Stress Contour Plot - $\sigma_{1}$",
+                    cmap=cmap,
+                    normalize=normalize,
+                )
             elif plot_stress == "p3":
-                stress_post.plot_stress_3(title=r'Stress Contour Plot - $\sigma_{3}$',
-                                          cmap=cmap, normalize=normalize)
+                stress_post.plot_stress_3(
+                    title=r"Stress Contour Plot - $\sigma_{3}$",
+                    cmap=cmap,
+                    normalize=normalize,
+                )
             elif plot_stress == "vm":
-                stress_post.plot_stress_vm(title=r'Stress Contour Plot - $\sigma_{vM}$',
-                                           cmap=cmap, normalize=normalize)
+                stress_post.plot_stress_vm(
+                    title=r"Stress Contour Plot - $\sigma_{vM}$",
+                    cmap=cmap,
+                    normalize=normalize,
+                )
             elif plot_stress == "all":
                 for name in name_map.keys():
-                    _ = self.get_stress(N=N, Vy=Vy, Vz=Vz,
-                                        Myy=Myy, Mzz=Mzz, Mxx=Mxx, plot_stress=name,
-                                        cmap=cmap, normalize=normalize)
+                    _ = self.get_stress(
+                        N=N,
+                        Vy=Vy,
+                        Vz=Vz,
+                        Myy=Myy,
+                        Mzz=Mzz,
+                        Mxx=Mxx,
+                        plot_stress=name,
+                        cmap=cmap,
+                        normalize=normalize,
+                    )
             else:
                 raise ValueError("not supported plot_stress type!")
 
@@ -681,7 +845,7 @@ class SecMesh:
         stresses = []
         for stress in stresses_temp:
             temp = dict()
-            temp['Region'] = stress['Material']
+            temp["Region"] = stress["Material"]
             for name, value in name_map.items():
                 temp["sig_" + name] = stress[value]
             stresses.append(temp)
@@ -721,15 +885,13 @@ class SecMesh:
         if not self.is_centring:
             self.centring()
 
-        x_rot, y_rot = sec_rotation(
-            self.points[:, 0], self.points[:, 1], theta)
+        x_rot, y_rot = sec_rotation(self.points[:, 0], self.points[:, 1], theta)
         self.points[:, 0], self.points[:, 1] = x_rot, y_rot
 
         names = self.centers_map.keys()
         for name in names:
             x_rot, y_rot = sec_rotation(
-                self.centers_map[name][:, 0],
-                self.centers_map[name][:, 1], theta
+                self.centers_map[name][:, 0], self.centers_map[name][:, 1], theta
             )
             self.centers_map[name][:, 0], self.centers_map[name][:, 1] = x_rot, y_rot
         # rebar
@@ -770,7 +932,7 @@ class SecMesh:
             dia = data["dia"]
             matTag = data["matTag"]
             for xy in rebar_xy:
-                area = np.pi / 4 * dia ** 2
+                area = np.pi / 4 * dia**2
                 ops.fiber(xy[0], xy[1], area, matTag)
 
     def to_file(self, output_path: str, secTag: int, GJ: float):
@@ -826,7 +988,7 @@ class SecMesh:
                 dia = data["dia"]
                 mat_tag = data["matTag"]
                 for xy in rebar_xy:
-                    area = np.pi / 4 * dia ** 2
+                    area = np.pi / 4 * dia**2
                     output.write(
                         f"    fiber {xy[0]:.3E} {xy[1]:.3E} {area:.3E} {mat_tag}\n"
                     )
@@ -855,14 +1017,18 @@ class SecMesh:
                 dia = data["dia"]
                 mat_tag = data["matTag"]
                 for xy in rebar_xy:
-                    area = np.pi / 4 * dia ** 2
+                    area = np.pi / 4 * dia**2
                     output.write(
                         f"ops.fiber({xy[0]:.3E}, {xy[1]:.3E}, {area:.3E}, {mat_tag})\n"
                     )
 
-    def view(self, fill: bool = True, engine: str = "plotly",
-             save_html: str = "SecMesh.html",
-             on_notebook: bool = False):
+    def view(
+        self,
+        fill: bool = True,
+        engine: str = "plotly",
+        save_html: str = "SecMesh.html",
+        on_notebook: bool = False,
+    ):
         """Display the section mesh.
 
         Parameters
@@ -894,7 +1060,8 @@ class SecMesh:
             self._plot_plotly(fill, aspect_ratio, save_html, on_notebook)
         else:
             raise ValueError(
-                f"not supported engine {engine}! optional, 'plotly' or 'matplotlib'!")
+                f"not supported engine {engine}! optional, 'plotly' or 'matplotlib'!"
+            )
 
     def _plot_mpl(self, fill, aspect_ratio):
         # matplotlib plot
@@ -928,8 +1095,7 @@ class SecMesh:
                     zorder=-10,
                 )
                 ax.add_collection(coll)
-                ax.plot([], [], "^", label=name,
-                        color=self.color_map[name])
+                ax.plot([], [], "^", label=name, color=self.color_map[name])
 
         for data in self.rebar_data:
             color = data["color"]
@@ -938,10 +1104,7 @@ class SecMesh:
             rebar_coords = []
             for xy in rebar_xy:
                 rebar_coords.append(xy)
-            patches = [
-                plt.Circle((xy[0], xy[1]), dia / 2)
-                for xy in rebar_coords
-            ]
+            patches = [plt.Circle((xy[0], xy[1]), dia / 2) for xy in rebar_coords]
             coll = PatchCollection(patches, facecolors=color)
             ax.add_collection(coll)
 
@@ -984,40 +1147,52 @@ class SecMesh:
                 )
                 areas.append(area_)
                 centers.append(np.mean(points0, axis=0))
-                points = np.vstack(
-                    [points0, [points0[0]], [[np.NAN, np.NAN]]])
+                points = np.vstack([points0, [points0[0]], [[np.NAN, np.NAN]]])
                 face_points.append(points)
             face_points = np.vstack(face_points)
             areas = np.array(areas).reshape((len(areas), 1))
             center_areas = np.hstack([centers, areas])
-            center_areas_labels = [f"<b>xo:{d[0]:.2e}</b><br>yo:{d[1]:.2e}<br>area:{d[2]:.2e}"
-                                   for d in center_areas]
+            center_areas_labels = [
+                f"<b>xo:{d[0]:.2e}</b><br>yo:{d[1]:.2e}<br>area:{d[2]:.2e}"
+                for d in center_areas
+            ]
             n_cells_map[name] = len(center_areas_labels)
             if fill:
-                tplot.append(go.Scatter(x=face_points[:, 0], y=face_points[:, 1],
-                                        fill="toself", fillcolor=self.color_map[name],
-                                        line=dict(
-                                            color='black', width=0.75),
-                                        connectgaps=False, opacity=0.75,
-                                        hoverinfo="skip", ))
+                tplot.append(
+                    go.Scatter(
+                        x=face_points[:, 0],
+                        y=face_points[:, 1],
+                        fill="toself",
+                        fillcolor=self.color_map[name],
+                        line=dict(color="black", width=0.75),
+                        connectgaps=False,
+                        opacity=0.75,
+                        hoverinfo="skip",
+                    )
+                )
             else:
-                tplot.append(go.Scatter(x=face_points[:, 0], y=face_points[:, 1],
-                                        mode='lines',
-                                        line=dict(
-                                            color=self.color_map[name], width=1.2),
-                                        connectgaps=False,
-                                        hoverinfo="skip", ))
+                tplot.append(
+                    go.Scatter(
+                        x=face_points[:, 0],
+                        y=face_points[:, 1],
+                        mode="lines",
+                        line=dict(color=self.color_map[name], width=1.2),
+                        connectgaps=False,
+                        hoverinfo="skip",
+                    )
+                )
             # hover label
             tplot.append(
                 go.Scatter(
                     x=center_areas[:, 0],
                     y=center_areas[:, 1],
-                    marker=dict(size=0, color=self.color_map[name],
-                                symbol='diamond-open'),
+                    marker=dict(
+                        size=0, color=self.color_map[name], symbol="diamond-open"
+                    ),
                     mode="markers",
                     name=label,
                     customdata=center_areas_labels,
-                    hovertemplate='%{customdata}',
+                    hovertemplate="%{customdata}",
                 )
             )
         fig.add_traces(tplot)
@@ -1028,12 +1203,19 @@ class SecMesh:
             rebar_xy = data["rebar_xy"]
             r = data["dia"] / 2
             for xo, yo in rebar_xy:
-                shapes.append(dict(type="circle",
-                                   xref="x", yref="y",
-                                   x0=xo - r, y0=yo - r, x1=xo + r, y1=yo + r,
-                                   line_color=color,
-                                   fillcolor=color,
-                                   ))
+                shapes.append(
+                    dict(
+                        type="circle",
+                        xref="x",
+                        yref="y",
+                        x0=xo - r,
+                        y0=yo - r,
+                        x1=xo + r,
+                        y1=yo + r,
+                        line_color=color,
+                        fillcolor=color,
+                    )
+                )
         # -------------------------------------
         txt = "Num. of Mesh: "
         for k, v in n_cells_map.items():
@@ -1046,10 +1228,11 @@ class SecMesh:
             template="plotly",
             autosize=True,
             showlegend=False,
-            scene=dict(aspectratio=dict(
-                x=1, y=aspect_ratio), aspectmode="data"),
-            title=dict(font=dict(family="courier", color='black', size=16),
-                       text=f"<b>{self.sec_name}</b> <br>" + f"{txt}")
+            scene=dict(aspectratio=dict(x=1, y=aspect_ratio), aspectmode="data"),
+            title=dict(
+                font=dict(family="courier", color="black", size=16),
+                text=f"<b>{self.sec_name}</b> <br>" + f"{txt}",
+            ),
         )
         fig.update_xaxes(tickfont_size=18, ticks="outside")
         fig.update_yaxes(tickfont_size=18, ticks="outside")
@@ -1068,15 +1251,15 @@ class Rebars:
         self.rebar_data = []
 
     def add_rebar_line(
-            self,
-            points: list,
-            dia: float,
-            gap: float = 0.1,
-            n: int = None,
-            closure: bool = False,
-            matTag: int = None,
-            color: str = "black",
-            group_name: str = None,
+        self,
+        points: list,
+        dia: float,
+        gap: float = 0.1,
+        n: int = None,
+        closure: bool = False,
+        matTag: int = None,
+        color: str = "black",
+        group_name: str = None,
     ):
         """Add rebar along a line, can be a line or polygon.
 
@@ -1122,17 +1305,17 @@ class Rebars:
         self.rebar_data.append(data)
 
     def add_rebar_circle(
-            self,
-            xo: list,
-            radius: float,
-            dia: float,
-            gap: float = 0.1,
-            n: int = None,
-            angle1: float = 0.0,
-            angle2: float = 360,
-            matTag: int = None,
-            color: str = "black",
-            group_name: str = None,
+        self,
+        xo: list,
+        radius: float,
+        dia: float,
+        gap: float = 0.1,
+        n: int = None,
+        angle1: float = 0.0,
+        angle2: float = 360,
+        matTag: int = None,
+        color: str = "black",
+        group_name: str = None,
     ):
         """Add the rebars along a circle.
 
@@ -1198,17 +1381,17 @@ class Rebars:
         """
         nums = []
         for data in self.rebar_data:
-            nums.append(len(data['rebar_xy']))
+            nums.append(len(data["rebar_xy"]))
         return nums
 
 
 def add_material(
-        name="default",
-        elastic_modulus=1,
-        poissons_ratio=0,
-        yield_strength=1,
-        density=1,
-        color="w",
+    name="default",
+    elastic_modulus=1,
+    poissons_ratio=0,
+    yield_strength=1,
+    density=1,
+    color="w",
 ):
     """Add a meterial.
 
@@ -1242,9 +1425,9 @@ def add_material(
 
 
 def add_polygon(
-        outline: list,
-        holes: list = None,
-        material=None,
+    outline: list,
+    holes: list = None,
+    material=None,
 ):
     """Add polygon plane geom obj.
 
@@ -1272,13 +1455,13 @@ def add_polygon(
 
 
 def add_circle(
-        xo: list,
-        radius: float,
-        holes=None,
-        angle1=0.0,
-        angle2=360,
-        n_sub=40,
-        material=None,
+    xo: list,
+    radius: float,
+    holes=None,
+    angle1=0.0,
+    angle2=360,
+    n_sub=40,
+    material=None,
 ):
     """Add the circle geom obj.
 
@@ -1312,8 +1495,7 @@ def add_circle(
     angle2 = angle2 / 180 * np.pi
     x, y = xo[0], xo[1]
     angles = np.linspace(angle1, angle2, n_sub + 1)
-    points = [[x + radius * np.cos(ang), y + radius * np.sin(ang)]
-              for ang in angles]
+    points = [[x + radius * np.cos(ang), y + radius * np.sin(ang)] for ang in angles]
     ply = Polygon(points, holes)
     geometry = Geometry(geom=ply, material=material_)
     return geometry

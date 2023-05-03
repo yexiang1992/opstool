@@ -2,11 +2,13 @@ import numpy as np
 import openseespy.opensees as ops
 
 
-def gen_grav_load(ts_tag: int,
-                  pattern_tag: int,
-                  exclude_nodes: list = None,
-                  direction: str = "Z",
-                  factor: float = -9.81):
+def gen_grav_load(
+    ts_tag: int,
+    pattern_tag: int,
+    exclude_nodes: list = None,
+    direction: str = "Z",
+    factor: float = -9.81,
+):
     """Applying the gravity loads.
 
     Notes
@@ -36,27 +38,28 @@ def gen_grav_load(ts_tag: int,
 
     """
     direction = direction.upper()
-    ops.timeSeries('Linear', int(ts_tag))
-    ops.pattern('Plain', int(pattern_tag), int(ts_tag))
+    ops.timeSeries("Linear", int(ts_tag))
+    ops.pattern("Plain", int(pattern_tag), int(ts_tag))
     node_tags = ops.getNodeTags()
     if exclude_nodes is not None:
         node_tags = [tag for tag in node_tags if tag not in exclude_nodes]
-    load_fact_6d = dict(Z=np.array([0.0, 0.0, factor, 0.0, 0.0, 0.0]),
-                        Y=np.array([0.0, factor, 0.0, 0.0, 0.0, 0.0]),
-                        X=np.array([factor, 0.0, 0.0, 0.0, 0.0, 0.0]),
-                        )
-    load_fact_3d = dict(Z=np.array([0.0, 0.0, factor]),
-                        Y=np.array([0.0, factor, 0]),
-                        X=np.array([factor, 0.0, 0.0]),
-                        )
-    load_fact_2d = dict(Y=np.array([0.0, factor]),
-                        X=np.array([factor, 0.0]),
-                        )
+    load_fact_6d = dict(
+        Z=np.array([0.0, 0.0, factor, 0.0, 0.0, 0.0]),
+        Y=np.array([0.0, factor, 0.0, 0.0, 0.0, 0.0]),
+        X=np.array([factor, 0.0, 0.0, 0.0, 0.0, 0.0]),
+    )
+    load_fact_3d = dict(
+        Z=np.array([0.0, 0.0, factor]),
+        Y=np.array([0.0, factor, 0]),
+        X=np.array([factor, 0.0, 0.0]),
+    )
+    load_fact_2d = dict(
+        Y=np.array([0.0, factor]),
+        X=np.array([factor, 0.0]),
+    )
     load_fact_1d = dict(X=np.array([factor, 0.0]))
-    load_fact = {6: load_fact_6d, 3: load_fact_3d,
-                 2: load_fact_2d, 1: load_fact_1d}
+    load_fact = {6: load_fact_6d, 3: load_fact_3d, 2: load_fact_2d, 1: load_fact_1d}
     for nodetag in node_tags:
         mass = np.array(ops.nodeMass(nodetag))
         loadValues = mass * load_fact[len(mass)][direction]
-        if np.sum(np.abs(loadValues)) > 1e-10:
-            ops.load(nodetag, *loadValues)
+        ops.load(nodetag, *loadValues)

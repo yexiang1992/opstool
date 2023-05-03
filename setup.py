@@ -33,6 +33,6 @@ setup(
         'shapely>=2.0.0',
         'h5py',
         'rich',
-        "triangle"
+        "triangle",
     ],
 )

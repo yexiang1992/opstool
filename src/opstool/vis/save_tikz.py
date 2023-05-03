@@ -17,8 +17,7 @@ def _write_head(file, width=12, height=30, d3: bool = True):
         f.write("% This file was created by opstool, all rights reserved!\n")
         f.write("\\documentclass{standalone}\n")
         f.write("\\usepackage[dvipsnames, svgnames, x11names]{xcolor}\n")
-        f.write(
-            "\\usepackage[left=0cm,top=0cm,right=0cm,nohead,nofoot]{geometry}\n")
+        f.write("\\usepackage[left=0cm,top=0cm,right=0cm,nohead,nofoot]{geometry}\n")
         f.write("\\usepackage{tikz}\n")
         if d3:
             f.write("\\usepackage{tikz-3dplot}\n")
@@ -33,15 +32,17 @@ def _write_head(file, width=12, height=30, d3: bool = True):
             f.write("\\tdplotsetmaincoords{120}{30}\n")
         f.write("\\setlength\\PreviewBorder{2mm}\n\n")
         f.write(
-            f"\\geometry{{paperwidth={width}cm, paperheight={height}cm, margin=0cm}}\n")
+            f"\\geometry{{paperwidth={width}cm, paperheight={height}cm, margin=0cm}}\n"
+        )
         f.write(
-            f"\n\\tikzstyle{{link}}=[R,color={COLORS['link']},thick,{COLORS['link']}]\n")
+            f"\n\\tikzstyle{{link}}=[R,color={COLORS['link']},thick,{COLORS['link']}]\n"
+        )
         f.write(
-            f"\\tikzstyle{{constraint}}=[short,color={COLORS['constraint']},thick,{COLORS['constraint']}]\n")
+            f"\\tikzstyle{{constraint}}=[short,color={COLORS['constraint']},thick,{COLORS['constraint']}]\n"
+        )
         f.write("\n\\begin{document}\n")
         if d3:
-            f.write(
-                "\n\\begin{tikzpicture}[tdplot_main_coords]\n\n")
+            f.write("\n\\begin{tikzpicture}[tdplot_main_coords]\n\n")
         else:
             f.write("\n\\begin{tikzpicture}\n\n")
 
@@ -56,23 +57,21 @@ def _def_points(file, points, d3):
     with open(file, "a", encoding="utf8") as f:
         if d3:
             for i, p in enumerate(points):
-                f.write(
-                    f"\\coordinate (P{i}) at ({p[0]}, {p[1]}, {p[2]});\n")
+                f.write(f"\\coordinate (P{i}) at ({p[0]}, {p[1]}, {p[2]});\n")
         else:
             for i, p in enumerate(points):
-                f.write(
-                    f"\\coordinate (P{i}) at ({p[0]}, {p[1]});\n")
+                f.write(f"\\coordinate (P{i}) at ({p[0]}, {p[1]});\n")
 
 
 def _write_points(file, points, size, opacity=1.0, color="black"):
     with open(file, "a", encoding="utf8") as f:
         for i, p in enumerate(points):
             f.write(
-                f"\\shade[ball color={color}, fill opacity={opacity}] (P{i}) circle ({size}pt);\n")
+                f"\\shade[ball color={color}, fill opacity={opacity}] (P{i}) circle ({size}pt);\n"
+            )
 
 
-def _write_lines(file, cells, line_width, opacity,
-                 line_color="black"):
+def _write_lines(file, cells, line_width, opacity, line_color="black"):
     cells = np.reshape(cells, (-1, 3))
     if len(cells) > 0:
         with open(file, "a", encoding="utf8") as f:
@@ -81,7 +80,8 @@ def _write_lines(file, cells, line_width, opacity,
                 idx2 = cell[2]
                 f.write(
                     f"\\draw[{line_color},line width={line_width}pt, opacity={opacity}] "
-                    f"(P{idx1}) -- (P{idx2});\n")
+                    f"(P{idx1}) -- (P{idx2});\n"
+                )
                 # if line_type.lower() == "link":
                 #     f.write(
                 #         f"\draw[line width={line_width}pt] "
@@ -92,8 +92,7 @@ def _write_lines(file, cells, line_width, opacity,
                 #         f"(P{idx1}) -- (P{idx2});\n")
 
 
-def _write_constraint(file, model_info, scale, line_width, d3,
-                      line_color="black"):
+def _write_constraint(file, model_info, scale, line_width, d3, line_color="black"):
     points = model_info["ConstrainedCoords"] * scale
     cells = model_info["ConstrainedCells"]
     cells = np.reshape(cells, (-1, 3))
@@ -108,7 +107,8 @@ def _write_constraint(file, model_info, scale, line_width, d3,
                     p2 = points[cell[2]]
                     f.write(
                         f"\\draw[{line_color},line width={line_width}pt] "
-                        f"({p1[0]}, {p1[1]}, {p1[2]}) to[constraint] ({p2[0]}, {p2[1]}, {p2[2]});\n")
+                        f"({p1[0]}, {p1[1]}, {p1[2]}) to[constraint] ({p2[0]}, {p2[1]}, {p2[2]});\n"
+                    )
                     # f.write(
                     #     f"\path ({mp[0]}, {mp[1]}, {mp[2]}) "
                     #     f"node[above,{line_color},font=\\fontsize{{{label_size}pt}}{{{label_size}pt}}] {{{dof}}};\n")
@@ -119,7 +119,8 @@ def _write_constraint(file, model_info, scale, line_width, d3,
                     p2 = points[cell[2]]
                     f.write(
                         f"\\draw[{line_color},line width={line_width}pt] "
-                        f"({p1[0]}, {p1[1]}) to[constraint] ({p2[0]}, {p2[1]});\n")
+                        f"({p1[0]}, {p1[1]}) to[constraint] ({p2[0]}, {p2[1]});\n"
+                    )
                     # f.write(
                     #     f"\path ({mp[0]}, {mp[1]}) "
                     #     f"node[above,{line_color},font=\\fontsize{{{label_size}pt}}{{{label_size}pt}}] {{{dof}}};\n")
@@ -131,25 +132,29 @@ def _write_faces(file, cells, color, opacity):
             i = 0
             while i < len(cells):
                 num = cells[i]
-                idxs = cells[i + 1:i + num + 1]
-                i += num+1
+                idxs = cells[i + 1 : i + num + 1]
+                i += num + 1
                 txt = ""
                 for idx in idxs:
                     txt += f"(P{idx}) -- "
                 txt += "cycle;\n"
                 f.write(
-                    f"\\draw [line width=1pt, draw=black, fill={color}, fill opacity={opacity}]\n" + txt)
+                    f"\\draw [line width=1pt, draw=black, "
+                    f"fill={color}, fill opacity={opacity}]\n" + txt
+                )
 
 
-def save_tikz(input_file: str,
-              output_file: str = "ModelData.tex",
-              point_size: float = 5,
-              line_width: float = 3,
-              face_opacity: float = 0.6,
-              solid_opacity: float = 0.6,
-              point_opacity: float = 0.8,
-              line_opacity: float = 1.0,
-              color_dict: dict = None,):
+def save_tikz(
+    input_file: str,
+    output_file: str = "ModelData.tex",
+    point_size: float = 5,
+    line_width: float = 3,
+    face_opacity: float = 0.6,
+    solid_opacity: float = 0.6,
+    point_opacity: float = 0.8,
+    line_opacity: float = 1.0,
+    color_dict: dict = None,
+):
     """Save the ``OpenSeesPy`` model data as a ``tikz`` command file in ``latex``,
     and then you can open it in your local tex editor, or run it online in ``overleaf``.
 
@@ -205,21 +210,39 @@ def save_tikz(input_file: str,
     _def_points(output_file, points, d3=D3)
     cell_types = ["truss", "link", "beam", "other_line"]
     keys = ["truss", "link", "line", "line"]
-    widths = [line_width, line_width/2, line_width, line_width]
+    widths = [line_width, line_width / 2, line_width, line_width]
     for ctype, key, width in zip(cell_types, keys, widths):
-        _write_lines(output_file, cells[ctype],
-                     line_width=width, opacity=line_opacity,
-                     line_color=COLORS[key])
-    _write_constraint(output_file, model_info, scale, line_width=line_width / 2,
-                      d3=D3, line_color=COLORS['constraint'])
-    _write_faces(output_file, cells["plane"],
-                 color=COLORS['face'], opacity=face_opacity)
-    _write_faces(output_file, cells["tetrahedron"],
-                 color=COLORS['solid'], opacity=solid_opacity)
-    _write_faces(output_file, cells["brick"],
-                 color=COLORS['solid'], opacity=solid_opacity)
-    _write_points(output_file, points, size=point_size,
-                  opacity=point_opacity, color=COLORS['point'])
+        _write_lines(
+            output_file,
+            cells[ctype],
+            line_width=width,
+            opacity=line_opacity,
+            line_color=COLORS[key],
+        )
+    _write_constraint(
+        output_file,
+        model_info,
+        scale,
+        line_width=line_width / 2,
+        d3=D3,
+        line_color=COLORS["constraint"],
+    )
+    _write_faces(
+        output_file, cells["plane"], color=COLORS["face"], opacity=face_opacity
+    )
+    _write_faces(
+        output_file, cells["tetrahedron"], color=COLORS["solid"], opacity=solid_opacity
+    )
+    _write_faces(
+        output_file, cells["brick"], color=COLORS["solid"], opacity=solid_opacity
+    )
+    _write_points(
+        output_file,
+        points,
+        size=point_size,
+        opacity=point_opacity,
+        color=COLORS["point"],
+    )
 
     # write end
     _write_end(output_file)
