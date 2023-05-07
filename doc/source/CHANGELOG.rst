@@ -1,6 +1,9 @@
 Changelog
 =============
 
+v0.8.0
+--------------------
+
 v0.7.3
 --------------------
 - Added the quick visualization functions :py:func:`opstool.vis.plot_model` and :py:func:`opstool.vis.plot_eigen`
