@@ -2,9 +2,11 @@ import warnings
 
 import h5py
 import numpy as np
+import matplotlib.pyplot as plt
 import plotly.graph_objs as go
 import plotly.io as pio
 from plotly.subplots import make_subplots
+from matplotlib.colors import to_hex
 
 from ..utils import shape_dict
 
@@ -96,6 +98,8 @@ def _model_vis(
     local_crd_alpha: float = 1.0,
     show_fix_node: bool = True,
     fix_node_alpha: float = 1.0,
+    show_load: bool = False,
+    load_alpha: float = 1.0,
     show_constrain_dof: bool = False,
     label_size: float = 8,
     show_outline: bool = True,
@@ -127,6 +131,8 @@ def _model_vis(
         local_crd_alpha=local_crd_alpha,
         show_fix_node=show_fix_node,
         fix_node_alpha=fix_node_alpha,
+        show_load=show_load,
+        load_alpha=load_alpha,
         show_constrain_dof=show_constrain_dof,
         label_size=label_size,
         show_outline=show_outline,
@@ -149,6 +155,8 @@ def _plot_model(
     local_crd_alpha: float = 1.0,
     show_fix_node: bool = True,
     fix_node_alpha: float = 1.0,
+    show_load: bool = False,
+    load_alpha: float = 1.0,
     show_constrain_dof: bool = False,
     label_size: float = 8,
     show_outline: bool = True,
@@ -323,131 +331,14 @@ def _plot_model(
 
     # local axes
     if show_local_crd:
-        beam_midpoints = model_info["beam_midpoints"]
-        beam_lengths = model_info["beam_lengths"]
-        if len(beam_midpoints) > 0:
-            beam_xlocal = model_info["beam_xlocal"]
-            beam_ylocal = model_info["beam_ylocal"]
-            beam_zlocal = model_info["beam_zlocal"]
-            length = np.mean(beam_lengths) / 6 * local_crd_alpha
-            xcoords = beam_midpoints + length * beam_xlocal
-            ycoords = beam_midpoints + length * beam_ylocal
-            zcoords = beam_midpoints + length * beam_zlocal
-            localx_points = []
-            localy_points = []
-            localz_points = []
-            for i, midpoints in enumerate(beam_midpoints):
-                localx_points.append(midpoints)
-                localx_points.append(xcoords[i])
-                localx_points.append([np.NAN, np.NAN, np.NAN])
-                localy_points.append(midpoints)
-                localy_points.append(ycoords[i])
-                localy_points.append([np.NAN, np.NAN, np.NAN])
-                localz_points.append(midpoints)
-                localz_points.append(zcoords[i])
-                localz_points.append([np.NAN, np.NAN, np.NAN])
-            localx_points = np.array(localx_points)
-            localy_points = np.array(localy_points)
-            localz_points = np.array(localz_points)
-            plotter1 = go.Scatter3d(
-                x=localx_points[:, 0],
-                y=localx_points[:, 1],
-                z=localx_points[:, 2],
-                line=dict(color="#cf6275", width=obj.line_width * 1.5),
-                mode="lines",
-                connectgaps=False,
-                name="",
-                # customdata=['x'] * n_beam,
-                hovertemplate="<b>x</b>",
-            )
-            plotter2 = go.Scatter3d(
-                x=localy_points[:, 0],
-                y=localy_points[:, 1],
-                z=localy_points[:, 2],
-                line=dict(color="#04d8b2", width=obj.line_width * 1.5),
-                mode="lines",
-                connectgaps=False,
-                name="",
-                hovertemplate="<b>y</b>",
-            )
-            plotter3 = go.Scatter3d(
-                x=localz_points[:, 0],
-                y=localz_points[:, 1],
-                z=localz_points[:, 2],
-                line=dict(color="#9aae07", width=obj.line_width * 1.5),
-                mode="lines",
-                connectgaps=False,
-                name="",
-                hovertemplate="<b>z</b>",
-            )
-            plotter.extend([plotter1, plotter2, plotter3])
-        else:
-            warnings.warn("Model has no frame elements when show_local_crd=True!")
-        # link axes
-        link_midpoints = model_info["link_midpoints"]
-        link_lengths = model_info["link_lengths"]
-        if len(link_midpoints) > 0:
-            link_xlocal = model_info["link_xlocal"]
-            link_ylocal = model_info["link_ylocal"]
-            link_zlocal = model_info["link_zlocal"]
-            length = np.mean(link_lengths) / 3 * local_crd_alpha
-            xcoords = link_midpoints + length * link_xlocal
-            ycoords = link_midpoints + length * link_ylocal
-            zcoords = link_midpoints + length * link_zlocal
-            localx_points = []
-            localy_points = []
-            localz_points = []
-            for i, midpoints in enumerate(link_midpoints):
-                localx_points.append(midpoints)
-                localx_points.append(xcoords[i])
-                localx_points.append([np.NAN, np.NAN, np.NAN])
-                localy_points.append(midpoints)
-                localy_points.append(ycoords[i])
-                localy_points.append([np.NAN, np.NAN, np.NAN])
-                localz_points.append(midpoints)
-                localz_points.append(zcoords[i])
-                localz_points.append([np.NAN, np.NAN, np.NAN])
-            localx_points = np.array(localx_points)
-            localy_points = np.array(localy_points)
-            localz_points = np.array(localz_points)
-            plotter1 = go.Scatter3d(
-                x=localx_points[:, 0],
-                y=localx_points[:, 1],
-                z=localx_points[:, 2],
-                line=dict(color="#cf6275", width=obj.line_width * 1.5),
-                mode="lines",
-                connectgaps=False,
-                name="",
-                # customdata=['x'] * n_beam,
-                hovertemplate="<b>x</b>",
-            )
-            plotter2 = go.Scatter3d(
-                x=localy_points[:, 0],
-                y=localy_points[:, 1],
-                z=localy_points[:, 2],
-                line=dict(color="#04d8b2", width=obj.line_width * 1.5),
-                mode="lines",
-                connectgaps=False,
-                name="",
-                hovertemplate="<b>y</b>",
-            )
-            plotter3 = go.Scatter3d(
-                x=localz_points[:, 0],
-                y=localz_points[:, 1],
-                z=localz_points[:, 2],
-                line=dict(color="#9aae07", width=obj.line_width * 1.5),
-                mode="lines",
-                connectgaps=False,
-                name="",
-                hovertemplate="<b>z</b>",
-            )
-            plotter.extend([plotter1, plotter2, plotter3])
+        _show_local_axes(obj, plotter, model_info, local_crd_alpha)
     # mp constraint lines
     _show_mp_constraint(obj, plotter, model_info, show_constrain_dof)
-
+    if show_load:
+        _show_node_load(obj, plotter, model_info, load_alpha)
+        _show_ele_load(obj, plotter, model_info, load_alpha)
     fig.add_traces(plotter)
-
-    if np.max(np.abs(points_no_deform[:, -1])) < 1e-6:
+    if np.max(np.abs(points_no_deform[:, -1])) < 1e-10:
         eye = dict(x=0.0, y=-0.1, z=10)  # for 2D camera
         scene = dict(camera=dict(eye=eye, projection=dict(type="orthographic")))
     else:
@@ -486,6 +377,7 @@ def _make_fix_node(model_info, alpha=1.0):
     fixed_dofs = model_info["FixNodeDofs"]
     fixed_coords = model_info["FixNodeCoords"]
     beam_lengths = model_info["beam_lengths"]
+    D2 = True if np.max(model_info["model_dims"]) <= 2 else False
     if len(beam_lengths) > 0:
         s = np.mean(beam_lengths) / 10 * alpha
     else:
@@ -493,6 +385,9 @@ def _make_fix_node(model_info, alpha=1.0):
     points = []
     for coord, dof in zip(fixed_coords, fixed_dofs):
         x, y, z = coord
+        if D2:
+            z += s / 2
+            y -= s / 2
         if dof[0] == -1:
             points.extend(
                 [
@@ -528,6 +423,374 @@ def _make_fix_node(model_info, alpha=1.0):
             )
     points = np.array(points)
     return points
+
+
+def _show_local_axes(obj, plotter, model_info, alpha: float = 1.0):
+    beam_midpoints = model_info["beam_midpoints"]
+    beam_lengths = model_info["beam_lengths"]
+    if len(beam_lengths) > 0:
+        xaxis = model_info["beam_xlocal"]
+        yaxis = model_info["beam_ylocal"]
+        zaxis = model_info["beam_zlocal"]
+        lengths = [np.mean(beam_lengths) / 5 * alpha] * len(beam_lengths)
+        arrow_heights = [0.4 * ll for ll in lengths]
+        arrow_widths = [0.8 * h for h in arrow_heights]
+        plotter.extend(
+            _make_lines_arrows(
+                beam_midpoints,
+                lengths,
+                xaxis,
+                yaxis,
+                zaxis,
+                "#cf6275",
+                "Local Axis",
+                ["x"] * len(beam_midpoints),
+                obj.line_width * 1.5,
+                arrow_heights,
+                arrow_widths,
+            )
+        )
+        plotter.extend(
+            _make_lines_arrows(
+                beam_midpoints,
+                lengths,
+                yaxis,
+                xaxis,
+                zaxis,
+                "#04d8b2",
+                "Local Axis",
+                ["y"] * len(beam_midpoints),
+                obj.line_width * 1.5,
+                arrow_heights,
+                arrow_widths,
+            )
+        )
+        plotter.extend(
+            _make_lines_arrows(
+                beam_midpoints,
+                lengths,
+                zaxis,
+                xaxis,
+                yaxis,
+                "#9aae07",
+                "Local Axis",
+                ["z"] * len(beam_midpoints),
+                obj.line_width * 1.5,
+                arrow_heights,
+                arrow_widths,
+            )
+        )
+
+    else:
+        warnings.warn("Model has no frame elements when show_local_crd=True!")
+    link_midpoints = model_info["link_midpoints"]
+    link_lengths = model_info["link_lengths"]
+    if len(link_midpoints) > 0:
+        xaxis = model_info["link_xlocal"]
+        yaxis = model_info["link_ylocal"]
+        zaxis = model_info["link_zlocal"]
+        lengths = [np.mean(link_lengths) / 3 * alpha] * len(link_midpoints)
+        arrow_heights = [0.4 * ll for ll in lengths]
+        arrow_widths = [0.8 * h for h in arrow_heights]
+        plotter.extend(
+            _make_lines_arrows(
+                link_midpoints,
+                lengths,
+                xaxis,
+                yaxis,
+                zaxis,
+                "#cf6275",
+                "Local Axis",
+                ["x"] * len(link_midpoints),
+                obj.line_width,
+                arrow_heights,
+                arrow_widths,
+            )
+        )
+        plotter.extend(
+            _make_lines_arrows(
+                link_midpoints,
+                lengths,
+                yaxis,
+                xaxis,
+                zaxis,
+                "#04d8b2",
+                "Local Axis",
+                ["y"] * len(link_midpoints),
+                obj.line_width,
+                arrow_heights,
+                arrow_widths,
+            )
+        )
+        plotter.extend(
+            _make_lines_arrows(
+                link_midpoints,
+                lengths,
+                zaxis,
+                xaxis,
+                yaxis,
+                "#9aae07",
+                "Local Axis",
+                ["z"] * len(link_midpoints),
+                obj.line_width,
+                arrow_heights,
+                arrow_widths,
+            )
+        )
+
+
+def _make_lines_arrows(
+    starts,
+    lengths,
+    xaxis,
+    yaxis,
+    zaxis,
+    color,
+    name,
+    hovers,
+    lw,
+    arrow_height,
+    arrow_width,
+):
+    coords = np.zeros_like(starts)
+    for i, midpoint in enumerate(starts):
+        coords[i] = midpoint + lengths[i] * xaxis[i]
+    local_points = []
+    labels = []
+    for i, midpoint in enumerate(starts):
+        local_points.append(midpoint)
+        local_points.append(coords[i])
+        local_points.append([np.NaN, np.NaN, np.NaN])
+        labels.extend([hovers[i]] * 3)
+    local_points = np.array(local_points)
+    line = go.Scatter3d(
+        x=local_points[:, 0],
+        y=local_points[:, 1],
+        z=local_points[:, 2],
+        line=dict(color=color, width=lw),
+        mode="lines",
+        connectgaps=False,
+        name=name,
+        hovertemplate="<b>%{text}</b>",
+        text=labels,
+        # hoverinfo="skip",
+    )
+    # arrows
+    angles = np.linspace(0, 2 * np.pi, 10)
+    num = len(starts)
+    points = []
+    ijk = []
+    labels = []
+    for i in range(num):
+        xs = (0.5 * arrow_width[i] * np.cos(angles)).reshape((-1, 1))
+        ys = (0.5 * arrow_width[i] * np.sin(angles)).reshape((-1, 1))
+        cen, ax, ay, az = coords[i], xaxis[i], yaxis[i], zaxis[i]
+        tips = cen + arrow_height[i] * ax
+        secs = xs @ np.reshape(ay, (1, 3)) + ys @ np.reshape(az, (1, 3))
+        secs += cen
+        for j in range(len(secs) - 1):
+            ijk.append([len(points) + j, len(points) + j + 1, len(points) + len(secs)])
+            ijk.append(
+                [len(points) + j, len(points) + j + 1, len(points) + len(secs) + 1]
+            )
+        ijk.append([len(points) + len(secs) - 1, len(points), len(points) + len(secs)])
+        ijk.append(
+            [len(points) + len(secs) - 1, len(points), len(points) + len(secs) + 1]
+        )
+        points.extend(np.vstack([secs, cen, tips]))
+        labels.extend([hovers[i]] * (len(secs) + 2))
+    points = np.array(points)
+    ijk = np.array(ijk)
+    arrow = go.Mesh3d(
+        x=points[:, 0],
+        y=points[:, 1],
+        z=points[:, 2],
+        i=ijk[:, 0],
+        j=ijk[:, 1],
+        k=ijk[:, 2],
+        color=color,
+        name=name,
+        text=labels,
+        hovertemplate="<b>%{text}",
+    )
+    return line, arrow
+
+
+def _show_node_load(obj, plotter, model_info, alpha: float = 1.0):
+    points = model_info["coord_no_deform"]
+    node_load_info = np.array(model_info["node_load_info"])
+    node_load_data = np.array(model_info["node_load_data"])
+    if len(node_load_info) == 0:
+        return None
+    loc, load_data = 0, []
+    for info in node_load_info:
+        ndm = info[2]
+        ndf = info[3]
+        data = node_load_data[loc : loc + ndf]
+        if ndm <= 2 and ndf <= 3:
+            load_data.append([data[0], data[1], 0])  # x, y
+        else:
+            load_data.append([data[0], data[1], data[2]])  # x, y, z
+        loc += ndf
+    load_data = np.array(load_data)
+    maxdata = np.max(np.abs(load_data))
+    beam_lengths = model_info["beam_lengths"]
+    if len(beam_lengths) > 0:
+        alpha_ = np.mean(beam_lengths) / maxdata / 2
+    else:
+        alpha_ = (model_info["max_bound"] + model_info["min_bound"]) / 20 / maxdata
+    alpha_ *= alpha
+    patterntags = np.unique(node_load_info[:, 0])
+    cmap = plt.get_cmap("Spectral")
+    colors = cmap(np.linspace(0, 1, len(patterntags)))
+    xyzlocals = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
+    idxs = [[0, 1, 2], [1, 0, 2], [2, 0, 1]]
+    for p, ptag in enumerate(patterntags):
+        idx = np.abs(node_load_info[:, 0] - ptag) < 1e-3
+        coords = points[node_load_info[idx, -1]]
+        for i in range(3):
+            data = np.ravel(load_data[idx, i])
+            lengths = np.abs(data) * alpha_
+            arrow_heights = [0.4 * ll for ll in lengths]
+            arrow_widths = [0.6 * h for h in arrow_heights]
+            xaxis = np.reshape(xyzlocals[idxs[i][0]] * len(coords), (-1, 3))
+            yaxis = np.reshape(xyzlocals[idxs[i][1]] * len(coords), (-1, 3))
+            zaxis = np.reshape(xyzlocals[idxs[i][2]] * len(coords), (-1, 3))
+            new_coords = np.zeros_like(coords)
+            for j in range(len(xaxis)):
+                xaxis[j] *= np.sign(data[j])
+                new_coords[j] = coords[j] - 1.4 * lengths[j] * xaxis[j]
+            labels = [f"{d:.2e}" for d in data]
+            plotter.extend(
+                _make_lines_arrows(
+                    new_coords,
+                    lengths,
+                    xaxis,
+                    yaxis,
+                    zaxis,
+                    to_hex(colors[p]),
+                    f"<b>Pattern {ptag}</b><br>Nodal Load",
+                    labels,
+                    obj.line_width,
+                    arrow_heights,
+                    arrow_widths,
+                )
+            )
+
+
+def _show_ele_load(obj, plotter, model_info, alpha: float = 1.0):
+    points = model_info["coord_no_deform"]
+    ele_load_info = model_info["ele_load_info"]
+    ele_load_data = model_info["ele_load_data"]
+    ele_load_locals = model_info["ele_load_locals"]
+    if len(ele_load_info) == 0:
+        return None
+    patterntags = np.unique(ele_load_info[:, 0])
+    new_points = []
+    new_locals = []
+    new_ptags = []
+    load_data = []
+    loc = 0
+    for i, info in enumerate(ele_load_info):
+        ptag, _, classtag, nidx1, nidx2 = info
+        coord1, coord2 = points[nidx1], points[nidx2]
+        local_axis = ele_load_locals[i]
+        if classtag == 3:  # beamUniform2D, Wya <Wxa>
+            wy, wx = ele_load_data[loc : loc + 2]
+            wz = 0.0
+            n = 11
+            xl = np.linspace(0, 1, n)
+            wx, wy, wz = [wx] * n, [wy] * n, [wz] * n
+            localaxis = [local_axis] * n
+            new_ptags.extend([ptag] * n)
+            loc += 2
+        elif classtag == 12:  # beamUniform2D, Wya <Wxa> <aL> <bL> <Wyb> <Wxb>
+            wya, wyb, wxa, wxb, al, bl = ele_load_data[loc : loc + 6]
+            n = int((bl - al) / 0.1) + 1
+            xl = np.linspace(al, bl, n)
+            wy = np.interp(xl, [0, 1], [wya, wyb])
+            wx = np.interp(xl, [0, 1], [wxa, wxb])
+            wz = wy * 0
+            localaxis = [local_axis] * n
+            new_ptags.extend([ptag] * n)
+            loc += 6
+        elif classtag == 5:  # beamUniform3D wy, wz, wx
+            wy, wz, wx = ele_load_data[loc : loc + 3]
+            n = 11
+            xl = np.linspace(0, 1, n)
+            wx, wy, wz = [wx] * n, [wy] * n, [wz] * n
+            localaxis = [local_axis] * n
+            new_ptags.extend([ptag] * n)
+            loc += 3
+        elif classtag == 4:  # beamPoint2D, Py xL <Px>
+            wy, wx, xl = ele_load_data[loc : loc + 3]
+            wz = 0
+            localaxis = [local_axis]
+            new_ptags.append(ptag)
+            loc += 3
+        elif classtag == 6:  # beamPoint3D, Py, Pz, x, N
+            wy, wz, wx, xl = ele_load_data[loc : loc + 4]
+            localaxis = [local_axis]
+            new_ptags.append(ptag)
+            loc += 4
+        else:
+            warnings.warn(
+                "Currently load visualization only supports-->"
+                "<beamUniform2D,beamUniform3D,beamPoint2D,beamPoint3D>!"
+            )
+        xs = np.interp(xl, [0, 1], [coord1[0], coord2[0]])
+        ys = np.interp(xl, [0, 1], [coord1[1], coord2[1]])
+        zs = np.interp(xl, [0, 1], [coord1[2], coord2[2]])
+        new_points.append(np.column_stack([xs, ys, zs]))
+        new_locals.append(localaxis)
+        load_data.append(np.column_stack([wx, wy, wz]))
+    new_points = np.vstack(new_points)
+    new_locals = np.vstack(new_locals)
+    load_data = np.vstack(load_data)
+    new_ptags = np.array(new_ptags)
+    maxdata = np.max(np.abs(load_data))
+    beam_lengths = model_info["beam_lengths"]
+    if len(beam_lengths) > 0:
+        alpha_ = np.mean(beam_lengths) / maxdata / 2
+    else:
+        alpha_ = (model_info["max_bound"] + model_info["min_bound"]) / 20 / maxdata
+    alpha_ *= alpha
+    cmap = plt.get_cmap("rainbow")
+    colors = cmap(np.linspace(0, 1, len(patterntags)))
+    idxs = [[0, 1, 2], [3, 4, 5], [6, 7, 8]]
+    idxsidx = [[0, 1, 2], [1, 0, 2], [2, 0, 1]]
+    for p, ptag in enumerate(patterntags):
+        idx = np.abs(new_ptags - ptag) < 1e-3
+        coords = new_points[idx]
+        for i in range(3):
+            data = np.ravel(load_data[idx, i])
+            lengths = np.abs(data) * alpha_
+            arrow_heights = [0.4 * ll for ll in lengths]
+            arrow_widths = [0.6 * h for h in arrow_heights]
+            new_locals[idx, 3 * i : 3 * i + 3]
+            xaxis = new_locals[idx, idxs[idxsidx[i][0]]]
+            yaxis = new_locals[idx, idxs[idxsidx[i][1]]]
+            zaxis = new_locals[idx, idxs[idxsidx[i][2]]]
+            new_coords = np.zeros_like(coords)
+            for j in range(len(xaxis)):
+                xaxis[j] *= np.sign(data[j])
+                new_coords[j] = coords[j] - 1.4 * lengths[j] * xaxis[j]
+            labels = [f"{d:.2e}" for d in data]
+            plotter.extend(
+                _make_lines_arrows(
+                    new_coords,
+                    lengths,
+                    xaxis,
+                    yaxis,
+                    zaxis,
+                    to_hex(colors[p]),
+                    f"<b>Pattern {ptag}</b><br>Element Load",
+                    labels,
+                    obj.line_width,
+                    arrow_heights,
+                    arrow_widths,
+                )
+            )
 
 
 def _show_mp_constraint(obj, plotter, model_info, show_dofs):

@@ -506,7 +506,7 @@ def get_ele_mid(ele_tags, node_coords, node_index):
 def get_bounds(node_coords):
     min_node = np.min(node_coords, axis=0)
     max_node = np.max(node_coords, axis=0)
-    space = (max_node - min_node) / 10
+    space = (max_node - min_node) / 12
     min_node = min_node - space
     max_node = max_node + space
     bounds = [

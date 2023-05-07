@@ -3,7 +3,7 @@ import openseespy.opensees as ops
 import opstool as opst
 
 #
-opst.load_ops_examples("ArchBridge2")
+opst.load_ops_examples("ArchBridge")
 opst.load_ops_examples("CableStayedBridge")
 # opst.load_ops_examples("Dam")
 # opst.load_ops_examples("Frame3D")
@@ -12,15 +12,15 @@ opst.load_ops_examples("CableStayedBridge")
 # opst.load_ops_examples("SuspensionBridge")
 # opst.plot_model(backend="pyvista")    # or backend="plotly"
 # opst.plot_eigen(mode_tags=[1, 12], backend="pyvista", subplots=True)   # or backend="plotly"
-
+opst.gen_grav_load(ts_tag=1, pattern_tag=1, factor=-9.81, direction="Z")
 ModelData = opst.GetFEMdata()
 ModelData.get_model_data()
-# ModelData.get_eigen_data(mode_tag=2)
-opsv = opst.OpsVisPyvista(
-    point_size=10,
+ModelData.get_eigen_data(mode_tag=15)
+opsv = opst.OpsVisPlotly(
+    point_size=4,
     line_width=4,
     colors_dict=None,
-    theme="document",
+    theme="plotly",
     color_map="jet",
     on_notebook=False,
     results_dir="opstool_output",
@@ -28,15 +28,15 @@ opsv = opst.OpsVisPyvista(
 fig = opsv.model_vis(
     show_node_label=False,
     show_ele_label=False,
-    show_local_crd=False,
+    show_local_crd=True,
     show_fix_node=True,
-    show_load=True,
-    load_alpha=0.5,
+    # show_load=True,
+    # load_alpha=0.5,
     label_size=8,
-    show_outline=False,
+    show_outline=True,
     opacity=1.0,
 )
-# fig.show()
+fig.show()
 # fig.write_html("ModelVis.html", auto_open=True)
 # %%
 opst.save_tikz("opstool_output/ModelData.hdf5")

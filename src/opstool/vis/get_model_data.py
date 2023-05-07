@@ -68,6 +68,7 @@ class GetFEMdata:
 
         # On/Off and Tracking for Model Updates
         self.model_update = False
+        self.resp_step_track = 0
 
         # self.reset_model_state()
         # self.reset_eigen_state()
@@ -147,6 +148,7 @@ class GetFEMdata:
         self._reset_node_resp()
         self._reset_beam_step()
         self._reset_fiber_step()
+        self.resp_step_track = 0
 
         # Truss Element Analysis Step Response Data
 
@@ -267,7 +269,7 @@ class GetFEMdata:
                 for name, value in self.eigen.items():
                     grp.create_dataset(name, data=value)
             print(
-                f"Eigen data saved in [bold {next(self.colors_cycle)}]{output_filename}[/] !"
+                f"Eigen data saved in [bold {next(self.colors_cycle)}]{output_filename}[/]!"
             )
 
     def get_node_react_step(
@@ -327,7 +329,7 @@ class GetFEMdata:
                 output_filename = self.out_dir + "/" + save_file
                 self._save_node_react_step(output_filename, "w")
                 print(
-                    f"Node reaction data saved in [bold {next(self.colors_cycle)}]{output_filename}[/] !"
+                    f"Node reaction data saved in [bold {next(self.colors_cycle)}]{output_filename}[/]!"
                 )
 
     def _save_node_react_step(self, filename: str, mode: str = "w"):
@@ -417,6 +419,8 @@ class GetFEMdata:
         self.node_resp_steps["accel"].append(node_accel)
 
         if model_update:
+            if self.step_node_track == 0:
+                self._reset_model_step()
             if self.step_node_track == self.model_info_steps["step_track"]:
                 for name in self.model_info.keys():
                     self.model_info_steps[name].append(self.model_info[name])
@@ -442,7 +446,7 @@ class GetFEMdata:
                 output_filename = self.out_dir + "/" + save_file
                 self._save_node_resp_step(output_filename, "w")
                 print(
-                    f"Node response data saved in [bold {next(self.colors_cycle)}]{output_filename}[/] !"
+                    f"Node response data saved in [bold {next(self.colors_cycle)}]{output_filename}[/]!"
                 )
 
     def _save_node_resp_step(self, filename: str, mode: str = "w"):
@@ -549,7 +553,7 @@ class GetFEMdata:
                 output_filename = self.out_dir + "/" + save_file
                 self._save_frame_resp_step(output_filename, "w")
                 print(
-                    f"Frame elements response data saved in [bold {next(self.colors_cycle)}]{output_filename}[/] !"
+                    f"Frame elements response data saved in [bold {next(self.colors_cycle)}]{output_filename}[/]!"
                 )
 
     def _save_frame_resp_step(self, filename: str, mode: str = "w"):
@@ -610,7 +614,7 @@ class GetFEMdata:
                 for name, value in self.fiber_sec_data.items():
                     f.create_dataset(name, data=value)
             print(
-                f"Fiber section data saved in [bold {next(self.colors_cycle)}]{output_filename}[/] !"
+                f"Fiber section data saved in [bold {next(self.colors_cycle)}]{output_filename}[/]!"
             )
 
     def get_fiber_resp_step(
@@ -691,7 +695,7 @@ class GetFEMdata:
                 output_filename = self.out_dir + "/" + save_file
                 self._save_fiber_resp_step(output_filename, "w")
                 print(
-                    f"Fiber section responses data saved in [bold {next(self.colors_cycle)}]{output_filename}[/] !"
+                    f"Fiber section responses data saved in [bold {next(self.colors_cycle)}]{output_filename}[/]!"
                 )
 
     def _save_fiber_resp_step(self, filename: str, mode: str = "w"):
@@ -768,7 +772,7 @@ class GetFEMdata:
         if reset_state:
             self.reset_steps_state()
         print(
-            f"All responses data saved in [bold {next(self.colors_cycle)}]{filename}[/] !"
+            f"All responses data saved in [bold {next(self.colors_cycle)}]{filename}[/]!"
         )
 
 

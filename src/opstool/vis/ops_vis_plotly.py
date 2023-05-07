@@ -146,6 +146,8 @@ class OpsVisPlotly:
         local_crd_alpha: float = 1.0,
         show_fix_node: bool = True,
         fix_node_alpha: float = 1.0,
+        show_load: bool = False,
+        load_alpha: float = 1.0,
         show_constrain_dof: bool = False,
         label_size: float = 8,
         show_outline: bool = True,
@@ -177,6 +179,20 @@ class OpsVisPlotly:
             Whether to display the fix nodes.
         fix_node_alpha: float, default=1.0
             On existing displays, the scaling factor for the boundary symbol sizes.
+        show_load: bool, default = False
+            Whether to display node and beam element loads.
+            The sizes of the arrow are related to the size of its load.
+            If you want to further control the size, you can use `load_alpha`.
+            Currently only supported beam element load types include
+            <beamUniform2D, beamUniform3D, beamPoint2D, beamPoint3D>.
+
+            .. note::
+                Please make sure that all dofs (or directions) have values
+                when adding the ``load`` or ``eleLoad`` command,
+                even if the value is 0.
+
+        load_alpha: float, default = 1.0
+            On existing displays, the scaling factor for the load arrow sizes.
         show_constrain_dof: bool, default=False
             Whether to display labels for constrained degrees of freedom.
         label_size: float, default=8
@@ -207,6 +223,8 @@ class OpsVisPlotly:
             local_crd_alpha=local_crd_alpha,
             show_fix_node=show_fix_node,
             fix_node_alpha=fix_node_alpha,
+            show_load=show_load,
+            load_alpha=load_alpha,
             show_constrain_dof=show_constrain_dof,
             label_size=label_size,
             show_outline=show_outline,

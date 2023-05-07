@@ -1,6 +1,7 @@
 from .get_model_data import GetFEMdata
 from .ops_vis_pyvista import OpsVisPyvista
 from .ops_vis_plotly import OpsVisPlotly
+from .ops_vis_2d import OpsVis2D
 
 
 def plot_model(
@@ -12,7 +13,11 @@ def plot_model(
     show_node_label: bool = False,
     show_ele_label: bool = False,
     show_local_crd: bool = False,
+    local_crd_alpha: float = 1.0,
     show_fix_node: bool = True,
+    fix_node_alpha: float = 1.0,
+    show_load: bool = False,
+    load_alpha: float = 1.0,
     show_constrain_dof: bool = False,
     label_size: float = 8,
     show_outline: bool = True,
@@ -22,8 +27,8 @@ def plot_model(
 
     Parameters
     ----------
-    backend : str, optional "pyvista" or "plotly"
-        Plot backend, by default "pyvista"
+    backend : str, optional "pyvista", "plotly" or "matplotlib".
+        Plot backend, by default "pyvista". Note that "matplotlib" is only supported for 2D.
     point_size: float, default=1
         The render size of node.
     line_width: float, default=3
@@ -38,8 +43,26 @@ def plot_model(
         Whether to display the ele label.
     show_local_crd: bool, default=False
         Whether to display the local axes of beam and link elements.
+    local_crd_alpha: float, default=1.0
+        On existing displays, the scaling factor for the local axis sizes.
     show_fix_node: bool, default=True
         Whether to display the fix nodes.
+    fix_node_alpha: float, default=1.0
+        On existing displays, the scaling factor for the boundary symbol sizes.
+    show_load: bool, default = False
+        Whether to display node and beam element loads.
+        The sizes of the arrow are related to the size of its load.
+        If you want to further control the size, you can use `load_alpha`.
+        Currently only supported beam element load types include
+        <beamUniform2D, beamUniform3D, beamPoint2D, beamPoint3D>.
+
+        .. note::
+            Please make sure that all dofs (or directions) have values
+            when adding the ``load`` or ``eleLoad`` command,
+            even if the value is 0.
+
+    load_alpha: float, default = 1.0
+        On existing displays, the scaling factor for the load arrow sizes.
     show_constrain_dof: bool, default=False
         Whether to display labels for constrained degrees of freedom.
     label_size: float, default=8
@@ -66,7 +89,11 @@ def plot_model(
             show_node_label=show_node_label,
             show_ele_label=show_ele_label,
             show_local_crd=show_local_crd,
+            local_crd_alpha=local_crd_alpha,
             show_fix_node=show_fix_node,
+            fix_node_alpha=fix_node_alpha,
+            show_load=show_load,
+            load_alpha=load_alpha,
             show_constrain_dof=show_constrain_dof,
             label_size=label_size,
             show_outline=show_outline,
@@ -88,15 +115,42 @@ def plot_model(
             show_node_label=show_node_label,
             show_ele_label=show_ele_label,
             show_local_crd=show_local_crd,
+            local_crd_alpha=local_crd_alpha,
             show_fix_node=show_fix_node,
+            fix_node_alpha=fix_node_alpha,
+            show_load=show_load,
+            load_alpha=load_alpha,
             show_constrain_dof=show_constrain_dof,
             label_size=label_size,
             show_outline=show_outline,
             opacity=opacity,
             save_html="ModelVis.html",
         )
+    elif backend.lower().startswith("m"):
+        opsvis = OpsVis2D(
+            point_size=point_size,
+            line_width=line_width,
+            colors_dict=colors_dict,
+            cmap="jet",
+            results_dir="opstool_output",
+        )
+        opsvis.model_vis(
+            input_file="ModelData.hdf5",
+            show_node_label=show_node_label,
+            show_ele_label=show_ele_label,
+            show_local_crd=show_local_crd,
+            local_crd_alpha=local_crd_alpha,
+            show_fix_node=show_fix_node,
+            fix_node_alpha=fix_node_alpha,
+            show_load=show_load,
+            load_alpha=load_alpha,
+            show_constrain_dof=show_constrain_dof,
+            label_size=label_size,
+            show_outline=show_outline,
+            opacity=opacity,
+        )
     else:
-        raise ValueError("Arg backend must be one of ['pyvista', 'plotly']!")
+        raise ValueError("Arg backend must be one of ['pyvista', 'plotly', 'mpl']!")
 
 
 def plot_eigen(
@@ -108,7 +162,7 @@ def plot_eigen(
     on_notebook: bool = False,
     subplots: bool = False,
     link_views: bool = True,
-    alpha: float = None,
+    alpha: float = 1.0,
     show_outline: bool = False,
     show_origin: bool = False,
     opacity: float = 1.0,
@@ -123,8 +177,9 @@ def plot_eigen(
     solver: str, default '-genBandArpack'
         type of solver, optional '-genBandArpack', '-fullGenLapack',
         see https://openseespydoc.readthedocs.io/en/latest/src/eigen.html.
-    backend : str, optional "pyvista" or "plotly"
-        Plot backend, by default "pyvista"
+    backend : str, optional "pyvista" or "plotly", or "matplotlib".
+        Plot backend, by default "pyvista".
+        Note that "matplotlib" is only supported for 2D.
     point_size: float, default=1
         The render size of node.
     line_width: float, default=3
@@ -135,8 +190,8 @@ def plot_eigen(
         If True, subplots in a figure. If False, plot in a slider style.
     link_views: bool, default=True
         If True, link the views’ cameras, only usefuly when subplots is True, and backend='pyvista'.
-    alpha: float, default=None
-        Model scaling factor, the default value is 1/5 of the model boundary according to the maximum deformation.
+    alpha: float, default=1.0
+        Model scaling factor on existing display.
     show_outline: bool, default=True
         Whether to display the axes.
     show_origin: bool, default=False
@@ -191,8 +246,25 @@ def plot_eigen(
             show_face_line=show_face_line,
             save_html="EigenVis.html",
         )
+    elif backend.lower().startswith("m"):
+        opsvis = OpsVis2D(
+            point_size=point_size,
+            line_width=line_width,
+            cmap="jet",
+            results_dir="opstool_output",
+        )
+        opsvis.eigen_vis(
+            mode_tags=mode_tags,
+            input_file="EigenData.hdf5",
+            subplots=subplots,
+            alpha=alpha,
+            show_outline=show_outline,
+            show_origin=show_origin,
+            opacity=opacity,
+            show_face_line=show_face_line,
+        )
     else:
-        raise ValueError("Arg backend must be one of ['pyvista', 'plotly']!")
+        raise ValueError("Arg backend must be one of ['pyvista', 'plotly', 'mpl']!")
 
 
 # def plot_node_resp(disp_file, dof_num, ):

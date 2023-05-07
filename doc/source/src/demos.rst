@@ -5,7 +5,7 @@ OpenSeesPy Model Visualization
 -------------------------------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Visualization
 
    notebooks/demos_frame3d.ipynb
@@ -13,13 +13,16 @@ OpenSeesPy Model Visualization
    notebooks/demos_dam.ipynb
    notebooks/demos_pier.ipynb
    notebooks/demos_beam_sec_render.ipynb
+   notebooks/demos_localaxis_load.ipynb
+   notebooks/demos_model2d.ipynb
    notebooks/demos_Megatall
+   notebooks/demos_ele_removal.ipynb
 
 Fiber Section Mesh Generation
 -------------------------------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Single-Material Section
 
    notebooks/demos_secmesh1.ipynb
@@ -29,7 +32,7 @@ Fiber Section Mesh Generation
    notebooks/demos_secmesh6.ipynb
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Composite Section
 
    notebooks/demos_secmesh5.ipynb

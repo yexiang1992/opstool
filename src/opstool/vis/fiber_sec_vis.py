@@ -38,18 +38,22 @@ class FiberSecVis:
     FiberSecVis instance.
     """
 
-    def __init__(self,
-                 results_dir: str = "opstool_output",
-                 input_file: str = "FiberRespStepData-1.hdf5",
-                 line_width: float = 0.75, line_color: str = 'k',
-                 colormap: str = "viridis", opacity: float = 0.75):
+    def __init__(
+        self,
+        results_dir: str = "opstool_output",
+        input_file: str = "FiberRespStepData-1.hdf5",
+        line_width: float = 0.75,
+        line_color: str = "k",
+        colormap: str = "viridis",
+        opacity: float = 0.75,
+    ):
         self.lw = line_width
         self.lc = line_color
         self.cmap = colormap
         self.opacity = opacity
         self.out_dir = results_dir
 
-        filename = self.out_dir + '/' + input_file
+        filename = self.out_dir + "/" + input_file
         self.fiber_sec_step_data = dict()
         with h5py.File(filename, "r") as f:
             n = f["Nsteps"][...]
@@ -61,10 +65,12 @@ class FiberSecVis:
                 self.fiber_sec_step_data[name] = temp
         self.key_names = self.fiber_sec_step_data.keys()
 
-    def sec_vis(self,
-                ele_tag: int, sec_tag: int,
-                mat_color: dict = None,
-                ):
+    def sec_vis(
+        self,
+        ele_tag: int,
+        sec_tag: int,
+        mat_color: dict = None,
+    ):
         """plot the fiber section.
 
         Parameters
@@ -90,17 +96,18 @@ class FiberSecVis:
         # plt.style.use('ggplot')
         fig, ax = plt.subplots(figsize=(6, 6))
         txt = f"ele--sec: {ele_tag}--{sec_tag}\n"
-        _plot_fiber_sec(ax, fiber_data, txt, self.lc,
-                        self.lw, self.cmap, self.opacity, mat_color)
+        _plot_fiber_sec(
+            ax, fiber_data, txt, self.lc, self.lw, self.cmap, self.opacity, mat_color
+        )
         plt.show()
 
-    def _get_fiber_data(self,
-                        key: str,
-                        step: int = None,
-                        show_variable: str = "strain",
-                        show_mats=None,
-                        ):
-
+    def _get_fiber_data(
+        self,
+        key: str,
+        step: int = None,
+        show_variable: str = "strain",
+        show_mats=None,
+    ):
         if key not in self.key_names:
             raise ValueError("ele_tag and sec_tag not in set_fiber_secs()!")
         fiber_step_data = self.fiber_sec_step_data[key]
@@ -114,8 +121,7 @@ class FiberSecVis:
                     show_mats = np.atleast_1d(show_mats)
                     matidx = []
                     for mat in show_mats:
-                        matidx.append(np.argwhere(
-                            np.abs(mat_tags - mat) < 1e-8))
+                        matidx.append(np.argwhere(np.abs(mat_tags - mat) < 1e-8))
                     matidx = np.vstack(matidx)
                 else:
                     matidx = np.argwhere(np.abs(mat_tags - mat_tags) < 1e-8)
@@ -159,12 +165,14 @@ class FiberSecVis:
         areas = fiber_data[:, 2]
         return fiber_data, step_, matidx, vmin, vmax, ylocs, zlocs, areas
 
-    def resp_vis(self,
-                 ele_tag: int, sec_tag: int,
-                 step: int = None,
-                 show_variable: str = "strain",
-                 show_mats=None,
-                 ):
+    def resp_vis(
+        self,
+        ele_tag: int,
+        sec_tag: int,
+        step: int = None,
+        show_variable: str = "strain",
+        show_mats=None,
+    ):
         """fiber section response vis.
 
         Parameters
@@ -191,8 +199,16 @@ class FiberSecVis:
         # fiber_step_data = fiber_sec_step_data[self.key]
         # fiber_step_data = np.array(fiber_step_data)
 
-        fiber_data, step_, matidx, vmin, vmax, ylocs, zlocs, areas = self._get_fiber_data(
-            key, step, show_variable, show_mats)
+        (
+            fiber_data,
+            step_,
+            matidx,
+            vmin,
+            vmax,
+            ylocs,
+            zlocs,
+            areas,
+        ) = self._get_fiber_data(key, step, show_variable, show_mats)
         ymin, ymax = np.min(ylocs), np.max(ylocs)
         zmin, zmax = np.min(zlocs), np.max(zlocs)
         space_y = (ymax - ymin) / 10
@@ -221,8 +237,7 @@ class FiberSecVis:
             plt.Circle((yloc, zloc), np.sqrt(area / np.pi))
             for yloc, zloc, area in zip(ys_, zs_, areas_)
         ]
-        coll = matplotlib.collections.PatchCollection(
-            patches, alpha=self.opacity)
+        coll = matplotlib.collections.PatchCollection(patches, alpha=self.opacity)
         coll.set_ec(self.lc)
         coll.set_lw(self.lw)
         coll.set_cmap(self.cmap)
@@ -231,9 +246,15 @@ class FiberSecVis:
         ax.add_collection(coll)
         # -------------------------------------------
         #  color bar
-        clb = fig.colorbar(coll, ax=ax, format="%.2E",
-                           use_gridspec=True, location='bottom',
-                           fraction=0.15, aspect=16)
+        clb = fig.colorbar(
+            coll,
+            ax=ax,
+            format="%.2E",
+            use_gridspec=True,
+            location="bottom",
+            fraction=0.15,
+            aspect=16,
+        )
         clb.set_label(show_variable, fontsize=12)
         clb.ax.tick_params(labelsize=9)
         # -----------------------------
@@ -244,20 +265,24 @@ class FiberSecVis:
         ax.set_ylabel("z", fontsize=15)
         plt.xticks(fontsize=12)
         plt.yticks(fontsize=12)
-        txt = (f"ele--sec: {ele_tag}--{sec_tag} | step: {step_ + 1}\n"
-               f"$\\rm M_z$={mz:.2E} | $\\rm M_y$={my:.2E} | $\\rm P$={p:.2E} \n"
-               f"$\\rm \\phi_z$={ez:.2E} | $\\rm \\phi_y$={ey:.2E} | $\\rm \\epsilon$={eps:.2E}")
+        txt = (
+            f"ele--sec: {ele_tag}--{sec_tag} | step: {step_ + 1}\n"
+            f"$\\rm M_z$={mz:.2E} | $\\rm M_y$={my:.2E} | $\\rm P$={p:.2E} \n"
+            f"$\\rm \\phi_z$={ez:.2E} | $\\rm \\phi_y$={ey:.2E} | $\\rm \\epsilon$={eps:.2E}"
+        )
         ax.set_title(txt, fontsize=12)
         plt.tight_layout()
         plt.show()
 
-    def animation(self,
-                  output_file: str,
-                  ele_tag: int, sec_tag: int,
-                  show_variable: str = "strain",
-                  show_mats=None,
-                  framerate: int = 24,
-                  ):
+    def animation(
+        self,
+        output_file: str,
+        ele_tag: int,
+        sec_tag: int,
+        show_variable: str = "strain",
+        show_mats=None,
+        framerate: int = 24,
+    ):
         """fiber section response animation.
 
         Parameters
@@ -284,10 +309,26 @@ class FiberSecVis:
             raise ValueError("ele_tag and sec_tag not in set_fiber_secs()!")
         fiber_step_data = self.fiber_sec_step_data[key]
 
-        fiber_data, step_max, matidx, vmin, vmax, ylocs, zlocs, areas = self._get_fiber_data(
-            key, None, show_variable, show_mats)
-        fiber_data, step0, matidx, vmin0, vmax0, ylocs, zlocs, areas = self._get_fiber_data(
-            key, 1, show_variable, show_mats)
+        (
+            fiber_data,
+            step_max,
+            matidx,
+            vmin,
+            vmax,
+            ylocs,
+            zlocs,
+            areas,
+        ) = self._get_fiber_data(key, None, show_variable, show_mats)
+        (
+            fiber_data,
+            step0,
+            matidx,
+            vmin0,
+            vmax0,
+            ylocs,
+            zlocs,
+            areas,
+        ) = self._get_fiber_data(key, 1, show_variable, show_mats)
         ymin, ymax = np.min(ylocs), np.max(ylocs)
         zmin, zmax = np.min(zlocs), np.max(zlocs)
         space_y = (ymax - ymin) / 10
@@ -308,8 +349,7 @@ class FiberSecVis:
             plt.Circle((yloc, zloc), np.sqrt(area / np.pi))
             for yloc, zloc, area in zip(ylocs[matidx], zlocs[matidx], areas[matidx])
         ]
-        coll = matplotlib.collections.PatchCollection(
-            patches, alpha=self.opacity)
+        coll = matplotlib.collections.PatchCollection(patches, alpha=self.opacity)
         coll.set_ec(self.lc)
         coll.set_lw(self.lw)
         coll.set_cmap(self.cmap)
@@ -317,9 +357,15 @@ class FiberSecVis:
         ax.add_collection(coll)
         # -------------------------------------------
         #  color bar
-        clb = fig.colorbar(coll, ax=ax, format="%.2E",
-                           use_gridspec=True, location='bottom',
-                           fraction=0.15, aspect=16)
+        clb = fig.colorbar(
+            coll,
+            ax=ax,
+            format="%.2E",
+            use_gridspec=True,
+            location="bottom",
+            fraction=0.15,
+            aspect=16,
+        )
         clb.set_label(show_variable, fontsize=12)
         clb.ax.tick_params(labelsize=9)
         # -----------------------------
@@ -330,9 +376,11 @@ class FiberSecVis:
         ax.set_ylabel("z", fontsize=15)
         plt.xticks(fontsize=12)
         plt.yticks(fontsize=12)
-        txt = (f"ele--sec: {ele_tag}--{sec_tag} | step: {1}\n"
-               f"$\\rm M_z$={mz:.2E} | $\\rm M_y$={my:.2E} | $\\rm P$={p:.2E} \n"
-               f"$\\rm \\phi_z$={ez:.2E} | $\\rm \\phi_y$={ey:.2E} | $\\rm \\epsilon$={eps:.2E}")
+        txt = (
+            f"ele--sec: {ele_tag}--{sec_tag} | step: {1}\n"
+            f"$\\rm M_z$={mz:.2E} | $\\rm M_y$={my:.2E} | $\\rm P$={p:.2E} \n"
+            f"$\\rm \\phi_z$={ez:.2E} | $\\rm \\phi_y$={ey:.2E} | $\\rm \\epsilon$={eps:.2E}"
+        )
         title = ax.set_title(txt, fontsize=12)
 
         # --------------------------------------------
@@ -342,8 +390,7 @@ class FiberSecVis:
             if show_mats is not None:
                 matidx_i = []
                 for mat_ in show_mats:
-                    matidx_i.append(np.argwhere(
-                        np.abs(mat_tagsi - mat_) < 1e-8))
+                    matidx_i.append(np.argwhere(np.abs(mat_tagsi - mat_) < 1e-8))
                 matidx_i = np.vstack(matidx_i)
             else:
                 matidx_i = np.argwhere(np.abs(mat_tagsi - mat_tagsi) < 1e-8)
@@ -357,7 +404,10 @@ class FiberSecVis:
             # else:
             #     raise ValueError("")
 
-            stressi, straini = fiber_data_i[matidx_i, 4].ravel(), fiber_data_i[matidx_i, 5].ravel()
+            stressi, straini = (
+                fiber_data_i[matidx_i, 4].ravel(),
+                fiber_data_i[matidx_i, 5].ravel(),
+            )
             myi = fiber_data_i[0, 12]
             mzi = fiber_data_i[0, 11]
             pi = fiber_data_i[0, 10]
@@ -367,9 +417,11 @@ class FiberSecVis:
             colors = stressi if show_variable == "stress" else straini
             coll.set_array(colors)
             coll.set_clim(vmin, vmax)
-            txti = (f"ele--sec: {ele_tag}--{sec_tag} | step: {step + 1}\n"
-                    f"$\\rm M_z$={mzi:.2E} | $\\rm M_y$={myi:.2E} | $\\rm P$={pi:.2E} \n"
-                    f"$\\rm \\phi_z$={ezi:.2E} | $\\rm \\phi_y$={eyi:.2E} | $\\rm \\epsilon$={epsi:.2E}")
+            txti = (
+                f"ele--sec: {ele_tag}--{sec_tag} | step: {step + 1}\n"
+                f"$\\rm M_z$={mzi:.2E} | $\\rm M_y$={myi:.2E} | $\\rm P$={pi:.2E} \n"
+                f"$\\rm \\phi_z$={ezi:.2E} | $\\rm \\phi_y$={eyi:.2E} | $\\rm \\epsilon$={epsi:.2E}"
+            )
             title.set_text(txti)
             # clb.set_ticks(clb.get_ticks())
             # clb.set_ticklabels(
@@ -382,10 +434,13 @@ class FiberSecVis:
         plt.show()
         ani.save(output_file, fps=framerate)  # need ffmpeg
 
-    def force_defo_vis(self,
-                       ele_tag: int, sec_tag: int,
-                       force_type: str = "Mz",
-                       defo_type: str = "Phiz"):
+    def force_defo_vis(
+        self,
+        ele_tag: int,
+        sec_tag: int,
+        force_type: str = "Mz",
+        defo_type: str = "Phiz",
+    ):
         """fiber section response vis.
 
         Parameters
@@ -421,9 +476,16 @@ class FiberSecVis:
             defos.append(fiber_data[0, defoidx])
 
         force_label_map = dict(p="$\\rm P$", mz="$\\rm M_z$", my="$\\rm M_y$")
-        defo_label_map = dict(eps="$\\rm \\epsilon$", phiz="$\\rm \\phi_z$", phiy="$\\rm \\phi_y$")
+        defo_label_map = dict(
+            eps="$\\rm \\epsilon$", phiz="$\\rm \\phi_z$", phiy="$\\rm \\phi_y$"
+        )
         fig, ax = plt.subplots(figsize=(6, 6 * 0.618))
-        ax.plot(defos, forces, lw=1.75, c="blue", )
+        ax.plot(
+            defos,
+            forces,
+            lw=1.75,
+            c="blue",
+        )
         ax.set_ylabel(force_label_map[force_type.lower()], fontsize=16)
         ax.set_xlabel(defo_label_map[defo_type.lower()], fontsize=16)
         plt.xticks(fontsize=12)
@@ -435,12 +497,16 @@ class FiberSecVis:
         return np.array(defos), np.array(forces)
 
 
-def plot_fiber_sec(ele_sec: list,
-                   results_dir: str = "opstool_output",
-                   input_file: str = 'FiberData.hdf5',
-                   line_width: float = 0.75, line_color: str = 'k',
-                   colormap: str = "viridis", opacity: float = 0.75,
-                   mat_color: dict = None, ):
+def plot_fiber_sec(
+    ele_sec: list,
+    results_dir: str = "opstool_output",
+    input_file: str = "FiberData.hdf5",
+    line_width: float = 0.75,
+    line_color: str = "k",
+    colormap: str = "viridis",
+    opacity: float = 0.75,
+    mat_color: dict = None,
+):
     """plot the fiber section geometry.
 
     Parameters
@@ -474,7 +540,7 @@ def plot_fiber_sec(ele_sec: list,
 
     """
     lw, lc = line_width, line_color
-    filename = results_dir + '/' + input_file
+    filename = results_dir + "/" + input_file
     fiber_sec_data = {}
     with h5py.File(filename, "r") as f:
         for name, value in f.items():
@@ -503,7 +569,7 @@ def plot_fiber_sec(ele_sec: list,
             idxi = int(np.ceil((i + 1) / shape[1]) - 1)
             idxj = int(i - idxi * shape[1])
             ax = axs[idxi, idxj]
-            with plt.style.context('classic'):
+            with plt.style.context("classic"):
                 ax.set_visible(False)
 
     plt.subplots_adjust(hspace=0.3)
@@ -533,8 +599,7 @@ def _plot_fiber_sec(ax, fiber_data, title, lc, lw, cmap, opacity, mat_color):
         plt.Circle((yloc, zloc), np.sqrt(area / np.pi))
         for yloc, zloc, area in zip(ylocs, zlocs, areas)
     ]
-    coll = matplotlib.collections.PatchCollection(
-        patches, alpha=opacity)
+    coll = matplotlib.collections.PatchCollection(patches, alpha=opacity)
     coll.set_array(scalars)
     coll.set_ec(lc)
     coll.set_lw(lw)
@@ -564,5 +629,4 @@ def _plot_fiber_sec(ax, fiber_data, title, lc, lw, cmap, opacity, mat_color):
     ax.set_xlabel("y", fontsize=16)
     ax.set_ylabel("z", fontsize=16)
     ax.tick_params(labelsize=12)
-    ax.text(0.5, 1.0, title, ha='center', fontsize=15,
-            va='top', transform=ax.transAxes)
+    ax.text(0.5, 1.0, title, ha="center", fontsize=15, va="top", transform=ax.transAxes)

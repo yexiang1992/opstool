@@ -204,7 +204,7 @@ def _show_node_load(plotter, model_info, alpha: float = 1.0):
         alpha_ = (model_info["max_bound"] + model_info["min_bound"]) / 20 / maxdata
     alpha_ *= alpha
     patterntags = np.unique(node_load_info[:, 0])
-    cmap = plt.get_cmap("viridis")
+    cmap = plt.get_cmap("Spectral")
     colors = cmap(np.linspace(0, 1, len(patterntags)))
     xyzlocals = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
     geom = pv.Arrow(
@@ -303,7 +303,7 @@ def _show_ele_load(plotter, model_info, alpha: float = 1.0):
     else:
         alpha_ = (model_info["max_bound"] + model_info["min_bound"]) / 20 / maxdata
     alpha_ *= alpha
-    cmap = plt.get_cmap("rainbow_r")
+    cmap = plt.get_cmap("rainbow")
     colors = cmap(np.linspace(0, 1, len(patterntags)))
     geom = pv.Arrow(
         start=(-1.0, 0, 0), tip_length=0.25, tip_radius=0.1, shaft_radius=0.03
@@ -429,6 +429,7 @@ def _show_fix_node(plotter, model_info, alpha: float = 1.0):
     fixed_dofs = model_info["FixNodeDofs"]
     fixed_coords = model_info["FixNodeCoords"]
     beam_lengths = model_info["beam_lengths"]
+    D2 = True if np.max(model_info["model_dims"]) <= 2 else False
     if len(beam_lengths) > 0:
         s = np.mean(beam_lengths) / 6 * alpha
     else:
@@ -437,7 +438,7 @@ def _show_fix_node(plotter, model_info, alpha: float = 1.0):
         points, cells = [], []
         for coord, dof in zip(fixed_coords, fixed_dofs):
             x, y, z = coord
-            if z == 0:
+            if D2:
                 z += s / 2
                 y -= s / 2
             if dof[0] == -1:
@@ -644,7 +645,7 @@ def _eigen_vis(
         eigen_vec = eigenvector[step]
         value_ = np.max(np.sqrt(np.sum(eigen_vec**2, axis=1)))
         alpha_ = eigen_data["max_bound"] / obj.bound_fact / value_
-        alpha_ *= alpha if alpha else alpha_
+        alpha_ = alpha * alpha if alpha else alpha_
         eigen_points = eigen_data["coord_no_deform"] + eigen_vec * alpha_
         scalars = np.sqrt(np.sum(eigen_vec**2, axis=1))
         _ = _generate_all_mesh(
@@ -745,7 +746,7 @@ def _eigen_anim(
     f_ = f[mode_tag - 1]
     value_ = np.max(np.sqrt(np.sum(eigen_vec**2, axis=1)))
     alpha_ = eigen_data["max_bound"] / obj.bound_fact / value_
-    alpha_ *= alpha if alpha else alpha_
+    alpha_ = alpha_ * alpha if alpha else alpha_
     eigen_points = eigen_data["coord_no_deform"] + eigen_vec * alpha_
     anti_eigen_points = eigen_data["coord_no_deform"] - eigen_vec * alpha_
     scalars = np.sqrt(np.sum(eigen_vec**2, axis=1))
@@ -756,7 +757,7 @@ def _eigen_anim(
 
     value_ = np.max(np.sqrt(np.sum(eigen_vec**2, axis=1)))
     alpha_ = eigen_data["max_bound"] / obj.bound_fact / value_
-    alpha_ *= alpha if alpha else alpha_
+    alpha_ = alpha_ * alpha if alpha else alpha_
     eigen_points = eigen_data["coord_no_deform"] + eigen_vec * alpha_
     anti_eigen_points = eigen_data["coord_no_deform"] - eigen_vec * alpha_
     scalars = np.sqrt(np.sum(eigen_vec**2, axis=1))
@@ -1058,7 +1059,7 @@ def _deform_vis(
         )
         value = np.max(np.sqrt(np.sum(max_node_resp**2, axis=1)))
         alpha_ = max_bound / obj.bound_fact / value
-        alpha_ *= alpha if alpha else alpha_
+        alpha_ = alpha_ * alpha if alpha else alpha_
     else:
         alpha_ = 0
     # ------------------------------------------------------------------------
@@ -1238,7 +1239,7 @@ def _deform_anim(
         )
         value = np.max(np.sqrt(np.sum(max_node_resp**2, axis=1)))
         alpha_ = max_bound / obj.bound_fact / value
-        alpha_ *= alpha if alpha else alpha_
+        alpha_ = alpha_ * alpha if alpha else alpha_
     else:
         alpha_ = 0
     # -----------------------------------------------------------------------------
@@ -1421,7 +1422,7 @@ def _frame_resp_vis(
     max_bound = np.max(max_coord - min_coord)
     maxv = np.amax(np.abs(local_forces_max))
     alpha_ = max_bound / maxv / obj.bound_fact
-    alpha_ *= alpha if alpha else alpha_
+    alpha_ = alpha_ * alpha if alpha else alpha_
 
     # ------------------------------------------------------------------------
     # start plot

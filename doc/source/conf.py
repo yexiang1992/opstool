@@ -20,7 +20,7 @@ import plotly.io as pio
 # pv.set_jupyter_backend('pythreejs')
 # pio.renderers = 'jupyterlab'
 # pio.renderers = 'notebook'
-pio.renderers = 'sphinx_gallery'
+pio.renderers = "sphinx_gallery"
 
 # from unittest.mock import MagicMock
 
@@ -56,17 +56,16 @@ with open(this_dir / "src" / "opstool" / "__about__.py") as f:
     d = exec(f.read(), about)
 __version__ = about["__version__"]
 
-sys.path.insert(0, os.path.abspath('../../src'))
-package_path = os.path.abspath('../../src')
-os.environ['PYTHONPATH'] = ':'.join(
-    (package_path, os.environ.get('PYTHONPATH', '')))
+sys.path.insert(0, os.path.abspath("../../src"))
+package_path = os.path.abspath("../../src")
+os.environ["PYTHONPATH"] = ":".join((package_path, os.environ.get("PYTHONPATH", "")))
 
 
 # -- Project information -----------------------------------------------------
 
-project = 'opstool'
-copyright = '2022, Yexiang Yan'
-author = 'Yexiang Yan'
+project = "opstool"
+copyright = "2023, Yexiang Yan"
+author = "Yexiang Yan"
 
 # The full version, including alpha/beta/rc tags
 release = __version__
@@ -79,14 +78,14 @@ release = __version__
 # ones.
 extensions = [
     "sphinx.ext.autodoc",
-    'sphinx_autodoc_typehints',
+    "sphinx_autodoc_typehints",
     "sphinx.ext.mathjax",
     "sphinx.ext.viewcode",
     "sphinx_gallery.load_style",
     # "sphinx_gallery.gen_gallery",
-    'nbsphinx',
+    "nbsphinx",
     "jupyter_sphinx",
-    'sphinx_copybutton',
+    "sphinx_copybutton",
     # 'jupyter_sphinx.execute'
 ]
 
@@ -94,12 +93,12 @@ extensions = [
 master_doc = "index"
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['../../src/opstool/examples', 'opstool.examples.rst']
+exclude_patterns = ["../../src/opstool/examples", "opstool.examples.rst"]
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = "sphinx"
@@ -112,7 +111,7 @@ pygments_style = "sphinx"
 #
 # html_theme = 'alabaster'
 # html_theme = 'sphinx_rtd_theme'
-html_theme = 'pydata_sphinx_theme'
+html_theme = "pydata_sphinx_theme"
 html_theme_options = {
     "show_prev_next": False,
     # "google_analytics_id": 'UA-141840477-1',
@@ -128,19 +127,19 @@ html_theme_options = {
             "url": "https://pypi.org/project/opstool/",
             "icon": "fas fa-box-open",
             "type": "fontawesome",
-        }
+        },
     ],
     "logo": {
         "image_light": "logo_white.png",
         "image_dark": "logo_dark.png",
-    }
+    },
 }
 
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = ["_static"]
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = "opstooldoc"
@@ -179,10 +178,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [
-    (master_doc, "opstool",
-     "opstool Documentation", [author], 1)
-]
+man_pages = [(master_doc, "opstool", "opstool Documentation", [author], 1)]
 
 # -- Options for Texinfo output ----------------------------------------------
 

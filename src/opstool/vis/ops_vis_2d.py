@@ -1,4 +1,5 @@
 import h5py
+import warnings
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection, PatchCollection
@@ -17,9 +18,7 @@ class OpsVis2D:
         point_size: float = 10,
         line_width: float = 3,
         colors_dict: dict = None,
-        theme: str = "plotly",
         cmap: str = "jet",
-        on_notebook: bool = False,
         results_dir: str = "opstool_output",
     ):
         self.point_size = point_size
@@ -46,10 +45,7 @@ class OpsVis2D:
         self.color_link = colors["link"]
         self.color_constraint = colors["constraint"]
         # -------------------------------------------------
-        self.theme = theme
         self.color_map = cmap
-
-        self.notebook = on_notebook
         # -------------------------------------------------
         self.out_dir = results_dir
         # -------------------------------------------------
@@ -61,7 +57,11 @@ class OpsVis2D:
         show_node_label: bool = False,
         show_ele_label: bool = False,
         show_local_crd: bool = False,
+        local_crd_alpha: float = 1.0,
         show_fix_node: bool = True,
+        fix_node_alpha: float = 1.0,
+        show_load: bool = False,
+        load_alpha: float = 1.0,
         show_constrain_dof: bool = False,
         label_size: float = 10,
         show_outline: bool = True,
@@ -153,8 +153,8 @@ class OpsVis2D:
                     zorder=200,
                 )
         if show_local_crd:
-            _show_beam_local_axes(ax, model_info)
-            _show_link_local_axes(ax, model_info)
+            _show_beam_local_axes(ax, model_info, local_crd_alpha)
+            _show_link_local_axes(ax, model_info, local_crd_alpha)
         _show_mp_constraint(
             ax,
             model_info,
@@ -164,27 +164,38 @@ class OpsVis2D:
             label_size=label_size,
         )
         if show_fix_node:
-            _show_fix_node(ax, model_info, color="#01ff07", width=self.line_width / 3)
+            _show_fix_node(
+                ax,
+                model_info,
+                color="#01ff07",
+                width=self.line_width / 3,
+                alpha=fix_node_alpha,
+            )
+        if show_load:
+            _show_node_load(ax, model_info, load_alpha)
+            _show_ele_load(ax, model_info, load_alpha)
         # txt1 = f"OpenSees 2D View"
         # ax.text(0.01, 1.01, txt1, fontsize=label_size+2, ha='left', va='bottom',
         #         transform=ax.transAxes)
         # txt2 = f"Num. of Node:{model_info['num_node']} || Num. of Ele:{model_info['num_ele']}"
         # ax.text(0.99, 1.01, txt2, fontsize=label_size, ha='right', va='bottom',
         #         transform=ax.transAxes)
-        ax.set_xlim(bounds[0], bounds[1])
-        ax.set_ylim(bounds[2], bounds[3])
+        space = (bounds[1] - bounds[0]) / 5
+        ax.set_xlim(bounds[0] - space, bounds[1] + space)
+        space = (bounds[3] - bounds[2]) / 5
+        ax.set_ylim(bounds[2] - space, bounds[3] + space)
         ax.tick_params(labelsize=12)
         if not show_outline:
             ax.axis("off")
         plt.tight_layout()
-        return ax
+        plt.show()
 
     def eigen_vis(
         self,
         mode_tags: list,
         input_file: str = "EigenData.hdf5",
         subplots: bool = False,
-        alpha: float = None,
+        alpha: float = 1.0,
         show_outline: bool = False,
         show_origin: bool = False,
         show_point: bool = False,
@@ -217,11 +228,9 @@ class OpsVis2D:
         def create_mesh(value_i):
             step = int(round(value_i)) - 1
             eigen_veci = eigenvector[step]
-            if alpha is None:
-                value_i = np.max(np.sqrt(np.sum(eigen_veci**2, axis=1)))
-                alpha_i = eigen_data["max_bound"] / self.bound_fact / value_i
-            else:
-                alpha_i = alpha
+            value_i = np.max(np.sqrt(np.sum(eigen_veci**2, axis=1)))
+            alpha_i = eigen_data["max_bound"] / self.bound_fact / value_i
+            alpha_i *= alpha if alpha is not None else alpha_i
             eigen_pointsi = eigen_data["coord_no_deform"] + eigen_veci * alpha_i
             scalarsi = np.sqrt(np.sum(eigen_veci**2, axis=1))
 
@@ -346,13 +355,7 @@ class OpsVis2D:
             mode_slider.on_changed(create_mesh)
         plt.show()
 
-    def eigen_anim(self):
-        pass
-
     def deform_vis(self):
-        pass
-
-    def deform_anim(self):
         pass
 
     def frame_resp_vis(self):
@@ -380,14 +383,15 @@ def _show_mp_constraint(ax, model_info, color, width, show_dofs, label_size):
                 )
 
 
-def _show_fix_node(ax, model_info, color, width):
+def _show_fix_node(ax, model_info, color, width, alpha):
     fixed_dofs = model_info["FixNodeDofs"]
     fixed_coords = model_info["FixNodeCoords"]
     beam_lengths = model_info["beam_lengths"]
     if len(beam_lengths) > 0:
-        s = (np.max(beam_lengths) + np.min(beam_lengths)) / 20
+        s = np.mean(beam_lengths) / 5
     else:
         s = (model_info["max_bound"] + model_info["min_bound"]) / 50
+    s *= alpha
     if len(fixed_coords) > 0:
         points = []
         for coord, dof in zip(fixed_coords, fixed_dofs):
@@ -420,7 +424,7 @@ def _show_fix_node(ax, model_info, color, width):
         ax.plot(points[:, 0], points[:, 1], c=color, lw=width, zorder=80)
 
 
-def _show_beam_local_axes(ax, model_info):
+def _show_beam_local_axes(ax, model_info, alpha):
     beam_xlocal = model_info["beam_xlocal"]
     beam_ylocal = model_info["beam_ylocal"]
     beam_midpoints = model_info["beam_midpoints"]
@@ -443,7 +447,7 @@ def _show_beam_local_axes(ax, model_info):
         )
 
 
-def _show_link_local_axes(ax, model_info):
+def _show_link_local_axes(ax, model_info, alpha):
     link_xlocal = model_info["link_xlocal"]
     link_ylocal = model_info["link_ylocal"]
     link_midpoints = model_info["link_midpoints"]
@@ -464,6 +468,167 @@ def _show_link_local_axes(ax, model_info):
             color="#04d8b2",
             zorder=200,
         )
+
+
+def _show_node_load(ax, model_info, alpha):
+    points = model_info["coord_no_deform"]
+    node_load_info = np.array(model_info["node_load_info"])
+    node_load_data = np.array(model_info["node_load_data"])
+    if len(node_load_info) == 0:
+        return None
+    loc, load_data = 0, []
+    for info in node_load_info:
+        ndm = info[2]
+        ndf = info[3]
+        data = node_load_data[loc : loc + ndf]
+        if ndm <= 2 and ndf <= 3:
+            load_data.append([data[0], data[1], 0])  # x, y
+        else:
+            load_data.append([data[0], data[1], data[2]])  # x, y, z
+        loc += ndf
+    load_data = np.array(load_data)
+    maxdata = np.max(np.abs(load_data))
+    beam_lengths = model_info["beam_lengths"]
+    if len(beam_lengths) > 0:
+        alpha_ = np.mean(beam_lengths) / maxdata / 3.5
+    else:
+        alpha_ = (model_info["max_bound"] + model_info["min_bound"]) / 20 / maxdata
+    alpha_ *= alpha
+    patterntags = np.unique(node_load_info[:, 0])
+    cmap = plt.get_cmap("Spectral")
+    colors = cmap(np.linspace(0, 1, len(patterntags)))
+    xyzlocals = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
+    for p, ptag in enumerate(patterntags):
+        idx = np.abs(node_load_info[:, 0] - ptag) < 1e-3
+        coords = points[node_load_info[idx, -1]]
+        for i in range(2):
+            data = np.ravel(load_data[idx, i])
+            axis = np.reshape(xyzlocals[i] * len(coords), (-1, 3))
+            for j in range(len(axis)):
+                axis[j] *= data[j] * alpha_
+            if np.sum(np.abs(data)) > 1e-12:
+                ax.quiver(
+                    coords[:, 0],
+                    coords[:, 1],
+                    axis[:, 0],
+                    axis[:, 1],
+                    color=colors[p],
+                    zorder=200,
+                    pivot="tip",
+                    angles="xy",
+                    scale_units="xy",
+                    scale=1,
+                    width=0.003,
+                    headwidth=4,
+                    headlength=5,
+                    headaxislength=4.5,
+                )
+
+
+def _show_ele_load(ax, model_info, alpha):
+    points = model_info["coord_no_deform"]
+    ele_load_info = model_info["ele_load_info"]
+    ele_load_data = model_info["ele_load_data"]
+    ele_load_locals = model_info["ele_load_locals"]
+    if len(ele_load_info) == 0:
+        return None
+    patterntags = np.unique(ele_load_info[:, 0])
+    new_points = []
+    new_locals = []
+    new_ptags = []
+    load_data = []
+    loc = 0
+    for i, info in enumerate(ele_load_info):
+        ptag, _, classtag, nidx1, nidx2 = info
+        coord1, coord2 = points[nidx1], points[nidx2]
+        local_axis = ele_load_locals[i]
+        if classtag == 3:  # beamUniform2D, Wya <Wxa>
+            wy, wx = ele_load_data[loc : loc + 2]
+            wz = 0.0
+            n = 11
+            xl = np.linspace(0, 1, n)
+            wx, wy, wz = [wx] * n, [wy] * n, [wz] * n
+            localaxis = [local_axis] * n
+            new_ptags.extend([ptag] * n)
+            loc += 2
+        elif classtag == 12:  # beamUniform2D, Wya <Wxa> <aL> <bL> <Wyb> <Wxb>
+            wya, wyb, wxa, wxb, al, bl = ele_load_data[loc : loc + 6]
+            n = int((bl - al) / 0.1) + 1
+            xl = np.linspace(al, bl, n)
+            wy = np.interp(xl, [0, 1], [wya, wyb])
+            wx = np.interp(xl, [0, 1], [wxa, wxb])
+            wz = wy * 0
+            localaxis = [local_axis] * n
+            new_ptags.extend([ptag] * n)
+            loc += 6
+        elif classtag == 5:  # beamUniform3D wy, wz, wx
+            wy, wz, wx = ele_load_data[loc : loc + 3]
+            n = 11
+            xl = np.linspace(0, 1, n)
+            wx, wy, wz = [wx] * n, [wy] * n, [wz] * n
+            localaxis = [local_axis] * n
+            new_ptags.extend([ptag] * n)
+            loc += 3
+        elif classtag == 4:  # beamPoint2D, Py xL <Px>
+            wy, wx, xl = ele_load_data[loc : loc + 3]
+            wz = 0
+            localaxis = [local_axis]
+            new_ptags.append(ptag)
+            loc += 3
+        elif classtag == 6:  # beamPoint3D, Py, Pz, x, N
+            wy, wz, wx, xl = ele_load_data[loc : loc + 4]
+            localaxis = [local_axis]
+            new_ptags.append(ptag)
+            loc += 4
+        else:
+            warnings.warn(
+                "Currently load visualization only supports-->"
+                "<beamUniform2D,beamUniform3D,beamPoint2D,beamPoint3D>!"
+            )
+        xs = np.interp(xl, [0, 1], [coord1[0], coord2[0]])
+        ys = np.interp(xl, [0, 1], [coord1[1], coord2[1]])
+        zs = np.interp(xl, [0, 1], [coord1[2], coord2[2]])
+        new_points.append(np.column_stack([xs, ys, zs]))
+        new_locals.append(localaxis)
+        load_data.append(np.column_stack([wx, wy, wz]))
+    new_points = np.vstack(new_points)
+    new_locals = np.vstack(new_locals)
+    load_data = np.vstack(load_data)
+    new_ptags = np.array(new_ptags)
+    maxdata = np.max(np.abs(load_data))
+    beam_lengths = model_info["beam_lengths"]
+    if len(beam_lengths) > 0:
+        alpha_ = np.mean(beam_lengths) / maxdata / 5
+    else:
+        alpha_ = (model_info["max_bound"] + model_info["min_bound"]) / 20 / maxdata
+    alpha_ *= alpha
+    cmap = plt.get_cmap("rainbow")
+    colors = cmap(np.linspace(0, 1, len(patterntags)))
+    for p, ptag in enumerate(patterntags):
+        idx = np.abs(new_ptags - ptag) < 1e-3
+        coords = new_points[idx]
+        for i in range(3):
+            data = np.ravel(load_data[idx, i])
+            axis = new_locals[idx, 3 * i : 3 * i + 3]
+            for j in range(len(axis)):
+                axis[j] *= data[j] * alpha_
+            if np.sum(np.abs(data)) > 1e-12:
+                ax.quiver(
+                    coords[:, 0],
+                    coords[:, 1],
+                    axis[:, 0],
+                    axis[:, 1],
+                    color=colors[p],
+                    zorder=200,
+                    pivot="tip",
+                    angles="xy",
+                    scale_units="xy",
+                    scale=1,
+                    width=0.003,
+                    headwidth=4,
+                    headlength=5,
+                    headaxislength=4.5,
+                )
 
 
 def _plot_point(ax, points, size, color="black", cmap=None, scalars=None, clim=None):

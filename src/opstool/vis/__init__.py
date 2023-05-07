@@ -6,12 +6,14 @@ from .fiber_sec_vis import FiberSecVis, plot_fiber_sec
 from .save_tikz import save_tikz
 from .quick_plot import plot_model, plot_eigen
 
-__all__ = ["GetFEMdata",
-           "OpsVisPlotly",
-           "OpsVisPyvista",
-           "FiberSecVis",
-           "plot_fiber_sec",
-           "save_tikz",
-           "plot_model",
-           "plot_eigen",
-           "OpsVis2D"]
+__all__ = [
+    "GetFEMdata",
+    "OpsVisPlotly",
+    "OpsVisPyvista",
+    "FiberSecVis",
+    "plot_fiber_sec",
+    "save_tikz",
+    "plot_model",
+    "plot_eigen",
+    "OpsVis2D",
+]
