@@ -49,8 +49,8 @@ def _write_head(file, width=12, height=30, d3: bool = True):
 
 def _write_end(file):
     with open(file, "a", encoding="utf8") as f:
-        f.write(r"\n\end{tikzpicture}\n")
-        f.write(r"\n\end{document}\n")
+        f.write("\n\\end{tikzpicture}\n")
+        f.write("\n\\end{document}\n")
 
 
 def _def_points(file, points, d3):
