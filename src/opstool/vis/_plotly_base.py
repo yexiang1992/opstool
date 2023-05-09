@@ -158,6 +158,8 @@ def _plot_model(
     show_load: bool = False,
     load_alpha: float = 1.0,
     show_constrain_dof: bool = False,
+    show_beam_sec: bool = False,
+    beam_sec_paras: dict = None,
     label_size: float = 8,
     show_outline: bool = True,
     opacity: float = 1.0,
@@ -288,6 +290,12 @@ def _plot_model(
             hovertemplate="<b>x: %{x}</b><br>y: %{y}<br>z: %{z} <br>tag: %{customdata}",
         )
     )
+    # beam section render
+    if show_beam_sec:
+        beam_sec_paras_ = dict(color="#5170d7", opacity=0.25, texture=False)
+        if beam_sec_paras is not None:
+            beam_sec_paras_.update(beam_sec_paras)
+        _show_beam_sec(plotter, model_info, cells, beam_sec_paras_)
 
     if show_node_label:
         txt_plot = go.Scatter3d(
@@ -491,6 +499,86 @@ def _make_fix_node(model_info, alpha=1.0):
             )
     points = np.array(points)
     return points
+
+
+def _show_beam_sec(plotter, model_info, cells, paras):
+    ext_points = model_info["line_sec_ext_points"]
+    int_points = model_info["line_sec_int_points"]
+    sec_points = model_info["line_sec_points"]
+    ext_cells = cells["line_sec_ext"]
+    int_cells = cells["line_sec_int"]
+    sec_cells = cells["line_sec"]
+    if paras["texture"]:
+        warnings.warn("The backend plotly does not currently support texture!")
+    if len(ext_cells) > 0:
+        (
+            face_points,
+            _,
+            _,
+            veci,
+            vecj,
+            veck,
+        ) = _make_faces(ext_points, ext_cells)
+        x, y, z = face_points[:, 0], face_points[:, 1], face_points[:, 2]
+        plotter.append(
+            go.Mesh3d(
+                x=x,
+                y=y,
+                z=z,
+                i=veci,
+                j=vecj,
+                k=veck,
+                color=paras["color"],
+                opacity=paras["opacity"],
+                hoverinfo="skip",
+            )
+        )
+    if len(int_cells) > 0:
+        (
+            face_points,
+            _,
+            _,
+            veci,
+            vecj,
+            veck,
+        ) = _make_faces(int_points, int_cells)
+        x, y, z = face_points[:, 0], face_points[:, 1], face_points[:, 2]
+        plotter.append(
+            go.Mesh3d(
+                x=x,
+                y=y,
+                z=z,
+                i=veci,
+                j=vecj,
+                k=veck,
+                color=paras["color"],
+                opacity=paras["opacity"],
+                hoverinfo="skip",
+            )
+        )
+    if len(sec_cells) > 0:
+        (
+            face_points,
+            _,
+            _,
+            veci,
+            vecj,
+            veck,
+        ) = _make_faces(sec_points, sec_cells)
+        x, y, z = face_points[:, 0], face_points[:, 1], face_points[:, 2]
+        plotter.append(
+            go.Mesh3d(
+                x=x,
+                y=y,
+                z=z,
+                i=veci,
+                j=vecj,
+                k=veck,
+                color=paras["color"],
+                opacity=paras["opacity"],
+                hoverinfo="skip",
+            )
+        )
 
 
 def _show_local_axes(obj, plotter, model_info, alpha: float = 1.0):

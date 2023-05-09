@@ -149,6 +149,8 @@ class OpsVisPlotly:
         show_load: bool = False,
         load_alpha: float = 1.0,
         show_constrain_dof: bool = False,
+        show_beam_sec: bool = False,
+        beam_sec_paras: dict = None,
         label_size: float = 8,
         show_outline: bool = True,
         opacity: float = 1.0,
@@ -195,6 +197,13 @@ class OpsVisPlotly:
             On existing displays, the scaling factor for the load arrow sizes.
         show_constrain_dof: bool, default=False
             Whether to display labels for constrained degrees of freedom.
+        show_beam_sec: bool default = False
+            Whether to render the 3d section of beam or truss elements.
+            If True, the Arg `beam_sec` in :py:meth:`opstool.vis.GetFEMdata.get_model_data`
+            must be assigned in advance.
+        beam_sec_paras: dict defalut = None,
+            A dict to control beam section render, optional key: color, opacity.
+            Note that the backend plotly does not currently support texture.
         label_size: float, default=8
             The foontsize of node and ele label.
         show_outline: bool, default=True
@@ -226,6 +235,8 @@ class OpsVisPlotly:
             show_load=show_load,
             load_alpha=load_alpha,
             show_constrain_dof=show_constrain_dof,
+            show_beam_sec=show_beam_sec,
+            beam_sec_paras=beam_sec_paras,
             label_size=label_size,
             show_outline=show_outline,
             opacity=opacity,

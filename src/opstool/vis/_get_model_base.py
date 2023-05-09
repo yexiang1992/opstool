@@ -343,7 +343,7 @@ def get_beam_sec_info(sec_mesh: dict, node_coords, node_index):
         np.array(int_points),
         np.array(int_cells),
         np.array(sec_points),
-        np.vstack(sec_cells),
+        np.ravel(np.vstack(sec_cells)),
     )
 
 
