@@ -271,6 +271,8 @@ def _plot_model(
                     text=labels_,
                 )
             )
+    if len(cells["link"]) > 0:
+        _show_link(obj, plotter, model_info["coord_no_deform"], cells["link"])
     # point plot
     node_labels = [str(i) for i in model_info["NodeTags"]]
     x, y, z = [points_no_deform[:, j] for j in range(3)]
@@ -371,6 +373,72 @@ def _plot_model(
             ),
         )
     return fig
+
+
+def _show_link(obj, plotter, points, cells):
+    cells = np.reshape(cells, (-1, 3))
+    points_zero = []
+    points_nonzero = []
+    cells_nonzero = []
+    for cell in cells:
+        idx1, idx2 = cell[1:]
+        coord1, coord2 = points[idx1], points[idx2]
+        length = np.sqrt(np.sum((coord2 - coord1) ** 2))
+        if np.abs(length) < 1e-8:
+            points_zero.append(coord1)
+        else:
+            xaxis = np.array(coord2 - coord1)
+            global_z = [0.0, 0.0, 1.0]
+            cos_angle = xaxis.dot(global_z) / (
+                np.linalg.norm(xaxis) * np.linalg.norm(global_z)
+            )
+            if np.abs(1 - cos_angle**2) < 1e-10:
+                yaxis = np.cross([-1.0, 0.0, 0.0], xaxis)
+            else:
+                yaxis = np.cross(global_z, xaxis)
+            xaxis = xaxis / np.linalg.norm(xaxis)
+            yaxis = yaxis / np.linalg.norm(yaxis)
+            idx = len(points_nonzero)
+            for i in range(5):
+                cells_nonzero.extend([2, idx + i, idx + i + 1])
+            points_nonzero.extend(
+                [
+                    coord1 + 0.25 * length * xaxis,
+                    coord1 + 0.25 * length * xaxis + 0.25 * length * yaxis,
+                    coord1 + 0.5 * length * xaxis - 0.25 * length * yaxis,
+                    coord1 + 0.5 * length * xaxis + 0.25 * length * yaxis,
+                    coord1 + 0.75 * length * xaxis - 0.25 * length * yaxis,
+                    coord1 + 0.75 * length * xaxis,
+                ]
+            )
+    # plot
+    if len(points_zero) > 0:
+        plotter.append(
+            go.Scatter3d(
+                x=points_zero[:, 0],
+                y=points_zero[:, 1],
+                z=points_zero[:, 2],
+                marker=dict(size=obj.point_size * 2, color=obj.color_link),
+                mode="markers",
+                hoverinfo="skip",
+            )
+        )
+    if len(points_nonzero) > 0:
+        cells_nonzero = np.reshape(cells_nonzero, (-1, 3))
+        points_nonzero = np.array(points_nonzero)
+        line_points, _ = _make_lines(points_nonzero, cells_nonzero)
+        x, y, z = line_points[:, 0], line_points[:, 1], line_points[:, 2]
+        plotter.append(
+            go.Scatter3d(
+                x=x,
+                y=y,
+                z=z,
+                line=dict(color=obj.color_link, width=obj.line_width / 2),
+                mode="lines",
+                connectgaps=False,
+                hoverinfo="skip",
+            )
+        )
 
 
 def _make_fix_node(model_info, alpha=1.0):

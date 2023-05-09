@@ -16,11 +16,10 @@ opst.gen_grav_load(ts_tag=1, pattern_tag=1, factor=-9.81, direction="Z")
 ModelData = opst.GetFEMdata()
 ModelData.get_model_data()
 ModelData.get_eigen_data(mode_tag=15)
-opsv = opst.OpsVisPlotly(
+opsv = opst.OpsVisPyvista(
     point_size=4,
     line_width=4,
     colors_dict=None,
-    theme="plotly",
     color_map="jet",
     on_notebook=False,
     results_dir="opstool_output",
@@ -28,7 +27,7 @@ opsv = opst.OpsVisPlotly(
 fig = opsv.model_vis(
     show_node_label=False,
     show_ele_label=False,
-    show_local_crd=True,
+    show_local_crd=False,
     show_fix_node=True,
     # show_load=True,
     # load_alpha=0.5,

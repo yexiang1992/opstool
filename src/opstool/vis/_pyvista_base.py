@@ -527,6 +527,60 @@ def _show_fix_node(plotter, model_info, alpha: float = 1.0):
         warnings.warn("Model has no fix nodes!")
 
 
+def _show_link(obj, plotter, points, cells):
+    cells = np.reshape(cells, (-1, 3))
+    points_zero = []
+    points_nonzero = []
+    cells_nonzero = []
+    for cell in cells:
+        idx1, idx2 = cell[1:]
+        coord1, coord2 = points[idx1], points[idx2]
+        length = np.sqrt(np.sum((coord2 - coord1) ** 2))
+        if np.abs(length) < 1e-8:
+            points_zero.append(coord1)
+        else:
+            xaxis = np.array(coord2 - coord1)
+            global_z = [0.0, 0.0, 1.0]
+            cos_angle = xaxis.dot(global_z) / (
+                np.linalg.norm(xaxis) * np.linalg.norm(global_z)
+            )
+            if np.abs(1 - cos_angle**2) < 1e-10:
+                yaxis = np.cross([-1.0, 0.0, 0.0], xaxis)
+            else:
+                yaxis = np.cross(global_z, xaxis)
+            xaxis = xaxis / np.linalg.norm(xaxis)
+            yaxis = yaxis / np.linalg.norm(yaxis)
+            idx = len(points_nonzero)
+            for i in range(5):
+                cells_nonzero.extend([2, idx + i, idx + i + 1])
+            points_nonzero.extend(
+                [
+                    coord1 + 0.25 * length * xaxis,
+                    coord1 + 0.25 * length * xaxis - 0.25 * length * yaxis,
+                    coord1 + 0.5 * length * xaxis + 0.25 * length * yaxis,
+                    coord1 + 0.5 * length * xaxis - 0.25 * length * yaxis,
+                    coord1 + 0.75 * length * xaxis + 0.25 * length * yaxis,
+                    coord1 + 0.75 * length * xaxis,
+                ]
+            )
+    # plot
+    if len(points_zero) > 0:
+        plotter.add_mesh(
+            pv.PolyData(points_zero),
+            color=obj.color_link,
+            point_size=obj.point_size * 2,
+            render_points_as_spheres=True,
+        )
+    if len(points_nonzero) > 0:
+        link_plot = _generate_mesh(points_nonzero, cells_nonzero, kind="line")
+        plotter.add_mesh(
+            link_plot,
+            color=obj.color_link,
+            render_lines_as_tubes=False,
+            line_width=obj.line_width / 2,
+        )
+
+
 def _plot_model(obj, plotter, model_info, cells, opacity):
     point_plot = pv.PolyData(model_info["coord_no_deform"])
     plotter.add_mesh(
@@ -557,6 +611,7 @@ def _plot_model(obj, plotter, model_info, cells, opacity):
             render_lines_as_tubes=False,
             line_width=obj.line_width / 2,
         )
+        _show_link(obj, plotter, model_info["coord_no_deform"], cells["link"])
 
     if len(cells["beam"]) > 0:
         beam_plot = _generate_mesh(
