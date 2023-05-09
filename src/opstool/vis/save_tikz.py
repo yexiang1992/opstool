@@ -53,31 +53,31 @@ def _write_end(file):
         f.write("\n\\end{document}\n")
 
 
-def _def_points(file, points, d3):
+def _def_points(file, points, d3, start_tag=0):
     with open(file, "a", encoding="utf8") as f:
         if d3:
             for i, p in enumerate(points):
-                f.write(f"\\coordinate (P{i}) at ({p[0]}, {p[1]}, {p[2]});\n")
+                f.write(f"\\coordinate (P{start_tag+i}) at ({p[0]}, {p[1]}, {p[2]});\n")
         else:
             for i, p in enumerate(points):
-                f.write(f"\\coordinate (P{i}) at ({p[0]}, {p[1]});\n")
+                f.write(f"\\coordinate (P{start_tag+i}) at ({p[0]}, {p[1]});\n")
 
 
-def _write_points(file, points, size, opacity=1.0, color="black"):
+def _write_points(file, points, size, opacity=1.0, color="black", start_tag=0):
     with open(file, "a", encoding="utf8") as f:
         for i, p in enumerate(points):
             f.write(
-                f"\\shade[ball color={color}, fill opacity={opacity}] (P{i}) circle ({size}pt);\n"
+                f"\\shade[ball color={color}, fill opacity={opacity}] (P{start_tag+i}) circle ({size}pt);\n"
             )
 
 
-def _write_lines(file, cells, line_width, opacity, line_color="black"):
+def _write_lines(file, cells, line_width, opacity, line_color="black", start_tag=0):
     cells = np.reshape(cells, (-1, 3))
     if len(cells) > 0:
         with open(file, "a", encoding="utf8") as f:
             for cell in cells:
-                idx1 = cell[1]
-                idx2 = cell[2]
+                idx1 = cell[1] + start_tag
+                idx2 = cell[2] + start_tag
                 f.write(
                     f"\\draw[{line_color},line width={line_width}pt, opacity={opacity}] "
                     f"(P{idx1}) -- (P{idx2});\n"
@@ -92,7 +92,9 @@ def _write_lines(file, cells, line_width, opacity, line_color="black"):
                 #         f"(P{idx1}) -- (P{idx2});\n")
 
 
-def _write_constraint(file, model_info, scale, line_width, d3, line_color="black"):
+def _write_constraint(
+    file, model_info, scale, line_width, d3, line_color="black", start_tag=0
+):
     points = model_info["ConstrainedCoords"] * scale
     cells = model_info["ConstrainedCells"]
     cells = np.reshape(cells, (-1, 3))
@@ -103,8 +105,8 @@ def _write_constraint(file, model_info, scale, line_width, d3, line_color="black
         if d3:
             with open(file, "a", encoding="utf8") as f:
                 for cell, mp, dof in zip(cells, midcoords, dofs):
-                    p1 = points[cell[1]]
-                    p2 = points[cell[2]]
+                    p1 = points[cell[1] + start_tag]
+                    p2 = points[cell[2] + start_tag]
                     f.write(
                         f"\\draw[{line_color},line width={line_width}pt] "
                         f"({p1[0]}, {p1[1]}, {p1[2]}) to[constraint] ({p2[0]}, {p2[1]}, {p2[2]});\n"
@@ -115,8 +117,8 @@ def _write_constraint(file, model_info, scale, line_width, d3, line_color="black
         else:
             with open(file, "a", encoding="utf8") as f:
                 for cell, mp, dof in zip(cells, midcoords, dofs):
-                    p1 = points[cell[1]]
-                    p2 = points[cell[2]]
+                    p1 = points[cell[1] + start_tag]
+                    p2 = points[cell[2] + start_tag]
                     f.write(
                         f"\\draw[{line_color},line width={line_width}pt] "
                         f"({p1[0]}, {p1[1]}) to[constraint] ({p2[0]}, {p2[1]});\n"
@@ -126,8 +128,9 @@ def _write_constraint(file, model_info, scale, line_width, d3, line_color="black
                     #     f"node[above,{line_color},font=\\fontsize{{{label_size}pt}}{{{label_size}pt}}] {{{dof}}};\n")
 
 
-def _write_faces(file, cells, color, opacity):
+def _write_faces(file, cells, color, opacity, show_face_line=True, start_tag=0):
     if len(cells) > 0:
+        lw = 1 if show_face_line else 0
         with open(file, "a", encoding="utf8") as f:
             i = 0
             while i < len(cells):
@@ -136,12 +139,102 @@ def _write_faces(file, cells, color, opacity):
                 i += num + 1
                 txt = ""
                 for idx in idxs:
-                    txt += f"(P{idx}) -- "
+                    txt += f"(P{idx+start_tag}) -- "
                 txt += "cycle;\n"
                 f.write(
-                    f"\\draw [line width=1pt, draw=black, "
+                    f"\\draw [line width={lw}pt, draw=black, "
                     f"fill={color}, fill opacity={opacity}]\n" + txt
                 )
+
+
+def _write_link(file, points, cells, lw, color, opacity, D3, start_tag=0):
+    cells = np.reshape(cells, (-1, 3))
+    points_zero = []
+    points_nonzero = []
+    cells_nonzero = []
+    for cell in cells:
+        idx1, idx2 = cell[1:]
+        coord1, coord2 = points[idx1], points[idx2]
+        length = np.sqrt(np.sum((coord2 - coord1) ** 2))
+        if np.abs(length) < 1e-8:
+            points_zero.append(coord1)
+        else:
+            xaxis = np.array(coord2 - coord1)
+            global_z = [0.0, 0.0, 1.0]
+            cos_angle = xaxis.dot(global_z) / (
+                np.linalg.norm(xaxis) * np.linalg.norm(global_z)
+            )
+            if np.abs(1 - cos_angle**2) < 1e-10:
+                yaxis = np.cross([-1.0, 0.0, 0.0], xaxis)
+            else:
+                yaxis = np.cross(global_z, xaxis)
+            xaxis = xaxis / np.linalg.norm(xaxis)
+            yaxis = yaxis / np.linalg.norm(yaxis)
+            idx = len(points_nonzero)
+            for i in range(5):
+                cells_nonzero.extend([2, idx + i, idx + i + 1])
+            points_nonzero.extend(
+                [
+                    coord1 + 0.25 * length * xaxis,
+                    coord1 + 0.25 * length * xaxis - 0.25 * length * yaxis,
+                    coord1 + 0.5 * length * xaxis + 0.25 * length * yaxis,
+                    coord1 + 0.5 * length * xaxis - 0.25 * length * yaxis,
+                    coord1 + 0.75 * length * xaxis + 0.25 * length * yaxis,
+                    coord1 + 0.75 * length * xaxis,
+                ]
+            )
+    # plot
+    if len(points_zero) > 0:
+        pass
+    if len(points_nonzero) > 0:
+        _def_points(file, points_nonzero, d3=D3, start_tag=start_tag)
+        _write_lines(
+            file,
+            cells_nonzero,
+            line_width=lw,
+            opacity=opacity,
+            line_color=color,
+            start_tag=start_tag,
+        )
+    return len(points_nonzero)
+
+
+def _write_beam_sec(file, model_info, cells, paras, start_tag=0):
+    ext_points = model_info["line_sec_ext_points"]
+    int_points = model_info["line_sec_int_points"]
+    sec_points = model_info["line_sec_points"]
+    ext_cells = cells["line_sec_ext"]
+    int_cells = cells["line_sec_int"]
+    sec_cells = cells["line_sec"]
+    _def_points(file, ext_points, d3=True, start_tag=start_tag)
+    _write_faces(
+        file,
+        ext_cells,
+        color=paras["color"],
+        opacity=paras["opacity"],
+        start_tag=start_tag,
+    )
+    _def_points(file, int_points, d3=True, start_tag=start_tag + len(ext_points))
+    _write_faces(
+        file,
+        int_cells,
+        color=paras["color"],
+        opacity=paras["opacity"],
+        start_tag=start_tag + len(ext_points),
+    )
+    _def_points(
+        file,
+        sec_points,
+        d3=True,
+        start_tag=start_tag + len(ext_points) + len(int_points),
+    )
+    _write_faces(
+        file,
+        sec_cells,
+        color=paras["color"],
+        opacity=paras["opacity"],
+        start_tag=start_tag + len(ext_points) + len(int_points),
+    )
 
 
 def save_tikz(
@@ -153,6 +246,8 @@ def save_tikz(
     solid_opacity: float = 0.6,
     point_opacity: float = 0.8,
     line_opacity: float = 1.0,
+    show_beam_sec: bool = False,
+    beam_sec_paras: dict = None,
     color_dict: dict = None,
 ):
     """Save the ``OpenSeesPy`` model data as a ``tikz`` command file in ``latex``,
@@ -176,6 +271,12 @@ def save_tikz(
         The opacity of point, by default 0.75
     line_opacity : float, optional
         The opacity of line elements, by default 1.0
+    show_beam_sec: bool default = False
+        Whether to render the 3d section of beam or truss elements.
+        If True, the Arg `beam_sec` in :py:meth:`opstool.vis.GetFEMdata.get_model_data`
+        must be assigned in advance.
+    beam_sec_paras: dict defalut = None,
+        A dict to control beam section render, optional key: color, opacity.
     color_dict : dict, optional
         The color of each type of element, by default None.
         The valid color string must be one of the ``xcolor`` package.
@@ -210,7 +311,7 @@ def save_tikz(
     _def_points(output_file, points, d3=D3)
     cell_types = ["truss", "link", "beam", "other_line"]
     keys = ["truss", "link", "line", "line"]
-    widths = [line_width, line_width / 2, line_width, line_width]
+    widths = [line_width, line_width / 3, line_width, line_width]
     for ctype, key, width in zip(cell_types, keys, widths):
         _write_lines(
             output_file,
@@ -219,11 +320,24 @@ def save_tikz(
             opacity=line_opacity,
             line_color=COLORS[key],
         )
+    if len(cells["link"]) > 0:
+        link_num = _write_link(
+            output_file,
+            points,
+            cells["link"],
+            lw=line_width / 4,
+            color=COLORS["link"],
+            opacity=line_opacity,
+            D3=D3,
+            start_tag=len(points),
+        )
+    else:
+        link_num = 0
     _write_constraint(
         output_file,
         model_info,
         scale,
-        line_width=line_width / 2,
+        line_width=line_width / 3,
         d3=D3,
         line_color=COLORS["constraint"],
     )
@@ -243,6 +357,16 @@ def save_tikz(
         opacity=point_opacity,
         color=COLORS["point"],
     )
-
+    if show_beam_sec:
+        paras = dict(color="gray", opacity=0.25, texture=False)
+        if beam_sec_paras is not None:
+            paras.update(beam_sec_paras)
+        _write_beam_sec(
+            output_file,
+            model_info,
+            cells,
+            paras=paras,
+            start_tag=len(points) + link_num,
+        )
     # write end
     _write_end(output_file)

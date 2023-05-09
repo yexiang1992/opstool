@@ -12,7 +12,7 @@ opst.load_ops_examples("CableStayedBridge")
 # opst.load_ops_examples("SuspensionBridge")
 # opst.plot_model(backend="pyvista")    # or backend="plotly"
 # opst.plot_eigen(mode_tags=[1, 12], backend="pyvista", subplots=True)   # or backend="plotly"
-opst.gen_grav_load(ts_tag=1, pattern_tag=1, factor=-9.81, direction="Z")
+# opst.gen_grav_load(ts_tag=1, pattern_tag=1, factor=-9.81, direction="Z")
 ModelData = opst.GetFEMdata()
 ModelData.get_model_data()
 ModelData.get_eigen_data(mode_tag=15)
