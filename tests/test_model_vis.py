@@ -4,7 +4,7 @@ import opstool as opst
 
 #
 opst.load_ops_examples("ArchBridge")
-opst.load_ops_examples("CableStayedBridge")
+# opst.load_ops_examples("CableStayedBridge")
 # opst.load_ops_examples("Dam")
 # opst.load_ops_examples("Frame3D")
 # opst.load_ops_examples("Igloo")

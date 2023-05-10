@@ -41,6 +41,10 @@ class SecMesh:
         self.centers_map = dict()
         self.areas_map = dict()
         self.center = None
+        self._area = 0.0
+        self._iy = 0.0
+        self._iz = 0.0
+        self._j = 0.0
 
         # * data group
         self.group_map = dict()
@@ -183,6 +187,7 @@ class SecMesh:
             idx = triangle_attributes == attri
             self.cells_map[name] = triangles[idx[:, 0]]
         # * fiber data
+        iys, izs = [], []
         for name, faces in self.cells_map.items():
             areas = []
             centers = []
@@ -198,6 +203,8 @@ class SecMesh:
                     x2 * y3 + x1 * y2 + x3 * y1 - x3 * y2 - x2 * y1 - x1 * y3
                 )
                 areas.append(area_)
+                iys.append(area_ * xyo[1] ** 2)
+                izs.append(area_ * xyo[0] ** 2)
             self.areas_map[name] = np.array(areas)
             self.centers_map[name] = np.array(centers)
         centers = []
@@ -207,8 +214,10 @@ class SecMesh:
             areas.append(self.areas_map[name])
         centers = np.vstack(centers)
         areas = np.hstack(areas)
-        center = areas @ centers / np.sum(areas)
-        self.center = center
+        self._area = np.sum(areas)
+        self.center = areas @ centers / self._area
+        self._iy = np.sum(iys)
+        self._iz = np.sum(izs)
 
     def add_rebars(self, rebars_obj):
         """Add rebars.
@@ -233,6 +242,64 @@ class SecMesh:
             fiber center dict, fiber area dict
         """
         return self.centers_map, self.areas_map
+
+    def get_area(self):
+        """Return section area.
+
+        Returns
+        -------
+        Float
+        """
+        if self.frame_sec_props:
+            return self.frame_sec_props["A"]
+        elif self.sec_props:
+            return self.sec_props["A"]
+        else:
+            return self._area
+
+    def get_iy(self):
+        """Return Moment of inertia of the section around the y-axis.
+
+        Returns
+        -------
+        Float
+        """
+        if self.frame_sec_props:
+            return self.frame_sec_props["Iy"]
+        elif self.sec_props:
+            return self.sec_props["Iy"]
+        else:
+            return self._iy
+
+    def get_iz(self):
+        """Return Moment of inertia of the section around the z-axis.
+
+        Returns
+        -------
+        Float
+        """
+        if self.frame_sec_props:
+            return self.frame_sec_props["Iz"]
+        elif self.sec_props:
+            return self.sec_props["Iz"]
+        else:
+            return self._iz
+
+    def get_j(self):
+        """Return section torsion constant.
+
+        Returns
+        -------
+        Float
+        """
+        if self.frame_sec_props:
+            return self.frame_sec_props["J"]
+        elif self.sec_props:
+            return self.sec_props["J"]
+        else:
+            raise ValueError(
+                "The Section Properties method <get_frame_props> or <get_sec_props> has not been run!"
+            )
 
     def _run_sec_props(self, Eref, Gref, section):
         # Second moments of area centroidal axis
