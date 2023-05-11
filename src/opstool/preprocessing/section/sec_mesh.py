@@ -83,6 +83,8 @@ class SecMesh:
         ------------
         mesh_size : dict[str, float]
             A dict of name as key, mesh size as value.
+            The mesh sizes describe the maximum mesh element area to be
+            used in the finite-element mesh for each Geometry object.
 
         Returns
         ------------
