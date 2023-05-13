@@ -41,10 +41,10 @@ class SecMesh:
         self.centers_map = dict()
         self.areas_map = dict()
         self.center = None
-        self._area = 0.0
-        self._iy = 0.0
-        self._iz = 0.0
-        self._j = 0.0
+        self.area = 0.0
+        self.Iy = 0.0
+        self.Iz = 0.0
+        self.J = 0.0
 
         # * data group
         self.group_map = dict()
@@ -216,10 +216,10 @@ class SecMesh:
             areas.append(self.areas_map[name])
         centers = np.vstack(centers)
         areas = np.hstack(areas)
-        self._area = np.sum(areas)
-        self.center = areas @ centers / self._area
-        self._iy = np.sum(iys)
-        self._iz = np.sum(izs)
+        self.area = np.sum(areas)
+        self.center = areas @ centers / self.area
+        self.Iy = np.sum(iys)
+        self.Iz = np.sum(izs)
 
     def add_rebars(self, rebars_obj):
         """Add rebars.
@@ -252,12 +252,14 @@ class SecMesh:
         -------
         Float
         """
+        area = 0
         if self.frame_sec_props:
-            return self.frame_sec_props["A"]
+            area = self.frame_sec_props["A"]
         elif self.sec_props:
-            return self.sec_props["A"]
+            area = self.sec_props["A"]
         else:
-            return self._area
+            area = self.area
+        return area
 
     def get_iy(self):
         """Return Moment of inertia of the section around the y-axis.
@@ -266,12 +268,14 @@ class SecMesh:
         -------
         Float
         """
+        iy = 0
         if self.frame_sec_props:
-            return self.frame_sec_props["Iy"]
+            iy = self.frame_sec_props["Iy"]
         elif self.sec_props:
-            return self.sec_props["Iy"]
+            iy = self.sec_props["Iy"]
         else:
-            return self._iy
+            iy = self.Iy
+        return iy
 
     def get_iz(self):
         """Return Moment of inertia of the section around the z-axis.
@@ -280,12 +284,14 @@ class SecMesh:
         -------
         Float
         """
+        iz = 0
         if self.frame_sec_props:
-            return self.frame_sec_props["Iz"]
+            iz = self.frame_sec_props["Iz"]
         elif self.sec_props:
-            return self.sec_props["Iz"]
+            iz = self.sec_props["Iz"]
         else:
-            return self._iz
+            iz = self.Iz
+        return iz
 
     def get_j(self):
         """Return section torsion constant.
@@ -294,14 +300,16 @@ class SecMesh:
         -------
         Float
         """
+        j = 0
         if self.frame_sec_props:
-            return self.frame_sec_props["J"]
+            j = self.frame_sec_props["J"]
         elif self.sec_props:
-            return self.sec_props["J"]
+            j = self.sec_props["J"]
         else:
             raise ValueError(
                 "The Section Properties method <get_frame_props> or <get_sec_props> has not been run!"
             )
+        return j
 
     def _run_sec_props(self, Eref, Gref, section):
         # Second moments of area centroidal axis
@@ -329,7 +337,10 @@ class SecMesh:
             # St. Venant torsion constant
             j_ = section.get_j()
             j = G_eff / E_eff * j_ / Gref
-
+        self.area = area
+        self.Iy = ixx_c / Eref
+        self.Iz = iyy_c / Eref
+        self.J = j
         if self.rebar_data:
             all_rebar_area = 0
             for data in self.rebar_data:
@@ -554,6 +565,10 @@ class SecMesh:
         if Eref != 1.0:  # composite section
             # St. Venant torsion constant
             j = G_eff / E_eff * j / Gref
+        self.area = area
+        self.Iy = ixx_c / Eref
+        self.Iz = iyy_c / Eref
+        self.J = j
         if self.rebar_data:
             all_rebar_area = 0
             for data in self.rebar_data:
