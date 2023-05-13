@@ -105,15 +105,15 @@ def get_mp_constraint(node_coords, node_index):
     midpoints = []
     cells = []
     dofs = []
-    for i, tag in enumerate(retained_nodes):
+    for tag in retained_nodes:
         constrained_nodes = ops.getConstrainedNodes(tag)
         for tag2 in constrained_nodes:
+            cells.extend([2, len(points), len(points) + 1])
             points.append(node_coords[node_index[tag]])
             points.append(node_coords[node_index[tag2]])
             midpoints.append(
                 (node_coords[node_index[tag]] + node_coords[node_index[tag2]]) / 2
             )
-            cells.extend([2, 2 * i, 2 * i + 1])
             dof = ops.getRetainedDOFs(tag, tag2)
             dofs.append(dof)
     if dofs:

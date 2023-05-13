@@ -117,8 +117,8 @@ def _show_mp_constraint(obj, plotter, model_info, show_dofs):
         plotter.add_mesh(
             mesh,
             color=obj.color_constraint,
-            render_lines_as_tubes=False,
-            line_width=obj.line_width / 3,
+            render_lines_as_tubes=True,
+            line_width=obj.line_width / 2,
         )
         if show_dofs:
             plotter.add_point_labels(
