@@ -1052,7 +1052,7 @@ def _eigen_vis(
             eigen_vec = eigenvector[idx - 1]
             value_ = np.max(np.sqrt(np.sum(eigen_vec**2, axis=1)))
             alpha_ = eigen_data["max_bound"] / obj.bound_fact / value_
-            alpha_ *= alpha if alpha else alpha_
+            alpha_ = alpha_ * alpha if alpha else alpha_
             eigen_points = eigen_data["coord_no_deform"] + eigen_vec * alpha_
             scalars = np.sqrt(np.sum(eigen_vec**2, axis=1))
 
@@ -1137,7 +1137,7 @@ def _eigen_vis(
             eigen_vec = eigenvector[step]
             value_ = np.max(np.sqrt(np.sum(eigen_vec**2, axis=1)))
             alpha_ = eigen_data["max_bound"] / obj.bound_fact / value_
-            alpha_ *= alpha if alpha else alpha_
+            alpha_ = alpha_ * alpha if alpha else alpha_
             eigen_points = eigen_data["coord_no_deform"] + eigen_vec * alpha_
             scalars = np.sqrt(np.sum(eigen_vec**2, axis=1))
             cmins.append(np.min(scalars))
@@ -1263,7 +1263,7 @@ def _eigen_anim(
     f_ = f[mode_tag - 1]
     value_ = np.max(np.sqrt(np.sum(eigen_vec**2, axis=1)))
     alpha_ = eigen_data["max_bound"] / obj.bound_fact / value_
-    alpha_ *= alpha if alpha else alpha_
+    alpha_ = alpha_ * alpha if alpha else alpha_
     eigen_points = eigen_data["coord_no_deform"] + eigen_vec * alpha_
     anti_eigen_points = eigen_data["coord_no_deform"] - eigen_vec * alpha_
     scalars = np.sqrt(np.sum(eigen_vec**2, axis=1))
@@ -1699,7 +1699,7 @@ def _deform_vis(
         )
         value = np.max(np.sqrt(np.sum(max_node_resp**2, axis=1)))
         alpha_ = max_bound / obj.bound_fact / value
-        alpha_ *= alpha if alpha else alpha_
+        alpha_ = alpha_ * alpha if alpha else alpha_
     else:
         alpha_ = 0
     # ------------------------------------------------------------------------
@@ -1953,7 +1953,7 @@ def _deform_anim(
         )
         value = np.max(np.sqrt(np.sum(max_node_resp**2, axis=1)))
         alpha_ = max_bound / obj.bound_fact / value
-        alpha_ *= alpha if alpha else alpha_
+        alpha_ = alpha_ * alpha if alpha else alpha_
     else:
         alpha_ = 0
 
@@ -2188,7 +2188,7 @@ def _frame_resp_vis(
     max_bound = np.max(max_coord - min_coord)
     maxv = np.amax(np.abs(local_forces_max))
     alpha_ = max_bound / maxv / obj.bound_fact
-    alpha_ *= alpha if alpha else alpha_
+    alpha_ = alpha_ * alpha if alpha else alpha_
 
     # ------------------------------------------------------------------------
     fig = go.Figure()

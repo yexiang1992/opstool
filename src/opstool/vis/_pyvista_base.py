@@ -700,7 +700,7 @@ def _eigen_vis(
         eigen_vec = eigenvector[step]
         value_ = np.max(np.sqrt(np.sum(eigen_vec**2, axis=1)))
         alpha_ = eigen_data["max_bound"] / obj.bound_fact / value_
-        alpha_ = alpha * alpha if alpha else alpha_
+        alpha_ = alpha_ * alpha if alpha else alpha_
         eigen_points = eigen_data["coord_no_deform"] + eigen_vec * alpha_
         scalars = np.sqrt(np.sum(eigen_vec**2, axis=1))
         _ = _generate_all_mesh(
