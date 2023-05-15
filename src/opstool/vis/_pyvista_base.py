@@ -1257,7 +1257,7 @@ def _deform_peak_vis(
             node_resp_steps[name] = temp
     # ! max response
     idxs = np.argmax(np.abs(node_resp_steps[resp_type]), axis=0)
-    node_resp = np.zeros_like(idxs)
+    node_resp = np.zeros_like(idxs, dtype=float)
     for i in range(idxs.shape[0]):
         for j in range(idxs.shape[1]):
             node_resp[i, j] = node_resp_steps[resp_type][idxs[i, j]][i, j]
