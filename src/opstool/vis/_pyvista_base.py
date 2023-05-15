@@ -7,7 +7,6 @@ import pyvista as pv
 
 from ..utils import check_file, shape_dict
 
-
 def _model_vis(
     obj,
     input_file: str = "ModelData.hdf5",
@@ -1213,6 +1212,133 @@ def _deform_vis(
     # -------------------------------------------------------------------------
     else:  # plot a single step
         create_mesh(max_step + 1)
+    plotter.view_isometric()
+    if np.max(model_dims) <= 2:
+        plotter.view_xy(negative=False)
+    if save_fig:
+        plotter.save_graphic(save_fig)
+    plotter.enable_anti_aliasing("msaa")
+    plotter.show(title=obj.title)
+    plotter.close()
+
+
+def _deform_peak_vis(
+    obj,
+    input_file: str = "NodeRespStepData-1.hdf5",
+    response: str = "disp",
+    alpha: float = 1.0,
+    show_outline: bool = False,
+    show_origin: bool = False,
+    show_face_line: bool = True,
+    opacity: float = 1,
+    save_fig: str = "DefoVis.svg",
+):
+    resp_type = response.lower()
+    if resp_type not in ["disp", "vel", "accel"]:
+        raise ValueError("response must be 'disp', 'vel', or 'accel'!")
+
+    filename = obj.out_dir + "/" + input_file
+    model_info_steps = dict()
+    cell_steps = dict()
+    node_resp_steps = dict()
+    with h5py.File(filename, "r") as f:
+        n = int(f["Nsteps"][...])
+        grp1 = f["ModelInfoSteps"]
+        grp2 = f["CellSteps"]
+        for name, value_ in grp1.items():
+            model_info_steps[name] = value_[...]
+        for name, value_ in grp2.items():
+            cell_steps[name] = value_[...]
+        grp3 = f["NodeRespSteps"]
+        for name, value_ in grp3.items():
+            temp = []
+            for i in range(n):
+                temp.append(value_[f"step{i + 1}"][...])
+            node_resp_steps[name] = temp
+    # ! max response
+    idxs = np.argmax(np.abs(node_resp_steps[resp_type]), axis=0)
+    node_resp = np.zeros_like(idxs)
+    for i in range(idxs.shape[0]):
+        for j in range(idxs.shape[1]):
+            node_resp[i, j] = node_resp_steps[resp_type][idxs[i, j]][i, j]
+    max_resps = np.amax(np.abs(node_resp_steps[resp_type]), axis=0)
+    scalars = np.sqrt(np.sum(max_resps**2, axis=1))
+    cmin, cmax = np.min(scalars), np.max(scalars)
+    bounds = model_info_steps["bound"]
+    model_dims = model_info_steps["model_dims"]
+    # scale factor
+    if resp_type == "disp":
+        max_bound = np.max(
+            [bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4]]
+        )
+        value = np.max(scalars)
+        alpha_ = max_bound / obj.bound_fact / value
+        alpha_ = alpha_ * alpha if alpha else alpha_
+    else:
+        alpha_ = 0
+    # ------------------------------------------------------------------------
+    # Start plot
+    # -------------------------------------------------------------------------
+    plotter = pv.Plotter(notebook=obj.notebook, line_smoothing=True)
+    node_nodeform_coords = model_info_steps["coord_no_deform"]
+    lines_cells = cell_steps["all_lines"]
+    faces_cells = cell_steps["all_faces"]
+    node_deform_coords = alpha_ * node_resp + node_nodeform_coords
+    _ = _generate_all_mesh(
+        plotter,
+        node_deform_coords,
+        scalars,
+        opacity,
+        obj.color_map,
+        lines_cells=lines_cells,
+        face_cells=faces_cells,
+        show_origin=show_origin,
+        points_origin=node_nodeform_coords,
+        point_size=obj.point_size,
+        line_width=obj.line_width,
+        show_face_line=show_face_line,
+        clim=[cmin, cmax],
+    )
+
+    plotter.add_scalar_bar(fmt="%.3e", n_labels=10, label_font_size=12)
+
+    plotter.add_text(
+        "OpenSees 3D View",
+        position="upper_left",
+        shadow=True,
+        font_size=18,
+        # color="black",
+        font="courier",
+    )
+    plotter.add_text(
+        "peak of {}\n"
+        "min.x = {:.3E}  max.x = {:.3E}\n"
+        "min.y = {:.3E}  max.y = {:.3E}\n"
+        "min.z = {:.3E}  max.z = {:.3E}\n".format(
+            response,
+            np.min(node_resp[:, 0]),
+            np.max(node_resp[:, 0]),
+            np.min(node_resp[:, 1]),
+            np.max(node_resp[:, 1]),
+            np.min(node_resp[:, 2]),
+            np.max(node_resp[:, 2]),
+        ),
+        position="upper_right",
+        shadow=True,
+        font_size=14,
+        # color="black",
+        font="courier",
+    )
+
+    if show_outline:
+        plotter.show_bounds(
+            grid=False,
+            location="outer",
+            bounds=bounds,
+            show_zaxis=True,
+            # color="black",
+        )
+    plotter.add_axes()
     plotter.view_isometric()
     if np.max(model_dims) <= 2:
         plotter.view_xy(negative=False)

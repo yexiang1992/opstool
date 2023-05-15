@@ -8,6 +8,7 @@ from ..utils import check_file
 from ._pyvista_base import (
     _deform_anim,
     _deform_vis,
+    _deform_peak_vis,
     _eigen_anim,
     _eigen_vis,
     _frame_resp_vis,
@@ -514,6 +515,73 @@ class OpsVisPyvista:
             show_face_line=show_face_line,
             save_fig=save_fig,
             model_update=model_update,
+        )
+
+    def deform_peak_vis(
+        self,
+        input_file: str = "NodeRespStepData-1.hdf5",
+        response: str = "disp",
+        alpha: float = 1.0,
+        show_outline: bool = False,
+        show_origin: bool = False,
+        show_face_line: bool = True,
+        opacity: float = 1,
+        save_fig: str = "DefoVis.svg"
+    ):
+        """Visualize the node peak responses of the model at all analysis steps.
+        That is to say, the response of each node in each direction is the absolute maximum
+        value in all its time steps.
+
+        .. note::
+            This method does not support the arg `model_update`,
+            i.e. model nodes and elements do not change during the analysis.
+
+        Parameters
+        ----------
+        input_file: str, default = "NodeRespStepData-1.hdf5",
+            The filename that node responses data saved by
+            :py:meth:`opstool.vis.GetFEMdata.get_node_resp_step`.
+
+            .. warning::
+                Be careful not to include any path, only filename,
+                the file will be loaded from the directory ``results_dir``.
+
+        response: str, default='disp'
+            Response type. Optional, "disp", "vel", "accel".
+        alpha: float, default=1.0
+            Scaling factor, scale further on existing display.
+        show_outline: bool, default=False
+            Whether to display the axes.
+        show_origin: bool, default=False
+            Whether to show undeformed shape.
+        show_face_line: bool, default=True
+            If True, the edges of plate and solid elements will be displayed.
+        opacity: float, default=1.0
+            Plane and solid element transparency.
+        save_fig: str, default='DefoVis.svg'
+            The file name to output. If False or None, the file will not be generated.
+            The supported formats are:
+
+            * '.svg'
+            * '.eps'
+            * '.ps'
+            * '.pdf'
+            * '.tex'
+
+        Returns
+        --------
+        None
+        """
+        _deform_peak_vis(
+            self,
+            input_file=input_file,
+            response=response,
+            alpha=alpha,
+            show_outline=show_outline,
+            show_origin=show_origin,
+            show_face_line=show_face_line,
+            opacity=opacity,
+            save_fig=save_fig
         )
 
     def frame_resp_vis(

@@ -322,9 +322,9 @@ class GetFEMdata:
         # --------------------------------
         if save_file:
             if (
-                self.step_node_track >= num_steps
-                or ops.getTime() >= total_time
-                or stop_cond
+                self.step_node_track >= num_steps or
+                ops.getTime() >= total_time or
+                stop_cond
             ):
                 output_filename = self.out_dir + "/" + save_file
                 self._save_node_react_step(output_filename, "w")
@@ -409,7 +409,7 @@ class GetFEMdata:
             self.get_model_data(save_file=False)
         else:
             if not self.get_model_data_finished:
-                self.get_model_data()
+                self.get_model_data(save_file=False)
 
         node_tags = self.model_info["NodeTags"]
         (node_disp, node_vel, node_accel, node_deform_coord) = get_node_resp(node_tags)
@@ -439,9 +439,9 @@ class GetFEMdata:
         # --------------------------------
         if save_file:
             if (
-                self.step_node_track >= num_steps
-                or ops.getTime() >= total_time
-                or stop_cond
+                self.step_node_track >= num_steps or
+                ops.getTime() >= total_time or
+                stop_cond
             ):
                 output_filename = self.out_dir + "/" + save_file
                 self._save_node_resp_step(output_filename, "w")
@@ -546,9 +546,9 @@ class GetFEMdata:
         # ------------------------------------------
         if save_file:
             if (
-                self.step_beam_track >= num_steps
-                or ops.getTime() >= total_time
-                or stop_cond
+                self.step_beam_track >= num_steps or
+                ops.getTime() >= total_time or
+                stop_cond
             ):
                 output_filename = self.out_dir + "/" + save_file
                 self._save_frame_resp_step(output_filename, "w")
@@ -688,9 +688,9 @@ class GetFEMdata:
         # ------------------------
         if save_file:
             if (
-                self.step_fiber_track >= num_steps
-                or ops.getTime() >= total_time
-                or stop_cond
+                self.step_fiber_track >= num_steps or
+                ops.getTime() >= total_time or
+                stop_cond
             ):
                 output_filename = self.out_dir + "/" + save_file
                 self._save_fiber_resp_step(output_filename, "w")
