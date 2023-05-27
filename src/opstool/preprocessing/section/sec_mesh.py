@@ -160,14 +160,17 @@ class SecMesh:
         # mat_names = [geom.material.name for geom in self.group_map.values()]
         for name, geom in self.group_map.items():
             # if len(mat_names) != len(set(mat_names)):
-            geom.material = add_material(
-                name=name,
-                elastic_modulus=geom.material.elastic_modulus,
-                poissons_ratio=geom.material.poissons_ratio,
-                yield_strength=geom.material.yield_strength,
-                density=geom.material.density,
-                color=self.color_map[name],
-            )
+            if geom.material is None:
+                geom.material = add_material(name=name, color=self.color_map[name])
+            else:
+                geom.material = add_material(
+                    name=name,
+                    elastic_modulus=geom.material.elastic_modulus,
+                    poissons_ratio=geom.material.poissons_ratio,
+                    yield_strength=geom.material.yield_strength,
+                    density=geom.material.density,
+                    color=self.color_map[name],
+                )
             geoms.append(geom)
             mesh_sizes.append(self.mesh_size_map[name])
         geom_obj = CompoundGeometry(geoms)
@@ -1055,7 +1058,7 @@ class SecMesh:
             output.write(f"set secTag {sec_tag}\n")
             temp = "{"
             output.write(
-                f"section fiberSec $secTag -GJ {gj}{temp};    # Define the fiber section\n"
+                f"section fiberSec $secTag -GJ {gj} {temp};    # Define the fiber section\n"
             )
             for name in names:
                 centers = self.centers_map[name]
@@ -1063,7 +1066,7 @@ class SecMesh:
                 mat_tag = self.mat_ops_map[name]
                 for center, area in zip(centers, areas):
                     output.write(
-                        f"    fiber  {center[0]:.3E}  {center[1]:.3E}  {area:.3E}  {mat_tag}\n"
+                        f"    fiber  {center[0]:.8E}  {center[1]:.8E}  {area:.8E}  {mat_tag}\n"
                     )
             # rebar
             for data in self.rebar_data:
@@ -1074,7 +1077,7 @@ class SecMesh:
                 for xy in rebar_xy:
                     area = np.pi / 4 * dia**2
                     output.write(
-                        f"    fiber {xy[0]:.3E} {xy[1]:.3E} {area:.3E} {mat_tag}\n"
+                        f"    fiber {xy[0]:.8E} {xy[1]:.8E} {area:.8E} {mat_tag}\n"
                     )
             output.write("};    # end of fibersection definition")
 
@@ -1092,7 +1095,7 @@ class SecMesh:
                 mat_tag = self.mat_ops_map[name]
                 for center, area in zip(centers, areas):
                     output.write(
-                        f"ops.fiber({center[0]:.3E}, {center[1]:.3E}, {area:.3E}, {mat_tag})\n"
+                        f"ops.fiber({center[0]:.8E}, {center[1]:.8E}, {area:.8E}, {mat_tag})\n"
                     )
             # rebar
             for data in self.rebar_data:
@@ -1103,7 +1106,7 @@ class SecMesh:
                 for xy in rebar_xy:
                     area = np.pi / 4 * dia**2
                     output.write(
-                        f"ops.fiber({xy[0]:.3E}, {xy[1]:.3E}, {area:.3E}, {mat_tag})\n"
+                        f"ops.fiber({xy[0]:.8E}, {xy[1]:.8E}, {area:.8E}, {mat_tag})\n"
                     )
 
     def view(

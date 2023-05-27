@@ -16,7 +16,7 @@ opst.load_ops_examples("ArchBridge")
 ModelData = opst.GetFEMdata()
 ModelData.get_model_data()
 ModelData.get_eigen_data(mode_tag=15)
-opsv = opst.OpsVisPyvista(
+opsv = opst.OpsVisPlotly(
     point_size=4,
     line_width=4,
     colors_dict=None,

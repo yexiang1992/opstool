@@ -200,6 +200,7 @@ class OpsVis2D:
         show_origin: bool = False,
         show_point: bool = False,
         show_face_line: bool = True,
+        show_cmap: bool = True,
         opacity: float = 1.0,
     ):
         filename = self.out_dir + "/" + input_file
@@ -224,6 +225,7 @@ class OpsVis2D:
             aspect_ratio = 2.0
         if aspect_ratio < 0.5:
             aspect_ratio = 0.5
+        cmap = self.color_map if show_cmap else None
 
         def create_mesh(value_i):
             step = int(round(value_i)) - 1
@@ -240,7 +242,8 @@ class OpsVis2D:
                     ax,
                     eigen_pointsi,
                     self.point_size,
-                    cmap=self.color_map,
+                    color="blue",
+                    cmap=cmap,
                     scalars=scalarsi,
                     clim=(np.min(scalarsi), np.max(scalarsi)),
                 )
@@ -250,7 +253,8 @@ class OpsVis2D:
                     eigen_pointsi,
                     _reshape_cell(eigen_data["all_lines"]),
                     width=self.line_width,
-                    cmap=self.color_map,
+                    color="blue",
+                    cmap=cmap,
                     n_segs=50,
                     scalars=scalarsi,
                     clim=(np.min(scalarsi), np.max(scalarsi)),
@@ -264,23 +268,33 @@ class OpsVis2D:
                         color="gray",
                     )
             if len(eigen_data["all_faces"]) > 0:
-                _plot_face(
-                    ax,
-                    eigen_pointsi,
-                    _reshape_cell(eigen_data["all_faces"]),
-                    lw=0.75,
-                    cmap=self.color_map,
-                    opacity=opacity,
-                    scalars=scalarsi,
-                    clim=(np.min(scalarsi), np.max(scalarsi)),
-                )
-                if show_face_line:
+                if cmap:
+                    _plot_face(
+                        ax,
+                        eigen_pointsi,
+                        _reshape_cell(eigen_data["all_faces"]),
+                        lw=0.75,
+                        color="blue",
+                        cmap=self.color_map,
+                        opacity=opacity,
+                        scalars=scalarsi,
+                        clim=(np.min(scalarsi), np.max(scalarsi)),
+                    )
+                    if show_face_line:
+                        _plot_wireframe(
+                            ax,
+                            eigen_pointsi,
+                            _reshape_cell(eigen_data["all_faces"]),
+                            lw=self.line_width / 5,
+                            color="k",
+                        )
+                else:
                     _plot_wireframe(
                         ax,
                         eigen_pointsi,
                         _reshape_cell(eigen_data["all_faces"]),
-                        lw=self.line_width / 5,
-                        color="k",
+                        lw=self.line_width,
+                        color="blue",
                     )
                 if show_origin:
                     _plot_wireframe(

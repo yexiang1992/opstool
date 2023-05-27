@@ -7,7 +7,6 @@ from typing import Union
 import h5py
 import numpy as np
 import openseespy.opensees as ops
-from numpy.typing import ArrayLike
 from rich import print
 
 from ..utils import check_file
@@ -18,6 +17,7 @@ from ._get_model_base import (
     get_node_coords,
     get_node_react,
     get_node_resp,
+    get_fiber_sec_data,
 )
 
 
@@ -605,7 +605,7 @@ class GetFEMdata:
             ele_tag = ele_sec_i[0]
             sec_tag = ele_sec_i[1]
             key = f"{ele_sec_i[0]}-{ele_sec_i[1]}"
-            fiber_data = _get_fiber_sec_data(ele_tag, sec_tag)
+            fiber_data = get_fiber_sec_data(ele_tag, sec_tag)
             self.fiber_sec_data[key] = fiber_data
         # ---------------------------------------------
         if save_file:
@@ -665,7 +665,7 @@ class GetFEMdata:
             ele_tag = ele_sec_i[0]
             sec_tag = ele_sec_i[1]
             key = f"{ele_sec_i[0]}-{ele_sec_i[1]}"
-            fiber_data = _get_fiber_sec_data(ele_tag, sec_tag)
+            fiber_data = get_fiber_sec_data(ele_tag, sec_tag)
             defo_fo = ops.eleResponse(
                 ele_tag, "section", sec_tag, "forceAndDeformation"
             )
@@ -774,26 +774,3 @@ class GetFEMdata:
         print(
             f"All responses data saved in [bold {next(self.colors_cycle)}]{filename}[/]!"
         )
-
-
-def _get_fiber_sec_data(ele_tag: int, sec_tag: int = 1):
-    """Get the fiber sec data for a beam element.
-
-    Parameters
-    ----------
-    ele_tag: int
-        The element tag to which the section is to be displayed.
-    sec_tag: int
-        Which integration point section is displayed, tag from 1 from segment i to j.
-
-    Returns
-    -------
-    fiber_data: ArrayLike
-    """
-    # Extract fiber data using eleResponse() command
-    fiber_data = ops.eleResponse(ele_tag, "section", sec_tag, "fiberData2")
-    if len(fiber_data) == 0:
-        fiber_data = ops.eleResponse(ele_tag, "section", "fiberData2")
-    # From column 1 to 6: "yCoord", "zCoord", "area", 'mat', "stress", "strain"
-    fiber_data = np.reshape(fiber_data, (-1, 6))  # to six columns
-    return fiber_data

@@ -58,6 +58,8 @@ def tcl2py(input_file: str,
             fw.write(import_txt)
             for line in contents:
                 fw.write(line + "\n")
+    print(f"[bold #34bf49]OpenSeesPy[/bold #34bf49] file "
+          f"[bold #d20962]{output_file}[/bold #d20962] has been created successfully!")
 
 
 def _TclInterp(prefix):
@@ -65,8 +67,10 @@ def _TclInterp(prefix):
     contents = []
 
     def _puts(*args):
-        # print(*args)
-        pass
+        if len(args) == 1:
+            contents.append(f"print('{args[0]}')")
+        else:
+            contents.append(f"print{args}")
 
     def _wipe(*args):
         args = _remove_commit(args)

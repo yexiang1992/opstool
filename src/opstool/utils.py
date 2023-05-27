@@ -1,4 +1,6 @@
+import sys
 import numpy as np
+from pathlib import Path
 from typing import Union
 
 # The element class Tag in OpenSees, which is used to determine the element type
@@ -266,7 +268,7 @@ def load_ops_examples(name: str):
     name: str,
         Optional, "ArchBridge", "ArchBridge2", "CableStayedBridge", "Dam",
         "Frame3D", "Frame3D2", "Igloo", "Pier", "SuspensionBridge", "SDOF",
-        "DamBreak", "GridFrame", "Shell3D"
+        "DamBreak", "GridFrame", "Shell3D".
 
     Returns:
     --------
@@ -335,8 +337,49 @@ def load_ops_examples(name: str):
 
         Shell3D()
     else:
-        raise ValueError(f"not supported example {name}!")
+        print(f"Not supported example {name}!")
+        print(f"Now try treating {name} as your own model file and run it!")
+        run_model(name)
 
+
+def run_model(file_name: str):
+    """
+    Run your OpenSees model python file.
+
+    Parameters
+    ----------
+    file_name: str
+        OpenSees python file name.
+
+    Returns
+    --------
+    None
+    """
+    if not file_name.endswith(".py"):
+        file_name += ".py"
+    with open(file_name, 'r') as f:
+        exec(f.read())
+
+
+def add_ops_hints_file():
+    src_file = Path(__file__).resolve().parent / "opensees.pyi"
+    if sys.platform.startswith('linux'):
+        import openseespylinux.opensees as ops
+        tar_file = Path(ops.__file__).resolve().parent / "opensees.pyi"
+    elif sys.platform.startswith('win'):
+        import openseespywin.opensees as ops
+        tar_file = Path(ops.__file__).resolve().parent / "opensees.pyi"
+    elif sys.platform.startswith('darwin'):
+        import openseespymac.opensees as ops
+        tar_file = Path(ops.__file__).resolve().parent / "opensees.pyi"
+    else:
+        raise RuntimeError(sys.platform + ' is not supported yet')
+    tar_file.write_text(src_file.read_text(encoding="utf-8"), encoding="utf-8")
+    print(f"opstool:: opensees.pyi file has been created to {tar_file}!")
+
+def print_version():
+    from .__about__ import __version__
+    print(__version__)
 
 def _get_random_color():
     colors = [

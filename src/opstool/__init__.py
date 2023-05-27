@@ -1,5 +1,5 @@
 from .__about__ import __version__
-from .utils import load_ops_examples
+from .utils import load_ops_examples, run_model, print_version, add_ops_hints_file
 from .vis import *
 from .analysis import *
 from .preprocessing import *
@@ -17,5 +17,8 @@ _membs_all = vis.__all__ + preprocessing.__all__ + analysis.__all__
 
 __all__ = [
     "load_ops_examples",
+    "run_model",
+    "print_version",
+    "add_ops_hints_file",
     "__version__",
 ] + _membs_all

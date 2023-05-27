@@ -763,6 +763,29 @@ def get_beam_resp(beam_tags):
     return beam_resp_steps
 
 
+def get_fiber_sec_data(ele_tag: int, sec_tag: int = 1):
+    """Get the fiber sec data for a beam element.
+
+    Parameters
+    ----------
+    ele_tag: int
+        The element tag to which the section is to be displayed.
+    sec_tag: int
+        Which integration point section is displayed, tag from 1 from segment i to j.
+
+    Returns
+    -------
+    fiber_data: ArrayLike
+    """
+    # Extract fiber data using eleResponse() command
+    fiber_data = ops.eleResponse(ele_tag, "section", sec_tag, "fiberData2")
+    if len(fiber_data) == 0:
+        fiber_data = ops.eleResponse(ele_tag, "section", "fiberData2")
+    # From column 1 to 6: "yCoord", "zCoord", "area", 'mat', "stress", "strain"
+    fiber_data = np.reshape(fiber_data, (-1, 6))  # to six columns
+    return fiber_data
+
+
 def sort_xy(x, y):
     """
     Sort points counterclockwise

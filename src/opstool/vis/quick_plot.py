@@ -167,6 +167,7 @@ def plot_eigen(
     show_origin: bool = False,
     opacity: float = 1.0,
     show_face_line: bool = True,
+    show_cmap: bool = True,
 ):
     """Fast eigen visualization.
 
@@ -200,6 +201,9 @@ def plot_eigen(
         Plane and solid element transparency.
     show_face_line: bool, default=True
         If True, the edges of plate and solid elements will be displayed.
+    show_cmap: bool, default=True
+        If True, display the cloud plot, else only the deformation with single color.
+        Only supported for `backend="matplotlib"`.
     """
     ModelData = GetFEMdata(results_dir="opstool_output")
     ModelData.get_eigen_data(
@@ -262,6 +266,7 @@ def plot_eigen(
             show_origin=show_origin,
             opacity=opacity,
             show_face_line=show_face_line,
+            show_cmap=show_cmap,
         )
     else:
         raise ValueError("Arg backend must be one of ['pyvista', 'plotly', 'mpl']!")
