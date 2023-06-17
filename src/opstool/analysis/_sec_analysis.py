@@ -63,7 +63,7 @@ class MomentCurvature:
         _, ax = plt.subplots(1, 1, figsize=(10, 10 * 0.618))
         ax.plot(self.phi, self.M, lw=3, c="blue")
         ax.set_title(
-            "$M-\phi$",
+            "$M-\\phi$",
             fontsize=28,
         )
         ax.set_xlabel("$\phi$", fontsize=25)

@@ -73,7 +73,7 @@ def plot_model(
         Plane and solid element transparency.
     """
     ModelData = GetFEMdata(results_dir="opstool_output")
-    ModelData.get_model_data(save_file="ModelData.hdf5")
+    ModelData.get_model_data(save_file="ModelData.hdf5", print_model_info=False)
     if backend.lower() == "pyvista":
         opsvis = OpsVisPyvista(
             point_size=point_size,
@@ -165,6 +165,7 @@ def plot_eigen(
     alpha: float = 1.0,
     show_outline: bool = False,
     show_origin: bool = False,
+    label_size: float = 15.0,
     opacity: float = 1.0,
     show_face_line: bool = True,
     show_cmap: bool = True,
@@ -197,6 +198,8 @@ def plot_eigen(
         Whether to display the axes.
     show_origin: bool, default=False
         Whether to show undeformed shape.
+    label_size: float, default=15
+            The fontsize of text labels.
     opacity: float, default=1.0
         Plane and solid element transparency.
     show_face_line: bool, default=True
@@ -225,6 +228,7 @@ def plot_eigen(
             alpha=alpha,
             show_outline=show_outline,
             show_origin=show_origin,
+            label_size=label_size,
             opacity=opacity,
             show_face_line=show_face_line,
             link_views=link_views,
@@ -245,6 +249,7 @@ def plot_eigen(
             subplots=subplots,
             alpha=alpha,
             show_outline=show_outline,
+            label_size=label_size,
             show_origin=show_origin,
             opacity=opacity,
             show_face_line=show_face_line,
@@ -270,12 +275,3 @@ def plot_eigen(
         )
     else:
         raise ValueError("Arg backend must be one of ['pyvista', 'plotly', 'mpl']!")
-
-
-# def plot_node_resp(disp_file, dof_num, ):
-#     ModelData = GetFEMdata(results_dir="opstool_output")
-#     ModelData.get_model_data(save_file="ModelData.hdf5")
-#     disp_data = np.loadtxt(disp_file)
-#     step_num = disp_data.shape[0]
-#     for i in range(step_num):
-#         np.reshape(disp_data[i], (-1, dof_num))

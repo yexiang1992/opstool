@@ -1,10 +1,10 @@
-# %%
+
 import openseespy.opensees as ops
 import opstool as opst
 
 #
-opst.load_ops_examples("ArchBridge")
-# opst.load_ops_examples("CableStayedBridge")
+# opst.load_ops_examples("ArchBridge")
+opst.load_ops_examples("CableStayedBridge")
 # opst.load_ops_examples("Dam")
 # opst.load_ops_examples("Frame3D")
 # opst.load_ops_examples("Igloo")
@@ -17,8 +17,8 @@ ModelData = opst.GetFEMdata()
 ModelData.get_model_data()
 ModelData.get_eigen_data(mode_tag=15)
 opsv = opst.OpsVisPlotly(
-    point_size=4,
-    line_width=4,
+    point_size=0.1,
+    line_width=2,
     colors_dict=None,
     color_map="jet",
     on_notebook=False,
@@ -39,7 +39,7 @@ fig.show()
 # fig.write_html("ModelVis.html", auto_open=True)
 # %%
 opst.save_tikz("opstool_output/ModelData.hdf5")
-opsv.eigen_vis(
+fig = opsv.eigen_vis(
     mode_tags=[1, 12],
     subplots=True,
     alpha=1.0,
@@ -48,7 +48,7 @@ opsv.eigen_vis(
     opacity=1.0,
     show_face_line=False,
 )
-
+fig.show()
 opsv.eigen_anim(
     mode_tag=4,
     alpha=1.0,

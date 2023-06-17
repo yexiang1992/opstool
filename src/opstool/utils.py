@@ -2,181 +2,22 @@ import sys
 import numpy as np
 from pathlib import Path
 from typing import Union
+from .EleClassTags import (EleTypeTags, ELE_TAG_Beam, ELE_TAG_Tetrahedron, ELE_TAG_Link,
+                           ELE_TAG_PFEM, ELE_TAG_Brick, ELE_TAG_Joint, ELE_TAG_Plane, ELE_TAG_Truss)
 
-# The element class Tag in OpenSees, which is used to determine the element type
-# see ...\SRC\classTags.h
-ELE_TAG_Truss = [
-    12,
-    13,
-    14,
-    15,
-    16,
-    17,
-    18,
-    138,
-    139,
-    155,
-    169,
-    218,
-]  # 169 is CatenaryCable
-ELE_TAG_Link = [
-    19,
-    20,
-    21,
-    22,
-    23,
-    24,
-    25,
-    26,
-    260,
-    27,  # zeroLength
-    86,  # 86-twoNodeLink
-    84,
-    85,
-    87,
-    88,
-    89,
-    90,
-    91,
-    92,
-    93,
-    94,
-    95,
-    96,
-    97,
-    98,
-    99,
-    100,
-    101,
-    102,
-    103,
-    104,
-    105,
-    106,
-    107,
-    108,
-    109,
-    130,
-    131,
-    132,
-    147,
-    148,
-    149,
-    150,
-    151,
-    152,
-    153,
-    158,
-    159,
-    160,
-    161,
-    165,
-    166,
-]  # Bearing
-ELE_TAG_Beam = [
-    3,
-    4,
-    5,
-    5001,
-    6,
-    7,
-    8,
-    9,
-    10,
-    11,
-    28,
-    29,
-    30,
-    34,
-    35,
-    62,
-    621,
-    63,
-    64,
-    640,
-    641,
-    642,
-    65,
-    66,
-    67,
-    68,
-    69,
-    70,
-    71,
-    72,
-    73,
-    731,
-    74,
-    75,
-    751,
-    76,
-    77,
-    78,
-    30766,
-    30765,
-    30767,
-    79,
-    128,
-]
-ELE_TAG_Plane = [
-    31,
-    32,
-    33,
-    40,
-    47,
-    50,
-    52,
-    53,
-    54,
-    55,
-    59,
-    60,
-    61,
-    116,
-    119,
-    120,
-    126,
-    134,
-    142,
-    143,
-    156,
-    157,
-    167,
-    168,
-    173,
-    174,
-    175,
-    180,
-    203,
-    204,
-    207,
-    208,
-    209,
-]
-ELE_TAG_Joint = [71, 72, 81, 8181, 82, 83]
-ELE_TAG_Tetrahedron = [179, 256, 189]  # four, ten, 189-FEMBubble
-ELE_TAG_Brick = [
-    36,
-    37,
-    38,
-    39,
-    41,
-    42,
-    43,
-    44,
-    45,
-    46,
-    48,
-    49,
-    51,
-    56,
-    57,
-    58,
-    121,
-    122,
-    127,
-]
-ELE_TAG_PFEM = [133, 141, 142, 143, 144, 164, 187, 189, 199, 200, 255]
+
+class EleClassTags:
+    TypeTags = EleTypeTags
+    BeamTags = ELE_TAG_Beam
+    TetTags = ELE_TAG_Tetrahedron
+    LinkTags = ELE_TAG_Link
+    TrussTags = ELE_TAG_Truss
+    PFEMTags = ELE_TAG_PFEM
+    BrickTags = ELE_TAG_Brick
+    JointTags = ELE_TAG_Joint
+    PlaneTags = ELE_TAG_Plane
+
+
 # shape dict used to subplots
 shape_dict = {
     1: (1, 1),
@@ -275,65 +116,65 @@ def load_ops_examples(name: str):
     None
     """
     if name.lower() == "archbridge":
-        from opstool.examples.ArchBridge import ArchBridge
+        from .examples.ArchBridge import ArchBridge
 
         ArchBridge()
         # exec("from opstool.examples.ArchBridge import *")
     elif name.lower() == "archbridge2":
-        from opstool.examples.ArchBridge2 import ArchBridge2
+        from .examples.ArchBridge2 import ArchBridge2
 
         ArchBridge2()
         # exec("from opstool.examples.ArchBridge2 import *")
     elif name.lower() == "cablestayedbridge":
-        from opstool.examples.CableStayedBridge import CableStayedBridge
+        from .examples.CableStayedBridge import CableStayedBridge
 
         CableStayedBridge()
         # exec("from opstool.examples.CableStayedBridge import *")
     elif name.lower() == "dam":
-        from opstool.examples.Dam import Dam
+        from .examples.Dam import Dam
 
         Dam()
         # exec("from opstool.examples.Dam import *")
     elif name.lower() == "frame3d":
-        from opstool.examples.Frame3D import Frame3D
+        from .examples.Frame3D import Frame3D
 
         Frame3D()
         # exec("from opstool.examples.Frame3D import *")
     elif name.lower() == "frame3d2":
-        from opstool.examples.Frame3D2 import Frame3D2
+        from .examples.Frame3D2 import Frame3D2
 
         Frame3D2()
     elif name.lower() == "igloo":
-        from opstool.examples.Igloo import Igloo
+        from .examples.Igloo import Igloo
 
         Igloo()
         # exec("from opstool.examples.Igloo import *")
     elif name.lower() == "pier":
-        from opstool.examples.Pier import Pier
+        from .examples.Pier import Pier
 
         Pier()
         # exec("from opstool.examples.Pier import *")
     elif name.lower() == "suspensionbridge":
-        from opstool.examples.SuspensionBridge import SuspensionBridge
+        from .examples.SuspensionBridge import SuspensionBridge
 
         SuspensionBridge()
         # exec("from opstool.examples.SuspensionBridge import *")
     elif name.lower() == "sdof":
-        from opstool.examples.SDOF import SDOF
+        from .examples.SDOF import SDOF
 
         SDOF()
         # exec("from opstool.examples.SDOF import *")
     elif name.lower() == "dambreak":
-        from opstool.examples.DamBreak import DamBreak
+        from .examples.DamBreak import DamBreak
 
         DamBreak()
         # exec("from opstool.examples.DamBreak import *")
     elif name.lower() == "gridframe":
-        from opstool.examples.GridFrame import GridFrame
+        from .examples.GridFrame import GridFrame
 
         GridFrame()
     elif name.lower() == "shell3d":
-        from opstool.examples.shell3D import Shell3D
+        from .examples.shell3D import Shell3D
 
         Shell3D()
     else:
@@ -377,9 +218,11 @@ def add_ops_hints_file():
     tar_file.write_text(src_file.read_text(encoding="utf-8"), encoding="utf-8")
     print(f"opstool:: opensees.pyi file has been created to {tar_file}!")
 
+
 def print_version():
     from .__about__ import __version__
     print(__version__)
+
 
 def _get_random_color():
     colors = [

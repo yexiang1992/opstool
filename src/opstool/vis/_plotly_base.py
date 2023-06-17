@@ -72,7 +72,7 @@ def _make_faces(points, cells):
     face_line_points = np.array(face_line_points)
     face_points = np.array(face_points)
     face_mid_points = np.array(face_mid_points)
-    return (face_points, face_line_points, face_mid_points, veci, vecj, veck)
+    return face_points, face_line_points, face_mid_points, veci, vecj, veck
 
 
 def _make_lines(points, cells):
@@ -371,7 +371,7 @@ def _plot_model(
         title=dict(
             font=dict(family="courier", color="black", size=25),
             text=(
-                "<b>OpenSeesPy 3D View</b> <br>"
+                "<b>OPSTOOL:: OpenSeesPy 3D Viewer</b> <br>"
                 f"Num. of Node: {model_info['num_node']} || Num. of Ele:{model_info['num_ele']}"
             ),
         ),
@@ -927,7 +927,7 @@ def _show_ele_load(obj, plotter, model_info, alpha: float = 1.0):
             lengths = np.abs(data) * alpha_
             arrow_heights = [0.4 * ll for ll in lengths]
             arrow_widths = [0.6 * h for h in arrow_heights]
-            new_locals[idx, 3 * i : 3 * i + 3]
+            # new_locals[idx, 3 * i : 3 * i + 3]
             xaxis = new_locals[idx, idxs[idxsidx[i][0]]]
             yaxis = new_locals[idx, idxs[idxsidx[i][1]]]
             zaxis = new_locals[idx, idxs[idxsidx[i][2]]]
@@ -1011,7 +1011,7 @@ def _eigen_vis(
     eigen_data["all_lines"] = _reshape_cell(eigen_data["all_lines"])
     eigen_data["all_faces"] = _reshape_cell(eigen_data["all_faces"])
 
-    f = eigen_data["f"]
+    f = eigen_data["eigenFrequency"]
     eigenvector = eigen_data["eigenvector"]
     num_mode_tag = len(f)
     modei, modej = mode_tags
@@ -1021,7 +1021,7 @@ def _eigen_vis(
 
     fig = go.Figure()
     title = dict(
-        font=dict(family="courier", color="black", size=25),
+        font=dict(family="courier", color="black", size=label_size),
         text="<b>OpenSeesPy Eigen 3D View</b>",
     )
     if show_outline:
@@ -1173,7 +1173,8 @@ def _eigen_vis(
         # Create and add slider
         steps = []
         for i, idx in enumerate(range(modei, modej + 1)):
-            txt = "Mode {}: T = {:.3f} s".format(idx, 1 / f[idx - 1])
+            # txt = "Mode {}: T = {:.3f} s".format(idx, 1 / f[idx - 1])
+            txt = _make_eigen_txt(eigen_data, idx-1)
             step = dict(
                 method="update",
                 args=[
@@ -1234,6 +1235,42 @@ def _eigen_vis(
             save_html += ".html"
         pio.write_html(fig, file=save_html, auto_open=True)
     return fig
+
+
+def _make_eigen_txt(eigen_data, step):
+    fi = eigen_data["eigenFrequency"][step]
+    txt = f"<b>Mode {step + 1}</b><br>period: {1 / fi:.6f} s; freq: {fi:.6f} Hz\n"
+    if np.max(eigen_data["model_dims"]) <= 2:
+        txt += "<br>modal participation mass ratios (%)"
+        mx = eigen_data["partiMassRatiosMX"][step]
+        my = eigen_data["partiMassRatiosMY"][step]
+        rmz = eigen_data["partiMassRatiosRMZ"][step]
+        txt += f"<br>{mx:7.3f} {my:7.3f} {rmz:7.3f}"
+        txt += "<br>cumulative modal participation mass ratios (%)"
+        mx = eigen_data["partiMassRatiosCumuMX"][step]
+        my = eigen_data["partiMassRatiosCumuMY"][step]
+        rmz = eigen_data["partiMassRatiosCumuRMZ"][step]
+        txt += f"<br>{mx:7.3f} {my:7.3f} {rmz:7.3f}"
+        txt += "<br>{:>7} {:>7} {:>7}".format("X", "Y", "RZ")
+    else:
+        txt += "<br>modal participation mass ratios (%)"
+        mx = eigen_data["partiMassRatiosMX"][step]
+        my = eigen_data["partiMassRatiosMY"][step]
+        mz = eigen_data["partiMassRatiosMZ"][step]
+        rmx = eigen_data["partiMassRatiosRMX"][step]
+        rmy = eigen_data["partiMassRatiosRMY"][step]
+        rmz = eigen_data["partiMassRatiosRMZ"][step]
+        txt += f"<br>{mx:7.3f} {my:7.3f} {mz:7.3f} {rmx:7.3f} {rmy:7.3f} {rmz:7.3f}"
+        txt += "<br>cumulative modal participation mass ratios (%)"
+        mx = eigen_data["partiMassRatiosCumuMX"][step]
+        my = eigen_data["partiMassRatiosCumuMY"][step]
+        mz = eigen_data["partiMassRatiosCumuMZ"][step]
+        rmx = eigen_data["partiMassRatiosCumuRMX"][step]
+        rmy = eigen_data["partiMassRatiosCumuRMY"][step]
+        rmz = eigen_data["partiMassRatiosCumuRMZ"][step]
+        txt += f"<br>{mx:7.3f} {my:7.3f} {mz:7.3f} {rmx:7.3f} {rmy:7.3f} {rmz:7.3f}"
+        txt += "<br>{:>7} {:>7} {:>7} {:>7} {:>7} {:>7}".format("X", "Y", "Z", "RX", "RY", "RZ")
+    return txt
 
 
 def _eigen_anim(

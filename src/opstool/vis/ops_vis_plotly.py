@@ -63,7 +63,7 @@ class OpsVisPlotly:
         # ------------------------------
         self.point_size = point_size
         self.line_width = line_width
-        self.title = "OpenSeesVispy"
+        self.title = "opstool"
         colors = dict(
             point="#580f41",
             line="#0504aa",
@@ -88,6 +88,37 @@ class OpsVisPlotly:
         self.notebook = on_notebook
         self.out_dir = results_dir
         self.bound_fact = 30
+
+    def set_color(self, point: str = "#580f41", line: str = "#0504aa",
+                  face: str = "#00c16e", solid: str = "#0cb9c1",
+                  truss: str = "#7552cc", link: str = "#01ff07",
+                  constraint: str = "#00ffff"):
+        """Set the color for various element types.
+
+        Paramaters
+        -----------
+        point: str, default="#580f41"
+            Nodal color.
+        line: str, default="#0504aa"
+            Line element color, including beams.
+        face: str, default="#00c16e"
+            The color of planar elements, including 2D solid elements, plate and shell elements.
+        solid: str, default="#0cb9c1"
+            The color of solid elements.
+        truss: str, default="#7552cc"
+            Truss color.
+        link: str, default="#01ff07"
+            The color of link and bearing elements.
+        constraint: str, default="#00ffff"
+            The color of multi-point constraint.
+        """
+        self.color_point = point
+        self.color_line = line
+        self.color_face = face
+        self.color_solid = solid
+        self.color_truss = truss
+        self.color_link = link
+        self.color_constraint = constraint
 
     def write_html(self, fig, filepath, **kwargs):
         """Write a figure to an HTML file representation.
@@ -205,7 +236,7 @@ class OpsVisPlotly:
             A dict to control beam section render, optional key: color, opacity.
             Note that the backend plotly does not currently support texture.
         label_size: float, default=8
-            The foontsize of node and ele label.
+            The fontsize of node and ele label.
         show_outline: bool, default=True
             Whether to show the axis frame.
         opacity: float, default=1.0
@@ -278,6 +309,8 @@ class OpsVisPlotly:
             Whether to display the axes.
         show_origin: bool, default=False
             Whether to show undeformed shape.
+        label_size: float, default=15
+            The fontsize of text labels.
         opacity: float, default=1.0
             Plane and solid element transparency.
         show_face_line: bool, default=True

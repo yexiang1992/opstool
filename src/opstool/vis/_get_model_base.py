@@ -502,6 +502,12 @@ def get_ele_mid(ele_tags, node_coords, node_index):
         ele_midpoints.append(np.mean(node_coords[idxs], axis=0))
     return np.array(ele_midpoints)
 
+def get_ele_class_tags():
+    ele_class_tags = ops.getEleClassTags()
+    # for ele in ele_tags:
+    #     ele_class_tags.append(ops.getEleClassTags(ele)[0])
+    return ele_class_tags
+
 
 def get_bounds(node_coords):
     min_node = np.min(node_coords, axis=0)
@@ -566,6 +572,7 @@ def get_model_info(sec_mesh: dict):
     all_faces_cells = plane_cells + tetrahedron_cells + brick_cells
     all_faces_cells_tags = plane_cells_tags + tetrahedron_cells_tags + brick_cells_tags
     ele_midpoints = get_ele_mid(ele_tags, node_coords, node_index)
+    ele_class_tags = get_ele_class_tags()
     bounds, max_bound, min_bound = get_bounds(node_coords)
     node_load_info, node_load_data = get_node_load(node_index)
     ele_load_info, ele_load_data, ele_load_locals = get_ele_load(node_index)
@@ -586,6 +593,7 @@ def get_model_info(sec_mesh: dict):
     model_info["ConstrainedDofs"] = ctra_dofs
     model_info["ConstrainedCells"] = ctra_cells
     model_info["EleTags"] = ele_tags
+    model_info["EleClassTags"] = ele_class_tags
     model_info["model_dims"] = model_dims
     model_info["coord_ele_midpoints"] = ele_midpoints
     model_info["beam_midpoints"] = beam_midpoints

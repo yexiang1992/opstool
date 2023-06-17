@@ -9,7 +9,7 @@ import numpy as np
 import openseespy.opensees as ops
 from rich import print
 
-from ..utils import check_file
+from ..utils import check_file, EleTypeTags
 from ._get_model_base import (
     get_beam_info2,
     get_beam_resp,
@@ -154,8 +154,11 @@ class GetFEMdata:
 
         # Beam Element Analysis Step Response Data
 
-    def get_model_data(
-        self, beam_sec: dict = None, save_file: Union[str, bool] = "ModelData.hdf5"
+    def get_model_data(self,
+                       beam_sec: dict = None,
+                       save_file: Union[str, bool] = "ModelData.hdf5",
+                       print_model_info: bool = True
+
     ):
         """Get data from the current model domain.
         The data will saved to file ``results_dir`` + ``save_file`` in hdf5 style.
@@ -173,6 +176,8 @@ class GetFEMdata:
             .. warning::
                 Be careful not to include any path, only filename,
                 the file will be saved to the directory ``results_dir``.
+        print_model_info: bool, default=True
+            If True, print the model information.
 
         """
         if save_file:
@@ -182,6 +187,8 @@ class GetFEMdata:
         self.model_info.update(model_info)
         self.cells.update(cells)
         self.get_model_data_finished = True
+        if print_model_info:
+            self._print_model_info(model_info)
         if save_file:
             output_filename = self.out_dir + "/" + save_file
             with h5py.File(output_filename, "w") as f:
@@ -194,6 +201,19 @@ class GetFEMdata:
             print(
                 f"Model data saved in [bold {next(self.colors_cycle)}]{output_filename}[/]!"
             )
+
+    @staticmethod
+    def _print_model_info(model_info):
+        print("\n***** Model Information *****")
+        print(f"Number of nodes: {model_info['num_node']}")
+        print(f"Number of elements: {model_info['num_ele']}")
+        bounds = np.array(model_info["bound"])
+        bounds = np.round(bounds, 6)
+        print(f"The boundary size: X --> {bounds[:2]}; Y --> {bounds[2:4]}; Z --> {bounds[4:]}")
+        ele_types = [EleTypeTags[ele] for ele in model_info["EleClassTags"]]
+        ele_types = set(ele_types)
+        print(f"Element types: {ele_types}")
+        print("***** END *****\n")
 
     def get_eigen_data(
         self,
@@ -226,7 +246,7 @@ class GetFEMdata:
         # ----------------------------------
         if save_file:
             check_file(save_file, [".hdf5", ".h5", ".he5"])
-        self.get_model_data(save_file=False)
+        self.get_model_data(save_file=False, print_model_info=False)
         self.reset_eigen_state()
         # ----------------------------------
         ops.wipeAnalysis()
@@ -234,6 +254,7 @@ class GetFEMdata:
             eigen_values = ops.eigen(solver, 2)[:1]
         else:
             eigen_values = ops.eigen(solver, mode_tag)
+        modalProps = ops.modalProperties('-return')
         omega = np.sqrt(eigen_values)
         f = omega / (2 * np.pi)
         self.eigen["f"] = f
@@ -261,6 +282,7 @@ class GetFEMdata:
 
         self.eigen.update(self.model_info)
         self.eigen.update(self.cells)
+        self.eigen.update(modalProps)
         # ----------------------------------------------------------------
         if save_file:
             output_filename = self.out_dir + "/" + save_file
@@ -406,10 +428,10 @@ class GetFEMdata:
         if save_file:
             check_file(save_file, [".hdf5", ".h5", ".he5"])
         if model_update:
-            self.get_model_data(save_file=False)
+            self.get_model_data(save_file=False, print_model_info=False)
         else:
             if not self.get_model_data_finished:
-                self.get_model_data(save_file=False)
+                self.get_model_data(save_file=False, print_model_info=False)
 
         node_tags = self.model_info["NodeTags"]
         (node_disp, node_vel, node_accel, node_deform_coord) = get_node_resp(node_tags)

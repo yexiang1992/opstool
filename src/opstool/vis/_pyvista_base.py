@@ -7,24 +7,25 @@ import pyvista as pv
 
 from ..utils import check_file, shape_dict
 
+
 def _model_vis(
-    obj,
-    input_file: str = "ModelData.hdf5",
-    show_node_label: bool = False,
-    show_ele_label: bool = False,
-    label_size: float = 10,
-    show_local_crd: bool = False,
-    local_crd_alpha: float = 1.0,
-    show_fix_node: bool = True,
-    fix_node_alpha: float = 1.0,
-    show_load: bool = False,
-    load_alpha: float = 1.0,
-    show_constrain_dof: bool = False,
-    show_beam_sec: bool = False,
-    beam_sec_paras: dict = None,
-    show_outline: bool = True,
-    opacity: float = 1.0,
-    save_fig: str = "ModelVis.svg",
+        obj,
+        input_file: str = "ModelData.hdf5",
+        show_node_label: bool = False,
+        show_ele_label: bool = False,
+        label_size: float = 10,
+        show_local_crd: bool = False,
+        local_crd_alpha: float = 1.0,
+        show_fix_node: bool = True,
+        fix_node_alpha: float = 1.0,
+        show_load: bool = False,
+        load_alpha: float = 1.0,
+        show_constrain_dof: bool = False,
+        show_beam_sec: bool = False,
+        beam_sec_paras: dict = None,
+        show_outline: bool = True,
+        opacity: float = 1.0,
+        save_fig: str = "ModelVis.svg",
 ):
     filename = obj.out_dir + "/" + input_file
     model_info = dict()
@@ -40,8 +41,8 @@ def _model_vis(
     plotter = pv.Plotter(notebook=obj.notebook, line_smoothing=True)
     _plot_model(obj, plotter, model_info, cells, opacity)
 
-    txt = f"OpenSees 3D View\nNum. of Node:{model_info['num_node']}\nNum. of Ele:{model_info['num_ele']}"
-    plotter.add_text(txt, position="upper_right", font_size=12, font="courier")
+    txt = f"OPSTOOL:: Num. Node: {model_info['num_node']} Num. Ele: {model_info['num_ele']}"
+    plotter.add_text(txt, position="lower_right", font_size=8, font="courier")
     if show_outline:
         show_zaxis = False if np.max(model_info["model_dims"]) <= 2 else True
         plotter.show_bounds(
@@ -188,7 +189,7 @@ def _show_node_load(plotter, model_info, alpha: float = 1.0):
     for info in node_load_info:
         ndm = info[2]
         ndf = info[3]
-        data = node_load_data[loc : loc + ndf]
+        data = node_load_data[loc: loc + ndf]
         if ndm <= 2 and ndf <= 3:
             load_data.append([data[0], data[1], 0])  # x, y
         else:
@@ -243,7 +244,7 @@ def _show_ele_load(plotter, model_info, alpha: float = 1.0):
         coord1, coord2 = points[nidx1], points[nidx2]
         local_axis = ele_load_locals[i]
         if classtag == 3:  # beamUniform2D, Wya <Wxa>
-            wy, wx = ele_load_data[loc : loc + 2]
+            wy, wx = ele_load_data[loc: loc + 2]
             wz = 0.0
             n = 11
             xl = np.linspace(0, 1, n)
@@ -252,7 +253,7 @@ def _show_ele_load(plotter, model_info, alpha: float = 1.0):
             new_ptags.extend([ptag] * n)
             loc += 2
         elif classtag == 12:  # beamUniform2D, Wya <Wxa> <aL> <bL> <Wyb> <Wxb>
-            wya, wyb, wxa, wxb, al, bl = ele_load_data[loc : loc + 6]
+            wya, wyb, wxa, wxb, al, bl = ele_load_data[loc: loc + 6]
             n = int((bl - al) / 0.1) + 1
             xl = np.linspace(al, bl, n)
             wy = np.interp(xl, [0, 1], [wya, wyb])
@@ -262,7 +263,7 @@ def _show_ele_load(plotter, model_info, alpha: float = 1.0):
             new_ptags.extend([ptag] * n)
             loc += 6
         elif classtag == 5:  # beamUniform3D wy, wz, wx
-            wy, wz, wx = ele_load_data[loc : loc + 3]
+            wy, wz, wx = ele_load_data[loc: loc + 3]
             n = 11
             xl = np.linspace(0, 1, n)
             wx, wy, wz = [wx] * n, [wy] * n, [wz] * n
@@ -270,13 +271,13 @@ def _show_ele_load(plotter, model_info, alpha: float = 1.0):
             new_ptags.extend([ptag] * n)
             loc += 3
         elif classtag == 4:  # beamPoint2D, Py xL <Px>
-            wy, wx, xl = ele_load_data[loc : loc + 3]
+            wy, wx, xl = ele_load_data[loc: loc + 3]
             wz = 0
             localaxis = [local_axis]
             new_ptags.append(ptag)
             loc += 3
         elif classtag == 6:  # beamPoint3D, Py, Pz, x, N
-            wy, wz, wx, xl = ele_load_data[loc : loc + 4]
+            wy, wz, wx, xl = ele_load_data[loc: loc + 4]
             localaxis = [local_axis]
             new_ptags.append(ptag)
             loc += 4
@@ -314,7 +315,7 @@ def _show_ele_load(plotter, model_info, alpha: float = 1.0):
             ply = pv.PolyData(coords)
             data = np.ravel(load_data[idx, i])
             ply["scalars"] = np.abs(data)
-            ply["vectors"] = new_locals[idx, 3 * i : 3 * i + 3]
+            ply["vectors"] = new_locals[idx, 3 * i: 3 * i + 3]
             for j in range(len(ply["vectors"])):
                 ply["vectors"][j] *= np.sign(data[j])
             glyphs = ply.glyph(
@@ -324,7 +325,7 @@ def _show_ele_load(plotter, model_info, alpha: float = 1.0):
 
 
 def _show_beam_local_axes(
-    plotter, model_info, alpha: float = 1.0, label_size: float = 10
+        plotter, model_info, alpha: float = 1.0, label_size: float = 10
 ):
     beam_xlocal = model_info["beam_xlocal"]
     beam_ylocal = model_info["beam_ylocal"]
@@ -374,7 +375,7 @@ def _show_beam_local_axes(
 
 
 def _show_link_local_axes(
-    plotter, model_info, alpha: float = 1.0, label_size: float = 10
+        plotter, model_info, alpha: float = 1.0, label_size: float = 10
 ):
     link_xlocal = model_info["link_xlocal"]
     link_ylocal = model_info["link_ylocal"]
@@ -541,9 +542,9 @@ def _show_link(obj, plotter, points, cells):
             xaxis = np.array(coord2 - coord1)
             global_z = [0.0, 0.0, 1.0]
             cos_angle = xaxis.dot(global_z) / (
-                np.linalg.norm(xaxis) * np.linalg.norm(global_z)
+                    np.linalg.norm(xaxis) * np.linalg.norm(global_z)
             )
-            if np.abs(1 - cos_angle**2) < 1e-10:
+            if np.abs(1 - cos_angle ** 2) < 1e-10:
                 yaxis = np.cross([-1.0, 0.0, 0.0], xaxis)
             else:
                 yaxis = np.cross(global_z, xaxis)
@@ -660,18 +661,18 @@ def _plot_model(obj, plotter, model_info, cells, opacity):
 
 
 def _eigen_vis(
-    obj,
-    mode_tags: list,
-    input_file: str = "EigenData.hdf5",
-    subplots: bool = False,
-    link_views: bool = True,
-    alpha: float = 1.0,
-    show_outline: bool = False,
-    show_origin: bool = False,
-    label_size: float = 15,
-    opacity: float = 1.0,
-    show_face_line: bool = True,
-    save_fig: str = "EigenVis.svg",
+        obj,
+        mode_tags: list,
+        input_file: str = "EigenData.hdf5",
+        subplots: bool = False,
+        link_views: bool = True,
+        alpha: float = 1.0,
+        show_outline: bool = False,
+        show_origin: bool = False,
+        label_size: float = 15,
+        opacity: float = 1.0,
+        show_face_line: bool = True,
+        save_fig: str = "EigenVis.svg",
 ):
     filename = obj.out_dir + "/" + input_file
     eigen_data = dict()
@@ -680,7 +681,8 @@ def _eigen_vis(
         for name, value in grp.items():
             eigen_data[name] = value[...]
 
-    f = eigen_data["f"]
+    f = eigen_data["eigenFrequency"]
+    # T = eigen_data["eigenPeriod"]
     eigenvector = eigen_data["eigenvector"]
     show_zaxis = False if np.max(eigen_data["model_dims"]) <= 2 else True
     num_mode_tag = len(f)
@@ -693,15 +695,17 @@ def _eigen_vis(
     def create_mesh(idx, idxi=None, idxj=None):
         if idxi is not None and idxj is not None:
             plotter.subplot(idxi, idxj)
+            subplots = True
         else:
             plotter.clear_actors()
+            subplots = False
         step = int(round(idx)) - 1
         eigen_vec = eigenvector[step]
-        value_ = np.max(np.sqrt(np.sum(eigen_vec**2, axis=1)))
+        value_ = np.max(np.sqrt(np.sum(eigen_vec ** 2, axis=1)))
         alpha_ = eigen_data["max_bound"] / obj.bound_fact / value_
         alpha_ = alpha_ * alpha if alpha else alpha_
         eigen_points = eigen_data["coord_no_deform"] + eigen_vec * alpha_
-        scalars = np.sqrt(np.sum(eigen_vec**2, axis=1))
+        scalars = np.sqrt(np.sum(eigen_vec ** 2, axis=1))
         _ = _generate_all_mesh(
             plotter,
             eigen_points,
@@ -718,10 +722,16 @@ def _eigen_vis(
         )
         # plotter.add_scalar_bar(fmt="%.3e", n_labels=10, label_font_size=12)
         # txt = 'Mode {}\nf = {:.3f} Hz\nT = {:.3f} s'.format(mode_tag, f_, 1 / f_)
-        txt = "Mode {}\nT = {:.3f} s".format(step + 1, 1 / f[step])
-        plotter.add_text(
-            txt, position="upper_left", font_size=label_size, font="courier"
-        )
+        if not subplots:
+            txt = _make_eigen_txt(eigen_data, step)
+            plotter.add_text(
+                txt, position="lower_right", font_size=label_size - 3, font="courier"
+            )
+        else:
+            txt = "Mode {}\nT = {:.3f} s".format(step + 1, 1 / f[step])
+            plotter.add_text(
+                txt, position="upper_left", font_size=label_size, font="courier"
+            )
         if show_outline:
             plotter.show_bounds(
                 grid=False,
@@ -766,23 +776,59 @@ def _eigen_vis(
         plotter.view_xy(negative=False)
     if save_fig:
         plotter.save_graphic(save_fig)
-    plotter.enable_anti_aliasing("msaa")
+    plotter.enable_anti_aliasing(obj.anti_aliasing)
     plotter.show(title=obj.title)
     plotter.close()
 
 
+def _make_eigen_txt(eigen_data, step):
+    fi = eigen_data["eigenFrequency"][step]
+    txt = f"Mode {step + 1}\nperiod: {1 / fi:.6f} s; freq: {fi:.6f} Hz\n"
+    if np.max(eigen_data["model_dims"]) <= 2:
+        txt += "modal participation mass ratios (%)\n"
+        mx = eigen_data["partiMassRatiosMX"][step]
+        my = eigen_data["partiMassRatiosMY"][step]
+        rmz = eigen_data["partiMassRatiosRMZ"][step]
+        txt += f"{mx:7.3f} {my:7.3f} {rmz:7.3f}\n"
+        txt += "cumulative modal participation mass ratios (%)\n"
+        mx = eigen_data["partiMassRatiosCumuMX"][step]
+        my = eigen_data["partiMassRatiosCumuMY"][step]
+        rmz = eigen_data["partiMassRatiosCumuRMZ"][step]
+        txt += f"{mx:7.3f} {my:7.3f} {rmz:7.3f}\n"
+        txt += "{:>7} {:>7} {:>7}\n".format("X", "Y", "RZ")
+    else:
+        txt += "modal participation mass ratios (%)\n"
+        mx = eigen_data["partiMassRatiosMX"][step]
+        my = eigen_data["partiMassRatiosMY"][step]
+        mz = eigen_data["partiMassRatiosMZ"][step]
+        rmx = eigen_data["partiMassRatiosRMX"][step]
+        rmy = eigen_data["partiMassRatiosRMY"][step]
+        rmz = eigen_data["partiMassRatiosRMZ"][step]
+        txt += f"{mx:7.3f} {my:7.3f} {mz:7.3f} {rmx:7.3f} {rmy:7.3f} {rmz:7.3f}\n"
+        txt += "cumulative modal participation mass ratios (%)\n"
+        mx = eigen_data["partiMassRatiosCumuMX"][step]
+        my = eigen_data["partiMassRatiosCumuMY"][step]
+        mz = eigen_data["partiMassRatiosCumuMZ"][step]
+        rmx = eigen_data["partiMassRatiosCumuRMX"][step]
+        rmy = eigen_data["partiMassRatiosCumuRMY"][step]
+        rmz = eigen_data["partiMassRatiosCumuRMZ"][step]
+        txt += f"{mx:7.3f} {my:7.3f} {mz:7.3f} {rmx:7.3f} {rmy:7.3f} {rmz:7.3f}\n"
+        txt += "{:>7} {:>7} {:>7} {:>7} {:>7} {:>7}\n".format("X", "Y", "Z", "RX", "RY", "RZ")
+    return txt
+
+
 def _eigen_anim(
-    obj,
-    mode_tag: int = 1,
-    input_file: str = "EigenData.hdf5",
-    n_cycle: int = 5,
-    label_size: float = 15,
-    alpha: float = None,
-    show_outline: bool = False,
-    opacity: float = 1,
-    framerate: int = 3,
-    show_face_line: bool = True,
-    save_fig: str = "EigenAnimation.gif",
+        obj,
+        mode_tag: int = 1,
+        input_file: str = "EigenData.hdf5",
+        n_cycle: int = 5,
+        label_size: float = 15,
+        alpha: float = None,
+        show_outline: bool = False,
+        opacity: float = 1,
+        framerate: int = 3,
+        show_face_line: bool = True,
+        save_fig: str = "EigenAnimation.gif",
 ):
     filename = obj.out_dir + "/" + input_file
     eigen_data = dict()
@@ -798,23 +844,23 @@ def _eigen_anim(
         raise ValueError("Insufficient number of modes in open file")
     eigen_vec = eigenvector[mode_tag - 1]
     f_ = f[mode_tag - 1]
-    value_ = np.max(np.sqrt(np.sum(eigen_vec**2, axis=1)))
+    value_ = np.max(np.sqrt(np.sum(eigen_vec ** 2, axis=1)))
     alpha_ = eigen_data["max_bound"] / obj.bound_fact / value_
     alpha_ = alpha_ * alpha if alpha else alpha_
     eigen_points = eigen_data["coord_no_deform"] + eigen_vec * alpha_
     anti_eigen_points = eigen_data["coord_no_deform"] - eigen_vec * alpha_
-    scalars = np.sqrt(np.sum(eigen_vec**2, axis=1))
+    scalars = np.sqrt(np.sum(eigen_vec ** 2, axis=1))
     plt_points = [anti_eigen_points, eigen_data["coord_no_deform"], eigen_points]
     # -----------------------------------------------------------------------------
     # start plot
     plotter = pv.Plotter(notebook=obj.notebook, line_smoothing=True)
 
-    value_ = np.max(np.sqrt(np.sum(eigen_vec**2, axis=1)))
+    value_ = np.max(np.sqrt(np.sum(eigen_vec ** 2, axis=1)))
     alpha_ = eigen_data["max_bound"] / obj.bound_fact / value_
     alpha_ = alpha_ * alpha if alpha else alpha_
     eigen_points = eigen_data["coord_no_deform"] + eigen_vec * alpha_
     anti_eigen_points = eigen_data["coord_no_deform"] - eigen_vec * alpha_
-    scalars = np.sqrt(np.sum(eigen_vec**2, axis=1))
+    scalars = np.sqrt(np.sum(eigen_vec ** 2, axis=1))
     point_plot, line_plot, face_plot = _generate_all_mesh(
         plotter,
         eigen_data["coord_no_deform"],
@@ -867,7 +913,7 @@ def _eigen_anim(
     for idx in index:
         points = plt_points[idx]
         xyz = (eigen_data["coord_no_deform"] - points) / alpha_
-        xyz_eigen = np.sqrt(np.sum(xyz**2, axis=1))
+        xyz_eigen = np.sqrt(np.sum(xyz ** 2, axis=1))
         if point_plot:
             plotter.update_coordinates(points, mesh=point_plot, render=render)
             plotter.update_scalars(scalars=xyz_eigen, mesh=point_plot, render=render)
@@ -882,19 +928,19 @@ def _eigen_anim(
         )
         plotter.write_frame()
     # ----------------------------------------------------------------------------------
-    plotter.enable_anti_aliasing("msaa")
+    plotter.enable_anti_aliasing(obj.anti_aliasing)
     plotter.show(title=obj.title)
     plotter.close()
 
 
 def _react_vis(
-    obj,
-    input_file: str = "NodeReactionStepData-1.hdf5",
-    slider: bool = False,
-    direction: str = "Fz",
-    show_values: bool = True,
-    show_outline: bool = False,
-    save_fig: str = "ReactionVis.svg",
+        obj,
+        input_file: str = "NodeReactionStepData-1.hdf5",
+        slider: bool = False,
+        direction: str = "Fz",
+        show_values: bool = True,
+        show_outline: bool = False,
+        save_fig: str = "ReactionVis.svg",
 ):
     direct = direction.lower()
     if direct not in ["fx", "fy", "fz", "mx", "my", "mz"]:
@@ -1038,23 +1084,23 @@ def _react_vis(
         plotter.view_xy(negative=False)
     if save_fig:
         plotter.save_graphic(save_fig)
-    plotter.enable_anti_aliasing("msaa")
+    plotter.enable_anti_aliasing(obj.anti_aliasing)
     plotter.show(title=obj.title)
     plotter.close()
 
 
 def _deform_vis(
-    obj,
-    input_file: str = "NodeRespStepData-1.hdf5",
-    slider: bool = False,
-    response: str = "disp",
-    alpha: float = 1.0,
-    show_outline: bool = False,
-    show_origin: bool = False,
-    show_face_line: bool = True,
-    opacity: float = 1,
-    save_fig: str = "DefoVis.svg",
-    model_update: bool = False,
+        obj,
+        input_file: str = "NodeRespStepData-1.hdf5",
+        slider: bool = False,
+        response: str = "disp",
+        alpha: float = 1.0,
+        show_outline: bool = False,
+        show_origin: bool = False,
+        show_face_line: bool = True,
+        opacity: float = 1,
+        save_fig: str = "DefoVis.svg",
+        model_update: bool = False,
 ):
     resp_type = response.lower()
     if resp_type not in ["disp", "vel", "accel"]:
@@ -1093,12 +1139,12 @@ def _deform_vis(
     num_steps = len(node_resp_steps["disp"])
     # ! max response
     max_resps = [
-        np.max(np.sqrt(np.sum(resp_**2, axis=1)))
+        np.max(np.sqrt(np.sum(resp_ ** 2, axis=1)))
         for resp_ in node_resp_steps[resp_type]
     ]
     max_step = np.argmax(max_resps)
     max_node_resp = node_resp_steps[resp_type][max_step]
-    scalars = np.sqrt(np.sum(max_node_resp**2, axis=1))
+    scalars = np.sqrt(np.sum(max_node_resp ** 2, axis=1))
     cmin, cmax = np.min(scalars), np.max(scalars)
     if model_update:
         bounds = model_info_steps["bound"][0]
@@ -1111,7 +1157,7 @@ def _deform_vis(
         max_bound = np.max(
             [bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4]]
         )
-        value = np.max(np.sqrt(np.sum(max_node_resp**2, axis=1)))
+        value = np.max(np.sqrt(np.sum(max_node_resp ** 2, axis=1)))
         alpha_ = max_bound / obj.bound_fact / value
         alpha_ = alpha_ * alpha if alpha else alpha_
     else:
@@ -1135,7 +1181,7 @@ def _deform_vis(
             faces_cells = cell_steps["all_faces"]
         node_resp = node_resp_steps[resp_type][step]
         node_deform_coords = alpha_ * node_resp + node_nodeform_coords
-        scalars = np.sqrt(np.sum(node_resp**2, axis=1))
+        scalars = np.sqrt(np.sum(node_resp ** 2, axis=1))
         plotter.clear_actors()  # !!!!!!
         _ = _generate_all_mesh(
             plotter,
@@ -1217,21 +1263,21 @@ def _deform_vis(
         plotter.view_xy(negative=False)
     if save_fig:
         plotter.save_graphic(save_fig)
-    plotter.enable_anti_aliasing("msaa")
+    plotter.enable_anti_aliasing(obj.anti_aliasing)
     plotter.show(title=obj.title)
     plotter.close()
 
 
 def _deform_peak_vis(
-    obj,
-    input_file: str = "NodeRespStepData-1.hdf5",
-    response: str = "disp",
-    alpha: float = 1.0,
-    show_outline: bool = False,
-    show_origin: bool = False,
-    show_face_line: bool = True,
-    opacity: float = 1,
-    save_fig: str = "DefoVis.svg",
+        obj,
+        input_file: str = "NodeRespStepData-1.hdf5",
+        response: str = "disp",
+        alpha: float = 1.0,
+        show_outline: bool = False,
+        show_origin: bool = False,
+        show_face_line: bool = True,
+        opacity: float = 1,
+        save_fig: str = "DefoVis.svg",
 ):
     resp_type = response.lower()
     if resp_type not in ["disp", "vel", "accel"]:
@@ -1262,7 +1308,7 @@ def _deform_peak_vis(
         for j in range(idxs.shape[1]):
             node_resp[i, j] = node_resp_steps[resp_type][idxs[i, j]][i, j]
     max_resps = np.amax(np.abs(node_resp_steps[resp_type]), axis=0)
-    scalars = np.sqrt(np.sum(max_resps**2, axis=1))
+    scalars = np.sqrt(np.sum(max_resps ** 2, axis=1))
     cmin, cmax = np.min(scalars), np.max(scalars)
     bounds = model_info_steps["bound"]
     model_dims = model_info_steps["model_dims"]
@@ -1344,22 +1390,22 @@ def _deform_peak_vis(
         plotter.view_xy(negative=False)
     if save_fig:
         plotter.save_graphic(save_fig)
-    plotter.enable_anti_aliasing("msaa")
+    plotter.enable_anti_aliasing(obj.anti_aliasing)
     plotter.show(title=obj.title)
     plotter.close()
 
 
 def _deform_anim(
-    obj,
-    input_file: str = "NodeRespStepData-1.hdf5",
-    response: str = "disp",
-    alpha: float = 1.0,
-    show_outline: bool = False,
-    opacity: float = 1,
-    framerate: int = 24,
-    show_face_line: bool = True,
-    save_fig: str = "DefoAnimation.gif",
-    model_update: bool = False,
+        obj,
+        input_file: str = "NodeRespStepData-1.hdf5",
+        response: str = "disp",
+        alpha: float = 1.0,
+        show_outline: bool = False,
+        opacity: float = 1,
+        framerate: int = 24,
+        show_face_line: bool = True,
+        save_fig: str = "DefoAnimation.gif",
+        model_update: bool = False,
 ):
     resp_type = response.lower()
     if resp_type not in ["disp", "vel", "accel"]:
@@ -1400,12 +1446,12 @@ def _deform_anim(
 
     # ! max response
     max_resps = [
-        np.max(np.sqrt(np.sum(resp_**2, axis=1)))
+        np.max(np.sqrt(np.sum(resp_ ** 2, axis=1)))
         for resp_ in node_resp_steps[resp_type]
     ]
     max_step = np.argmax(max_resps)
     max_node_resp = node_resp_steps[resp_type][max_step]
-    scalars = np.sqrt(np.sum(max_node_resp**2, axis=1))
+    scalars = np.sqrt(np.sum(max_node_resp ** 2, axis=1))
     cmin, cmax = np.min(scalars), np.max(scalars)
     if model_update:
         bounds = model_info_steps["bound"][0]
@@ -1418,7 +1464,7 @@ def _deform_anim(
         max_bound = np.max(
             [bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4]]
         )
-        value = np.max(np.sqrt(np.sum(max_node_resp**2, axis=1)))
+        value = np.max(np.sqrt(np.sum(max_node_resp ** 2, axis=1)))
         alpha_ = max_bound / obj.bound_fact / value
         alpha_ = alpha_ * alpha if alpha else alpha_
     else:
@@ -1440,7 +1486,7 @@ def _deform_anim(
             faces_cells = cell_steps["all_faces"]
         node_resp = node_resp_steps[resp_type][step]
         node_deform_coords = alpha_ * node_resp + node_nodeform_coords
-        scalars = np.sqrt(np.sum(node_resp**2, axis=1))
+        scalars = np.sqrt(np.sum(node_resp ** 2, axis=1))
         plotter.clear_actors()  # !!!!!!
         point_plot, line_plot, face_plot = _generate_all_mesh(
             plotter,
@@ -1505,21 +1551,21 @@ def _deform_anim(
         plotter.write_frame()
 
     # ----------------------------------------------------------------------------------
-    plotter.enable_anti_aliasing("msaa")
+    plotter.enable_anti_aliasing(obj.anti_aliasing)
     plotter.show(title=obj.title)
     plotter.close()
 
 
 def _frame_resp_vis(
-    obj,
-    input_file: str = "BeamRespStepData-1.hdf5",
-    ele_tags: list = None,
-    slider: bool = False,
-    response: str = "Mz",
-    show_values=True,
-    alpha: float = 1.0,
-    opacity: float = 1,
-    save_fig: str = "FrameRespVis.svg",
+        obj,
+        input_file: str = "BeamRespStepData-1.hdf5",
+        ele_tags: list = None,
+        slider: bool = False,
+        response: str = "Mz",
+        show_values=True,
+        alpha: float = 1.0,
+        opacity: float = 1,
+        save_fig: str = "FrameRespVis.svg",
 ):
     check_file(save_fig, [".svg", ".eps", ".ps", "pdf", ".tex"])
     filename = obj.out_dir + "/" + input_file
@@ -1738,7 +1784,7 @@ def _frame_resp_vis(
         plotter.view_xy(negative=False)
     if save_fig:
         plotter.save_graphic(save_fig)
-    plotter.enable_anti_aliasing("msaa")
+    plotter.enable_anti_aliasing(obj.anti_aliasing)
     plotter.show(title=obj.title)
     plotter.close()
 
@@ -1761,20 +1807,20 @@ def _generate_mesh(points, cells, kind="line"):
 
 
 def _generate_all_mesh(
-    plotter,
-    points,
-    scalars,
-    opacity,
-    colormap,
-    lines_cells,
-    face_cells,
-    show_origin=False,
-    points_origin=None,
-    show_scalar_bar=False,
-    point_size=1,
-    line_width=1,
-    show_face_line=True,
-    clim=None,
+        plotter,
+        points,
+        scalars,
+        opacity,
+        colormap,
+        lines_cells,
+        face_cells,
+        show_origin=False,
+        points_origin=None,
+        show_scalar_bar=False,
+        point_size=1,
+        line_width=1,
+        show_face_line=True,
+        clim=None,
 ):
     """
     Auxiliary function for generating all meshes

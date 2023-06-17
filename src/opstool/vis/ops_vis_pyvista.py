@@ -47,14 +47,14 @@ class OpsVisPyvista:
     """
 
     def __init__(
-        self,
-        point_size: float = 1,
-        line_width: float = 3,
-        colors_dict: dict = None,
-        theme: str = "document",
-        color_map: str = "jet",
-        on_notebook: bool = False,
-        results_dir: str = "opstool_output",
+            self,
+            point_size: float = 1,
+            line_width: float = 3,
+            colors_dict: dict = None,
+            theme: str = "document",
+            color_map: str = "jet",
+            on_notebook: bool = False,
+            results_dir: str = "opstool_output",
     ):
         # ------------------------------
         self.point_size = point_size
@@ -88,26 +88,73 @@ class OpsVisPyvista:
         # -------------------------------------------------
         self.out_dir = results_dir
         # -------------------------------------------------
-        self.bound_fact = 20
+        self.bound_fact = 30
+        self.anti_aliasing = "msaa"
+
+    def set_color(self, point: str = "#580f41", line: str = "#0504aa",
+                  face: str = "#00c16e", solid: str = "#0cb9c1",
+                  truss: str = "#7552cc", link: str = "#01ff07",
+                  constraint: str = "#00ffff"):
+        """Set the color for various element types.
+
+        Paramaters
+        -----------
+        point: str, default="#580f41"
+            Nodal color.
+        line: str, default="#0504aa"
+            Line element color, including beams.
+        face: str, default="#00c16e"
+            The color of planar elements, including 2D solid elements, plate and shell elements.
+        solid: str, default="#0cb9c1"
+            The color of solid elements.
+        truss: str, default="#7552cc"
+            Truss color.
+        link: str, default="#01ff07"
+            The color of link and bearing elements.
+        constraint: str, default="#00ffff"
+            The color of multi-point constraint.
+        """
+        self.color_point = point
+        self.color_line = line
+        self.color_face = face
+        self.color_solid = solid
+        self.color_truss = truss
+        self.color_link = link
+        self.color_constraint = constraint
+
+    def set_anti_aliasing(self, aa_type: str = "msaa"):
+        """
+        Make edges (lines) appear softer and less pixelated.
+
+        Parameters
+        -----------
+        aa_type: str, default = "msaa"
+            Anti-aliasing type. See the notes below. One of the following:
+
+            * ``"ssaa"`` - Super-Sample Anti-Aliasing
+            * ``"msaa"`` - Multi-Sample Anti-Aliasing
+            * ``"fxaa"`` - Fast Approximate Anti-Aliasing
+        """
+        self.anti_aliasing = aa_type
 
     def model_vis(
-        self,
-        input_file: str = "ModelData.hdf5",
-        show_node_label: bool = False,
-        show_ele_label: bool = False,
-        label_size: float = 10,
-        show_local_crd: bool = False,
-        local_crd_alpha: float = 1.0,
-        show_fix_node: bool = True,
-        fix_node_alpha: float = 1.0,
-        show_load: bool = False,
-        load_alpha: float = 1.0,
-        show_constrain_dof: bool = False,
-        show_beam_sec: bool = False,
-        beam_sec_paras: dict = None,
-        show_outline: bool = True,
-        opacity: float = 1.0,
-        save_fig: str = "ModelVis.svg",
+            self,
+            input_file: str = "ModelData.hdf5",
+            show_node_label: bool = False,
+            show_ele_label: bool = False,
+            label_size: float = 10,
+            show_local_crd: bool = False,
+            local_crd_alpha: float = 1.0,
+            show_fix_node: bool = True,
+            fix_node_alpha: float = 1.0,
+            show_load: bool = False,
+            load_alpha: float = 1.0,
+            show_constrain_dof: bool = False,
+            show_beam_sec: bool = False,
+            beam_sec_paras: dict = None,
+            show_outline: bool = True,
+            opacity: float = 1.0,
+            save_fig: str = "ModelVis.svg",
     ):
         """
         Visualize the model in the current domain.
@@ -200,18 +247,18 @@ class OpsVisPyvista:
         )
 
     def eigen_vis(
-        self,
-        mode_tags: list,
-        input_file: str = "EigenData.hdf5",
-        subplots: bool = False,
-        link_views: bool = True,
-        alpha: float = 1.0,
-        show_outline: bool = False,
-        show_origin: bool = False,
-        label_size: float = 15,
-        opacity: float = 1.0,
-        show_face_line: bool = True,
-        save_fig: str = "EigenVis.svg",
+            self,
+            mode_tags: list,
+            input_file: str = "EigenData.hdf5",
+            subplots: bool = False,
+            link_views: bool = True,
+            alpha: float = 1.0,
+            show_outline: bool = False,
+            show_origin: bool = False,
+            label_size: float = 15,
+            opacity: float = 1.0,
+            show_face_line: bool = True,
+            save_fig: str = "EigenVis.svg",
     ):
         """Eigenvalue Analysis Visualization.
 
@@ -237,6 +284,8 @@ class OpsVisPyvista:
             Whether to display the axes.
         show_origin: bool, default=False
             Whether to show undeformed shape.
+        label_size: float, default=15
+            The fontsize of text labels.
         opacity: float, default=1.0
             Plane and solid element transparency.
         show_face_line: bool, default=True
@@ -272,17 +321,17 @@ class OpsVisPyvista:
         )
 
     def eigen_anim(
-        self,
-        mode_tag: int = 1,
-        input_file: str = "EigenData.hdf5",
-        n_cycle: int = 5,
-        alpha: float = 1.0,
-        show_outline: bool = False,
-        label_size: float = 15,
-        opacity: float = 1,
-        framerate: int = 3,
-        show_face_line: bool = True,
-        save_fig: str = "EigenAnimation.gif",
+            self,
+            mode_tag: int = 1,
+            input_file: str = "EigenData.hdf5",
+            n_cycle: int = 5,
+            alpha: float = 1.0,
+            show_outline: bool = False,
+            label_size: float = 15,
+            opacity: float = 1,
+            framerate: int = 3,
+            show_face_line: bool = True,
+            save_fig: str = "EigenAnimation.gif",
     ):
         """Animation of Modal Analysis.
 
@@ -304,6 +353,8 @@ class OpsVisPyvista:
             Scaling factor, scale further on existing display.
         show_outline: bool, default=False
             Whether to display the axes.
+        label_size: float, default=15
+            The fontsize of text labels.
         opacity: float, default=1.0
             Plane and solid element transparency.
         framerate: int
@@ -334,13 +385,13 @@ class OpsVisPyvista:
         )
 
     def react_vis(
-        self,
-        input_file: str = "NodeReactionStepData-1.hdf5",
-        slider: bool = False,
-        direction: str = "Fz",
-        show_values: bool = True,
-        show_outline: bool = False,
-        save_fig: str = "ReactionVis.svg",
+            self,
+            input_file: str = "NodeReactionStepData-1.hdf5",
+            slider: bool = False,
+            direction: str = "Fz",
+            show_values: bool = True,
+            show_outline: bool = False,
+            save_fig: str = "ReactionVis.svg",
     ):
         """Plot the node reactions.
 
@@ -380,17 +431,17 @@ class OpsVisPyvista:
         )
 
     def deform_vis(
-        self,
-        input_file: str = "NodeRespStepData-1.hdf5",
-        slider: bool = False,
-        response: str = "disp",
-        alpha: float = 1.0,
-        show_outline: bool = False,
-        show_origin: bool = False,
-        show_face_line: bool = True,
-        opacity: float = 1,
-        save_fig: str = "DefoVis.svg",
-        model_update: bool = False,
+            self,
+            input_file: str = "NodeRespStepData-1.hdf5",
+            slider: bool = False,
+            response: str = "disp",
+            alpha: float = 1.0,
+            show_outline: bool = False,
+            show_origin: bool = False,
+            show_face_line: bool = True,
+            opacity: float = 1,
+            save_fig: str = "DefoVis.svg",
+            model_update: bool = False,
     ):
         """Visualize the deformation of the model at a certain analysis step.
 
@@ -455,16 +506,16 @@ class OpsVisPyvista:
         )
 
     def deform_anim(
-        self,
-        input_file: str = "NodeRespStepData-1.hdf5",
-        response: str = "disp",
-        alpha: float = 1.0,
-        show_outline: bool = False,
-        opacity: float = 1,
-        framerate: int = 24,
-        show_face_line: bool = True,
-        save_fig: str = "DefoAnimation.gif",
-        model_update: bool = False,
+            self,
+            input_file: str = "NodeRespStepData-1.hdf5",
+            response: str = "disp",
+            alpha: float = 1.0,
+            show_outline: bool = False,
+            opacity: float = 1,
+            framerate: int = 24,
+            show_face_line: bool = True,
+            save_fig: str = "DefoAnimation.gif",
+            model_update: bool = False,
     ):
         """Deformation animation of the model.
 
@@ -518,15 +569,15 @@ class OpsVisPyvista:
         )
 
     def deform_peak_vis(
-        self,
-        input_file: str = "NodeRespStepData-1.hdf5",
-        response: str = "disp",
-        alpha: float = 1.0,
-        show_outline: bool = False,
-        show_origin: bool = False,
-        show_face_line: bool = True,
-        opacity: float = 1,
-        save_fig: str = "DefoVis.svg"
+            self,
+            input_file: str = "NodeRespStepData-1.hdf5",
+            response: str = "disp",
+            alpha: float = 1.0,
+            show_outline: bool = False,
+            show_origin: bool = False,
+            show_face_line: bool = True,
+            opacity: float = 1,
+            save_fig: str = "DefoVis.svg"
     ):
         """Visualize the node peak responses of the model at all analysis steps.
         That is to say, the response of each node in each direction is the absolute maximum
@@ -585,15 +636,15 @@ class OpsVisPyvista:
         )
 
     def frame_resp_vis(
-        self,
-        input_file: str = "BeamRespStepData-1.hdf5",
-        ele_tags: list = None,
-        slider: bool = False,
-        response: str = "Mz",
-        show_values=True,
-        alpha: float = 1.0,
-        opacity: float = 1,
-        save_fig: str = "FrameRespVis.svg",
+            self,
+            input_file: str = "BeamRespStepData-1.hdf5",
+            ele_tags: list = None,
+            slider: bool = False,
+            response: str = "Mz",
+            show_values=True,
+            alpha: float = 1.0,
+            opacity: float = 1,
+            save_fig: str = "FrameRespVis.svg",
     ):
         """
         Display the force response of frame elements.
