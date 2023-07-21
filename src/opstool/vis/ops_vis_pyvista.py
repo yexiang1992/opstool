@@ -91,10 +91,12 @@ class OpsVisPyvista:
         self.bound_fact = 30
         self.anti_aliasing = "msaa"
 
-    def set_color(self, point: str = "#580f41", line: str = "#0504aa",
-                  face: str = "#00c16e", solid: str = "#0cb9c1",
-                  truss: str = "#7552cc", link: str = "#01ff07",
-                  constraint: str = "#00ffff"):
+    def set_color(
+        self, point: str = "#580f41", line: str = "#0504aa",
+        face: str = "#00c16e", solid: str = "#0cb9c1",
+        truss: str = "#7552cc", link: str = "#01ff07",
+        constraint: str = "#00ffff"
+    ):
         """Set the color for various element types.
 
         Paramaters

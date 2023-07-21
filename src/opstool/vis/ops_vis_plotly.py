@@ -222,7 +222,7 @@ class OpsVisPlotly:
             .. note::
                 Please make sure that all dofs (or directions) have values
                 when adding the ``load`` or ``eleLoad`` command,
-                even if the value is 0.
+                even if the value is 0.0.
 
         load_alpha: float, default = 1.0
             On existing displays, the scaling factor for the load arrow sizes.

@@ -927,10 +927,9 @@ def _show_ele_load(obj, plotter, model_info, alpha: float = 1.0):
             lengths = np.abs(data) * alpha_
             arrow_heights = [0.4 * ll for ll in lengths]
             arrow_widths = [0.6 * h for h in arrow_heights]
-            # new_locals[idx, 3 * i : 3 * i + 3]
-            xaxis = new_locals[idx, idxs[idxsidx[i][0]]]
-            yaxis = new_locals[idx, idxs[idxsidx[i][1]]]
-            zaxis = new_locals[idx, idxs[idxsidx[i][2]]]
+            xaxis = new_locals[np.ix_(idx, idxs[idxsidx[i][0]])]
+            yaxis = new_locals[np.ix_(idx, idxs[idxsidx[i][1]])]
+            zaxis = new_locals[np.ix_(idx, idxs[idxsidx[i][2]])]
             new_coords = np.zeros_like(coords)
             for j in range(len(xaxis)):
                 xaxis[j] *= np.sign(data[j])

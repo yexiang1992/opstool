@@ -1,6 +1,10 @@
 Changelog
 =============
 
+v0.8.3
+--------------------
+- Fixed bugs in show_ele_load in OpsVisPlotly
+
 v0.8.0
 --------------------
 

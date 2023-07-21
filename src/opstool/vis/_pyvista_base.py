@@ -99,9 +99,9 @@ def _model_vis(
     plotter.view_isometric()
     if np.max(model_info["model_dims"]) <= 2:
         plotter.view_xy(negative=False)
+    plotter.enable_anti_aliasing("msaa")
     if save_fig:
         plotter.save_graphic(save_fig)
-    plotter.enable_anti_aliasing("msaa")
     plotter.show(title=obj.title)
     plotter.close()
 
@@ -1182,7 +1182,7 @@ def _deform_vis(
         node_resp = node_resp_steps[resp_type][step]
         node_deform_coords = alpha_ * node_resp + node_nodeform_coords
         scalars = np.sqrt(np.sum(node_resp ** 2, axis=1))
-        plotter.clear_actors()  # !!!!!!
+        plotter.clear_actors()  # ! clear
         _ = _generate_all_mesh(
             plotter,
             node_deform_coords,
