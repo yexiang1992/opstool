@@ -1276,14 +1276,15 @@ class SecMesh:
             fontsize=18,
             shadow=False,
             markerscale=3,
-            loc=10,
+            loc='center left',
             ncol=len(self.group_map),
-            bbox_to_anchor=(0.5, -0.2),
+            bbox_to_anchor=(1.01, 0.5),
             bbox_transform=ax.transAxes,
         )
         ax.set_xlabel("y", fontsize=22)
         ax.set_ylabel("z", fontsize=22)
         ax.tick_params(labelsize=18)
+        plt.tight_layout()
         plt.show()
 
     def _plot_plotly(

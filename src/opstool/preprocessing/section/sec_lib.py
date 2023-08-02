@@ -416,10 +416,10 @@ class section_library:
         left1 = left.parallel_offset(tw, 'left', join_style=2)
         outlines1 = [[0, 0], [b2, 0], [b2-diff_b, h], [diff_b, h]]
         outlines2 = [
-            left1.intersection(bottom1),
-            bottom1.intersection(right1),
-            right1.intersection(top1),
-            top1.intersection(left1)
+            list(left1.intersection(bottom1).coords)[0],
+            list(bottom1.intersection(right1).coords)[0],
+            list(right1.intersection(top1).coords)[0],
+            list(top1.intersection(left1).coords)[0]
         ]
         poly = add_polygon(outlines1, holes=[outlines2])
 
