@@ -4,7 +4,7 @@ from .unit_system import UnitSystem
 from .geom_transf import beam_geom_transf
 from .section import (Rebars, SecMesh, add_circle, add_material,
                       add_polygon, offset, poly_offset, line_offset, var_line_string, vis_var_sec,
-                      get_legendre_loc, get_lobatto_loc)
+                      get_legendre_loc, get_lobatto_loc, section_library)
 
 __all__ = ["gen_grav_load",
            "tcl2py",
@@ -22,5 +22,6 @@ __all__ = ["gen_grav_load",
            "var_line_string",
            "vis_var_sec",
            "get_legendre_loc",
-           "get_lobatto_loc"
+           "get_lobatto_loc",
+           "section_library"
            ]

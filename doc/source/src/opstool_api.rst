@@ -27,6 +27,7 @@ Section Fiber Mesh
     api/sec.add_polygon
     api/sec.add_circle
     api/sec.var_sec
+    api/sec.lib
 
 Preprocessing
 --------------
