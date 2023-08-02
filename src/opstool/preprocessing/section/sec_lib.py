@@ -15,7 +15,7 @@ class section_library:
 
         .. raw:: html
 
-        <a href="https://sm.ms/image/3dnTRLefGOJVjHQ" target="_blank"><img src="https://s2.loli.net/2023/08/02/3dnTRLefGOJVjHQ.png" ></a>
+        <img src="https://s2.loli.net/2023/08/02/3dnTRLefGOJVjHQ.png" ></img>
 
         Parameters
         ----------
@@ -108,7 +108,7 @@ class section_library:
 
         .. raw:: html
 
-        <a href="https://sm.ms/image/iYVKsW6cuGFfNxB" target="_blank"><img src="https://s2.loli.net/2023/08/02/iYVKsW6cuGFfNxB.png" ></a>
+        <img src="https://s2.loli.net/2023/08/02/iYVKsW6cuGFfNxB.png" ></img>
 
         Parameters
         ----------
@@ -251,7 +251,7 @@ class section_library:
 
         .. raw:: html
 
-        <a href="https://sm.ms/image/fRtxJPDWYo3uHOa" target="_blank"><img src="https://s2.loli.net/2023/08/02/fRtxJPDWYo3uHOa.png" ></a>
+        <img src="https://s2.loli.net/2023/08/02/fRtxJPDWYo3uHOa.png" ></img>
 
         Parameters
         ----------
@@ -527,7 +527,7 @@ class section_library:
 
         .. raw:: html
 
-        <a href="https://sm.ms/image/9uIQFOJnHqYTZi5" target="_blank"><img src="https://s2.loli.net/2023/08/02/9uIQFOJnHqYTZi5.png" ></a>
+        <img src="https://s2.loli.net/2023/08/02/9uIQFOJnHqYTZi5.png" ></img>
 
         Parameters
         ----------
