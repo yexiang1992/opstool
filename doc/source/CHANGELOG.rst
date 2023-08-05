@@ -1,6 +1,12 @@
 Changelog
 =============
 
+v0.8.4
+--------------------
+- Fixed incorrect calculation of section properties caused by :py:meth:`opstool.preprocessing.SecMesh.centering`
+- Added predefined section library :py:class:`opstool.preprocessing.section_library`
+- Updated section mesh visualization
+
 v0.8.3
 --------------------
 - Fixed bugs in show_ele_load in OpsVisPlotly
