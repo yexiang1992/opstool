@@ -33,7 +33,7 @@ def node(*args) -> None:
 
 def mass(*args) -> None:
     """``mass(nodeTag, *massValues)``
-    
+
     This command is used to set the mass at a node, replacing any previously defined mass at the node.
 
     * nodeTag (int) : integer tag identifying node whose mass is set
@@ -45,9 +45,9 @@ def region(*args) -> None:
     """``region(regTag, '-ele', *eles, '-eleOnly', *eles, '-eleRange', startEle, endEle, '-eleOnlyRange',
     startEle, endEle, '-node', *nodes, '-nodeOnly', *nodes, '-nodeRange', startNode, endNode, '-nodeOnlyRange', 
     startNode, endNode, '-rayleigh', alphaM, betaK, betaKinit, betaKcomm)``
-    
+
     See https://openseespydoc.readthedocs.io/en/latest/src/region.html
-    
+
     The region command is used to label a group of nodes and elements.
     This command is also used to assign rayleigh damping parameters to the nodes and elements in this region.
     The region is specified by either elements or nodes, not both.
@@ -68,7 +68,7 @@ def region(*args) -> None:
     * betaK (float) : factor applied to elements current stiffness matrix (optional)
     * betaKinit (float) : factor applied to elements initial stiffness matrix (optional)
     * betaKcomm (float) : factor applied to elements committed stiffness matrix (optional)
-    
+
     Note:
     * The user cannot prescribe the region by BOTH elements and nodes.
     """
@@ -76,15 +76,15 @@ def region(*args) -> None:
 
 def rayleigh(*args) -> None:
     """``rayleigh(alphaM, betaK, betaKinit, betaKcomm)``
-    
+
     See https://openseespydoc.readthedocs.io/en/latest/src/reyleigh.html
-    
+
     This command is used to assign damping to all previously-defined elements and nodes.
     When using rayleigh damping in OpenSees, the damping matrix for an element or node,
     D is specified as a combination of stiffness and mass-proportional damping matrices:
 
     D=αM∗M+βK∗Kcurr+βKinit∗Kinit+βKcomm∗Kcommit
-    
+
     * alphaM (float) : factor applied to elements or nodes mass matrix
     * betaK (float) : factor applied to elements current stiffness matrix.
     * betaKinit (float) : factor applied to elements initial stiffness matrix.
@@ -101,7 +101,7 @@ def block2D(*args) -> None:
 
 def block3D(*args) -> None:
     """``block3D(numX, numY, numZ, startNode, startEle, eleType, *eleArgs, *crds)``
-    
+
     The block3D command generates three-dimensional meshes of eight-node brick solid element.
     See https://openseespydoc.readthedocs.io/en/latest/src/block3D.html
     """
@@ -109,35 +109,39 @@ def block3D(*args) -> None:
 
 def beamIntegration(*args) -> None:
     """``beamIntegration(type, tag, *args)``
-    
+
     See https://openseespydoc.readthedocs.io/en/latest/src/beamIntegration.html
-    
+
     A wide range of numerical integration options are available in OpenSees
     to represent distributed plasticity or non-prismatic section details in Beam-Column Elements,
     i.e., across the entire element domain [0, L].
 
     Integration Methods for Distributed Plasticity. 
     Distributed plasticity methods permit yielding at any integration point along the element length.
-    
+
     ``beamIntegration('Lobatto', tag, secTag, N)``  ------> prismatic section
-    
+
     ``beamIntegration('Lobatto', tag, N, *secTags)``  -----> non-prismatic sections.
-    
+
     ``beamIntegration('Legendre', tag, secTag, N)``  ------> prismatic section
-    
+
     ``beamIntegration('Legendre', tag, N, *secTags)``  -----> non-prismatic sections.
-    
+
     Plastic Hinge Integration Methods. Plastic hinge integration methods confine material yielding
     to regions of the element of specified length while the remainder of the element is linear elastic.
     A summary of plastic hinge integration methods is found in (Scott and Fenves 2006).
-    
+
     ``beamIntegration('HingeRadau', tag, secI, lpI, secJ, lpJ, secE)``
+
+    ``beamIntegration('HingeMidpoint', tag, secI, lpI, secJ, lpJ, secE)``
+
+    ``beamIntegration('HingeRadauTwo', tag, secI, lpI, secJ, lpJ, secE)``
     """
     pass
 
 def uniaxialMaterial(*args) -> None:
     """``uniaxialMaterial(matType, matTag, *matArgs)``
-    
+
     This command is used to construct a UniaxialMaterial object which represents uniaxial
     stress-strain (or force-deformation) relationships.
     See https://openseespydoc.readthedocs.io/en/latest/src/uniaxialMaterial.html
@@ -165,7 +169,7 @@ def strengthDegradation(*args) -> None:
 
 def strengthControl(*args) -> None:
     """``strengthControl(type, tag, *args)``
-    
+
     Same as strengthDegradation.
     """
     pass
@@ -177,7 +181,7 @@ def unloadingRule(*args) -> None:
 
 def limitCurve(*args) -> None:
     """``limitCurve(type, arg1, arg2, ...)``
-    
+
     Construct a failure curve for a limit state material.
     See https://opensees.berkeley.edu/wiki/index.php/Limit_Curve
     """
@@ -185,11 +189,11 @@ def limitCurve(*args) -> None:
 
 def nDMaterial(*args) -> None:
     """``nDMaterial(matType, matTag, *matArgs)``
-    
+
     This command is used to construct an NDMaterial object which represents the stress-strain relationship
     at the gauss-point of a continuum element.
     See https://openseespydoc.readthedocs.io/en/latest/src/ndMaterial.html
-    
+
 
     * matType (str) : material type
     * matTag (int) : material tag.
@@ -199,24 +203,24 @@ def nDMaterial(*args) -> None:
 
 def section(*args) -> None:
     """``section(secType, secTag, *secArgs)``
-    
+
     See https://openseespydoc.readthedocs.io/en/latest/src/section.html
-    
+
     ``section('Elastic', secTag, E_mod, A, Iz, G_mod=None, alphaY=None)`` for 2D
-    
+
     ``section('Elastic', secTag, E_mod, A, Iz, Iy, G_mod, Jxx, alphaY=None, alphaZ=None)`` for 3D
-    
+
     ``section('Fiber', secTag, '-GJ', GJ)``
-    
+
     ``section('Fiber', secTag, '-torsion', torsionMatTag)``
-    
+
     ``section('Aggregator', secTag, *mats, '-section', sectionTag)``
     """
     pass
 
 def fiber(*args) -> None:
     """``fiber(yloc, zloc, A, matTag)``
-    
+
     This command allows the user to construct a single fiber and add it to the enclosing FiberSection or NDFiberSection.
     See https://openseespydoc.readthedocs.io/en/latest/src/fiber.html
 
@@ -230,11 +234,11 @@ def fiber(*args) -> None:
 def patch(*args) -> None:
     """
     ``patch('quad', matTag, numSubdivIJ, numSubdivJK, *crdsI, *crdsJ, *crdsK, *crdsL)``
-    
+
     ``patch('rect', matTag, numSubdivY, numSubdivZ, *crdsI, *crdsJ)``
-    
+
     ``patch('circ', matTag, numSubdivCirc, numSubdivRad, *center, *rad, *ang)``
-    
+
     See https://openseespydoc.readthedocs.io/en/latest/src/patch.html
     """
     pass
@@ -242,16 +246,16 @@ def patch(*args) -> None:
 def layer(*args) -> None:
     """
     ``layer('straight', matTag, numFiber, areaFiber, *start, *end)``
-    
+
     ``layer('circ', matTag,numFiber,areaFiber,*center,radius,*ang=[0.0,360.0-360/numFiber])``
-    
+
     See https://openseespydoc.readthedocs.io/en/latest/src/layer.html
     """
     pass
 
 def frictionModel(*args) -> None:
     """``frictionModel(frnType, frnTag, *frnArgs)``
-    
+
     The frictionModel command is used to construct a friction model object,
     which specifies the behavior of the coefficient of friction in terms of the absolute sliding
     velocity and the pressure on the contact area. The command has at least one argument, the friction model type.
@@ -260,47 +264,48 @@ def frictionModel(*args) -> None:
     * frnType (str) : frictionModel type
     * frnTag (int) : frictionModel tag.
     * frnArgs (list) : a list of frictionModel arguments, must be preceded with *.
-    
+
     ``frictionModel('Coulomb', frnTag, mu)``
-    
+
     ``frictionModel('VelDependent', frnTag, muSlow, muFast, transRate)``
-    
+
     ``frictionModel('VelNormalFrcDep', frnTag, aSlow, nSlow, aFast, nFast, alpha0, alpha1, alpha2, maxMuFact)``
-    
+
     ``frictionModel('VelPressureDep', frnTag, muSlow, muFast0, A, deltaMu, alpha, transRate)``
-    
+
     ``frictionModel('VelDepMultiLinear', frnTag, '-vel', *velPoints, '-frn', *frnPoints)``
     """
     pass
 
 def geomTransf(*args) -> None:
     """``geomTransf(transfType, transfTag, *transfArgs)``
-    
+
     The geometric-transformation command is used to construct a coordinate-transformation (CrdTransf) object,
     which transforms beam element stiffness and resisting force from the basic system to the global-coordinate system.
     The command has at least one argument, the transformation type.
     See https://openseespydoc.readthedocs.io/en/latest/src/geomTransf.html
-    
+
     * transfType (str) : geomTransf type
     * transfTag (int) : geomTransf tag.
     * transfArgs (list) : a list of geomTransf arguments, must be preceded with *.
-    
+
     ``geomTransf('Linear', transfTag, '-jntOffset', *dI, *dJ)`` for 2D
-    
+
     ``geomTransf('Linear', transfTag, *vecxz, '-jntOffset', *dI, *dJ)`` for 3D
-    
+
     ``geomTransf('PDelta', transfTag, *vecxz, '-jntOffset', *dI, *dJ)`` for 3D
-    
+
     ``geomTransf('Corotational', transfTag, *vecxz, '-jntOffset', *dI, *dJ)`` for 3D
-    
+
     Note:
-        Currently the transformation does not deal with element loads and will ignore any that are applied to the element.
+        Currently the ``Corotational`` transformation does not deal with element loads and
+        will ignore any that are applied to the element.
     """
     pass
 
 def fix(*args) -> None:
     """``fix(nodeTag, *constrValues)``
-    
+
     Create a homogeneous SP constriant.
 
     * nodeTag (int) : tag of node to be constrained
@@ -309,7 +314,7 @@ def fix(*args) -> None:
         1 fixed
     """
     pass
-    
+
 def fixX(*args) -> None:
     """``fixX(x, *constrValues, '-tol', tol=1e-10)``
 
@@ -321,10 +326,10 @@ def fixX(*args) -> None:
     * tol (float) : user-defined tolerance (optional)
     """
     pass
-    
+
 def fixY(*args) -> None:
     """``fixY(y, *constrValues, '-tol', tol=1e-10)``
-    
+
     Create homogeneous SP constriants.
 
     * y (float) : y-coordinate of nodes to be constrained
@@ -333,10 +338,10 @@ def fixY(*args) -> None:
     * tol (float) : user-defined tolerance (optional)
     """
     pass
-    
+
 def fixZ(*args) -> None:
     """``fixZ(z, *constrValues, '-tol', tol=1e-10)``
-    
+
     Create homogeneous SP constriants.
 
     * z (float) : z-coordinate of nodes to be constrained
@@ -348,7 +353,7 @@ def fixZ(*args) -> None:
 
 def equalDOF(*args) -> None:
     """``equalDOF(rNodeTag, cNodeTag, *dofs)``
-    
+
     Create a multi-point constraint between nodes.
 
     * rNodeTag (int) : integer tag identifying the retained, or master node.
@@ -359,7 +364,7 @@ def equalDOF(*args) -> None:
 
 def equalDOF_Mixed(*args) -> None:
     """``equalDOF_Mixed(rNodeTag, cNodeTag, numDOF, *rcdofs)``
-    
+
     Create a multi-point constraint between nodes.
 
     * rNodeTag (int) : integer tag identifying the retained, or master node.
@@ -373,7 +378,7 @@ def equalDOF_Mixed(*args) -> None:
 
 def rigidDiaphragm(*args) -> None:
     """``rigidDiaphragm(perpDirn, rNodeTag, *cNodeTags)``
-    
+
     Create a multi-point constraint between nodes. These objects will constrain
     certain degrees-of-freedom at the listed secondary nodes to move as if in a rigid plane with
     the primary (retained) node. To enforce this constraint, ``Transformation`` constraint handler is recommended.
@@ -386,7 +391,7 @@ def rigidDiaphragm(*args) -> None:
 
 def rigidLink(*args) -> None:
     """``rigidLink(type, rNodeTag, cNodeTag)``
-    
+
     Create a multi-point constraint between nodes.
 
     * type (str) : string-based argument for rigid-link type:
@@ -400,7 +405,7 @@ def rigidLink(*args) -> None:
 
 def pressureConstraint(*args) -> None:
     """``pressureConstraint(nodeTag, pNodeTag)``
-    
+
     Create a pressure constraint for incompressible flow.
     See https://openseespydoc.readthedocs.io/en/latest/src/pc.html
 
@@ -411,7 +416,7 @@ def pressureConstraint(*args) -> None:
 
 def timeSeries(*args) -> None:
     """``timeSeries(tsType, tsTag, *tsArgs)``
-    
+
     This command is used to construct a TimeSeries object which represents the relationship between the time in the domain, t
     , and the load factor applied to the loads, λ, in the load pattern with which the TimeSeries
     object is associated, i.e. λ=F(t).
@@ -420,20 +425,20 @@ def timeSeries(*args) -> None:
     * tsType (str) : time series type.
     * tsTag (int) : time series tag.
     * tsArgs (list) : a list of time series arguments
-    
+
     ``timeSeries('Path', tag, '-dt', dt=0.0, '-values', *values, '-time', *time, '-filePath', filePath='',
     '-fileTime', fileTime='', '-factor', factor=1.0, '-startTime', startTime=0.0, '-useLast', '-prependZero')``
-    
+
     ``timeSeries('Linear', tag, '-factor', factor=1.0, '-tStart', tStart=0.0)``
-    
+
     ``timeSeries('Constant', tag, '-factor', factor=1.0)``
-    
+
     ``timeSeries('Trig', tag, tStart, tEnd, period, '-factor', factor=1.0, '-shift', shift=0.0, '-zeroShift', zeroShift=0.0)``
-    
+
     ``timeSeries('Triangle', tag, tStart, tEnd, period, '-factor', factor=1.0, '-shift', shift=0.0, '-zeroShift', zeroShift=0.0)``
-    
+
     ``timeSeries('Rectangular', tag, tStart, tEnd, '-factor', factor=1.0)``
-    
+
     ``timeSeries('Pulse', tag, tStart, tEnd, period, '-width', width=0.5,
     '-shift', shift=0.0, '-factor', factor=1.0, '-zeroShift', zeroShift=0.0)``    
     """
@@ -450,14 +455,14 @@ def pattern(*args) -> None:
     * patternType (str) : pattern type.
     * patternTag (int) : pattern tag.
     * patternArgs (list) : a list of pattern arguments.
-    
+
     The following contain information about available patternType:
-    
+
     ``pattern('Plain', patternTag, tsTag, '-fact', fact)``
-    
+
     ``pattern('UniformExcitation', patternTag, dir, '-disp', dispSeriesTag,
     '-vel', velSeriesTag, '-accel', accelSeriesTag, '-vel0', vel0, '-fact', fact)``
-    
+
     ``pattern('MultipleSupport', patternTag)``
     """
     pass
@@ -482,10 +487,10 @@ def eleLoad(*args) -> None:
     """
     ``eleLoad('-ele', *eleTags, '-range', eleTag1, eleTag2, '-type',
     '-beamUniform', Wy, <Wz>, Wx=0.0, '-beamPoint', Py, <Pz>, xL, Px=0.0, '-beamThermal', *tempPts)``
-    
+
     The eleLoad command is used to construct an ElementalLoad object and add it to the enclosing LoadPattern.
     See https://openseespydoc.readthedocs.io/en/latest/src/eleload.html
-    
+
     * eleTags (list (int)) : tag of PREVIOUSLY DEFINED element
     * eleTag1 (int) : element tag
     * eleTag2 (int) : element tag
@@ -498,7 +503,7 @@ def eleLoad(*args) -> None:
     * xL (float) : location of point load relative to node I, prescribed as fraction of element length
     * tempPts (list (float)) : temperature points: temPts = [T1, y1, T2, y2, ..., T9, y9].
         Each point (T1, y1) define a temperature and location. This command may accept 2,5 or 9 temperature points.
-    
+
     Note:
     * The load values are reference load values, it is the time series that provides the load factor. 
         The load factor times the reference values is the load that is actually applied to the element.
@@ -508,14 +513,14 @@ def eleLoad(*args) -> None:
 
 def sp(*args) -> None:
     """``sp(nodeTag, dof, dofValue)``
-    
+
     This command is used to construct a single-point constraint object and add it to the enclosing LoadPattern.
     See https://openseespydoc.readthedocs.io/en/latest/src/sp.html
 
     * nodeTag (int) : tag of node to which load is applied.
     * dof (int) : the degree-of-freedom at the node to which constraint is applied (1 through ndf)
     * dofValue (float) : reference constraint value.
-    
+
     Note:
     * The dofValue is a reference value, it is the time series that provides the load factor.
     The load factor times the reference value is the constraint that is actually applied to the node.
@@ -526,7 +531,7 @@ def groundMotion(*args) -> None:
     """``groundMotion(gmTag, 'Plain', '-disp', dispSeriesTag, '-vel', 
     velSeriesTag, '-accel', accelSeriesTag, '-int', tsInt='Trapezoidal', '-fact', factor=1.0)``
     ----> Plain Ground Motion, see https://openseespydoc.readthedocs.io/en/latest/src/groundMotion.html
-    
+
     ``groundMotion(gmTag, 'Interpolated', *gmTags, '-fact', facts)``
     ----> Interpolated Ground Motion, see https://openseespydoc.readthedocs.io/en/latest/src/interpolatedGroundMotion.html
     """
@@ -534,7 +539,7 @@ def groundMotion(*args) -> None:
 
 def imposedMotion(*args) -> None:
     """``imposedMotion(nodeTag, dof, gmTag)``
-    
+
     This command is used to construct an ImposedMotionSP constraint which
     is used to enforce the response of a dof at a node in the model.
     The response enforced at the node at any give time is obtained from the GroundMotion object associated with the constraint.
@@ -548,7 +553,7 @@ def imposedMotion(*args) -> None:
 
 def element(*args) -> None:
     """``element(eleType, eleTag, *eleNodes, *eleArgs)``
-    
+
     Create a OpenSees element,
     see https://openseespydoc.readthedocs.io/en/latest/src/element.html.
 
@@ -556,59 +561,59 @@ def element(*args) -> None:
     * eleTag (int) : element tag.
     * eleNodes (list (int)) : a list of element nodes, must be preceded with *.
     * eleArgs (list) : a list of element arguments, must be preceded with *.
-    
+
     ``element('zeroLength', eleTag, *eleNodes, '-mat', *matTags, '-dir', *dirs,
     <'-doRayleigh', rFlag=0>, <'-orient', *vecx, *vecyp>)``
-    
+
     ``element('zeroLengthSection', eleTag, *eleNodes, secTag, <'-orient', *vecx, *vecyp>, <'-doRayleigh', rFlag>)``
-    
+
     ``element('twoNodeLink', eleTag, *eleNodes, '-mat', *matTags, '-dir', *dir, <'-orient', *vecx, *vecyp>,
     <'-pDelta', *pDeltaVals>, <'-shearDist', *shearDist>, <'-doRayleigh'>, <'-mass', m>)``
-    
+
     ``element('Truss', eleTag, *eleNodes, A, matTag, <'-rho', rho>, <'-cMass', cFlag>, <'-doRayleigh', rFlag>)``
-    
+
     ``element('TrussSection', eleTag, *eleNodes, secTag, <'-rho', rho>, <'-cMass', cFlag>, <'-doRayleigh', rFlag>)``
-    
+
     ``element('elasticBeamColumn', eleTag, *eleNodes, Area, E_mod, Iz, transfTag,
     <'-mass', mass>, <'-cMass'>, <'-release', releaseCode>)`` For 2D
-    
+
     ``element('elasticBeamColumn', eleTag, *eleNodes, secTag, transfTag,
     <'-mass', mass>, <'-cMass'>, <'-release', releaseCode>)`` For 2D
 
     ``element('elasticBeamColumn', eleTag, *eleNodes, Area, E_mod, G_mod, Jxx, Iy, Iz, transfTag,
     <'-mass', mass>, <'-cMass'>)`` For 3D
-    
+
     ``element('elasticBeamColumn', eleTag, *eleNodes, secTag, transfTag,
     <'-mass', mass>, <'-cMass'> <'-releasez', releaseCode>, <'-releasey', releaseCode>)`` For 3D
-    
+
     ``element('dispBeamColumn', eleTag, *eleNodes, transfTag, integrationTag, '-cMass', '-mass', mass=0.0)``
-    
+
     ``element('forceBeamColumn', eleTag, *eleNodes, transfTag, integrationTag, '-iter', maxIter=10, tol=1e-12, '-mass', mass=0.0)``
     """
     pass
 
 def constraints(*args) -> None:
     """``constraints(constraintType, *constraintArgs)``
-    
+
     This command is used to construct the ConstraintHandler object. The ConstraintHandler object determines how the constraint equations are enforced in the analysis. Constraint equations enforce a specified value for a DOF, or a relationship between DOFs.
     See https://openseespydoc.readthedocs.io/en/latest/src/constraints.html
-    
+
     * constraintType (str) : constraints type
     * constraintArgs (list) : a list of constraints arguments
-    
+
     ``constraints('Plain')``
-    
+
     ``constraints('Lagrange', alphaS=1.0, alphaM=1.0)``
-    
+
     ``constraints('Penalty', alphaS=1.0, alphaM=1.0)``
-    
+
     ``constraints('Transformation')``
     """
     pass
 
 def numberer(*args) -> None:
     """``numberer(numbererType, *numbererArgs)``
-    
+
     This command is used to construct the DOF_Numberer object.
     The DOF_Numberer object determines the mapping between equation numbers and
     degrees-of-freedom – how degrees-of-freedom are numbered.
@@ -616,74 +621,74 @@ def numberer(*args) -> None:
 
     * numbererType (str) : numberer type
     * numbererArgs (list) : a list of numberer arguments
-    
+
     ``numberer('Plain')``
-    
+
     ``numberer('RCM')``
-    
+
     ``numberer('AMD')``
-    
+
     ``numberer('ParallelPlain')``
-    
+
     ``numberer('ParallelRCM')``
     """
     pass
 
 def system(*args) -> None:
     """``system(systemType, *systemArgs)``
-    
+
     This command is used to construct the LinearSOE and LinearSolver
     objects to store and solve the system of equations in the analysis.
     See https://openseespydoc.readthedocs.io/en/latest/src/system.html
 
     * systemType (str) : system type
     * systemArgs (list) : a list of system arguments
-    
+
     ``system('BandGen')``
-    
+
     ``system('BandSPD')``
-    
+
     ``system('ProfileSPD')``
-    
+
     ``system('SuperLU')``
-    
+
     ``system('UmfPack')``
-    
+
     ``system('SparseSYM')``
     """
     pass
 
 def test(*args) -> None:
     """``test(testType, *testArgs)``
-    
+
     This command is used to construct the LinearSOE and LinearSolver objects to store and solve the test of equations in the analysis.
     See https://openseespydoc.readthedocs.io/en/latest/src/test.html
 
     * testType (str) : test type
     * testArgs (list) : a list of test arguments
-    
+
     ``test('NormUnbalance', tol, iter, pFlag=0, nType=2, maxIncr=maxIncr)``
-    
+
     ``test('NormDispIncr', tol, iter, pFlag=0, nType=2)``
-    
+
     ``test('EnergyIncr', tol, iter, pFlag=0, nType=2)``
     """
     pass
 
 def algorithm(*args) -> None:
     """``algorithm(algoType, *algoArgs)``
-    
+
     This command is used to construct a SolutionAlgorithm object, which determines the
     sequence of steps taken to solve the non-linear equation.
     See https://openseespydoc.readthedocs.io/en/latest/src/algorithm.html
 
     * algoType (str) : algorithm type
     * algoArgs (list) : a list of algorithm arguments
-    
+
     ``algorithm('Linear', "secant"?, "initial"?, "factorOnce"?)``
-    
+
     ``algorithm('Newton', "secant"?, "initial"?, "initialThenCurrent"?)``
-    
+
     ``algorithm('KrylovNewton', <"iterate", 'current'?>, <"increment",'current'?>, <"maxDim", 3>)``
     """
     pass
@@ -696,52 +701,52 @@ def integrator(*args) -> None:
 
     * intType (str) : integrator type
     * intArgs (list) : a list of integrator arguments
-    
+
     Static integrator objects
     -------------------------
     ``integrator('LoadControl', incr, numIter=1, minIncr=incr, maxIncr=incr)``
-    
+
     ``integrator('DisplacementControl', nodeTag, dof, incr, numIter=1, dUmin=incr, dUmax=incr)``
-    
+
     ``integrator('ParallelDisplacementControl', nodeTag, dof, incr, numIter=1, dUmin=incr, dUmax=incr)``
-    
+
     ``integrator('MinUnbalDispNorm', dlambda1, Jd=1, minLambda=dlambda1, maxLambda=dlambda1, det=False)``
-    
+
     ``integrator('ArcLength', s, alpha)``
-    
+
     Transient integrator objects
     ------------------------------
     ``integrator('CentralDifference')``
-    
+
     ``integrator('Newmark', gamma, beta, '-form', form)``
-    
+
     ``integrator('HHT', alpha, gamma=1.5-alpha, beta=(2-alpha)^2/4)``
-    
+
     ``integrator('GeneralizedAlpha', alphaM, alphaF, gamma=0.5+alphaM-alphaF, beta=(1+alphaM-alphaF)^2/4)``
-    
+
     ``integrator('ExplicitDifference')``
     """
     pass
 
 def analysis(analysisType: str) -> None:
     """``analysis(analysisType)``
-    
+
     See https://openseespydoc.readthedocs.io/en/latest/src/analysis.html.
     This command is used to construct the Analysis object, which defines what type of analysis is to be performed.
 
     1. determine the predictive step for time t+dt
     2. specify the tangent matrix and residual vector at any iteration
     3. determine the corrective step based on the displacement increment dU 
-    
+
     * analysisType (str) : char string identifying type of analysis object to be constructed.
         Currently 3 valid options: 
-        
+
         ``'Static'`` - for static analysis; 
-        
+
         ``'Transient'`` - for transient analysis constant time step;
-        
+
         ``'VariableTransient'`` - for transient analysis with variable time step;
-        
+
         ``'PFEM'`` - for PFEM analysis.
 
     Note:
@@ -754,7 +759,7 @@ def analysis(analysisType: str) -> None:
 
 def eigen(*args) -> list:
     """``eigen(<solver='-genBandArpack'>, numEigenvalues)``
-    
+
     Eigen value analysis. Return a list of eigen values.
     See https://opensees.berkeley.edu/wiki/index.php/Eigen_Command
 
@@ -774,7 +779,7 @@ def eigen(*args) -> list:
 
 def analyze(*args) -> int:
     """``analyze(numIncr=1, dt=0.0, dtMin=0.0, dtMax=0.0, Jd=0)``
-    
+
     Perform the analysis. Return 0 if successful, <0 if NOT successful
     See https://openseespydoc.readthedocs.io/en/latest/src/analyze.html
 
@@ -790,9 +795,9 @@ def analyze(*args) -> int:
 
 def modalProperties(*args) -> dict:
     """``modalProperties(<'-print'>, <'-file', reportFileName>, <'-unorm'>, <'-return'>)``
-    
+
     See https://openseespydoc.readthedocs.io/en/latest/src/modalProperties.html
-    
+
     * '-print' : (str) : Optional. If included, a report of the modal properties is printed to the console.
     * '-file' : (str) : Optional. If included, a report of the modal properties is printed to the file reportFileName.
     * reportFileName : (str) : Optional, but mandatory if the -file option is included. Indicates the filename for the report.
@@ -812,16 +817,16 @@ def responseSpectrumAnalysis(*args) -> None:
     pertaining to the current modal displacements.
     The modal combination of these modal displacements (and derived results such as beam forces) is up to the user, and
     can be easily done via Python scripting.
-    
+
     The command can be called in two different ways, depending on how you store the Tn/Sa (response spectrum function) values.
     They can be either stored in a timeSeries …
-    
+
     See https://openseespydoc.readthedocs.io/en/latest/src/responseSpectrumAnalysis.html
-    
+
     ``responseSpectrumAnalysis(tsTag, direction, <'-scale', scale>, <'-mode', mode>)``
-    
+
     or in two lists
-    
+
     ``responseSpectrumAnalysis(direction, '-Tn', Tn, '-Sa', Sa, <'-scale ', scale>, <'-mode', mode>)``
     """
     pass
@@ -829,7 +834,7 @@ def responseSpectrumAnalysis(*args) -> None:
 def wipe() -> None:
     """This command is used to destroy all constructed objects, i.e. all components of the model,
     all components of the analysis and all recorders.
-    
+
     This command is used to start over without having to exit and restart the interpreter.
     It causes all elements, nodes, constraints, loads to be removed from the domain.
     In addition it deletes all recorders, analysis objects and all material objects created by the model builder.
@@ -857,7 +862,7 @@ def basicForce(eleTag: int) -> list:
     """
     pass
 
-def basicStiffness(eleTag: int)-> list:
+def basicStiffness(eleTag: int) -> list:
     """Returns the stiffness of the basic system for a beam-column element.
     A list of values in row order will be returned.
 
@@ -867,7 +872,7 @@ def basicStiffness(eleTag: int)-> list:
 
 def eleDynamicalForce(eleTag: int, dof: int = -1) -> list:
     """``eleDynamicalForce(eleTag, dof)``
-    
+
     Returns the elemental dynamic force.
 
     * eleTag (int) : element tag.
@@ -901,7 +906,7 @@ def eleResponse(eleTag: int, *args) -> list:
 
 def getEleTags(*args) -> list:
     """``getEleTags('-mesh', mtag)``
-    
+
     Get all elements in the domain or in a mesh.
 
     * mtag (int) : mesh tag. (optional)
@@ -973,7 +978,7 @@ def nodeCoord(*args) -> list:
 
 def nodeEigenvector(*args) -> list:
     """``nodeEigenvector(nodeTag, eigenvector, dof=-1)``
-    
+
     Returns the eigenvector at a specified node.
 
     * nodeTag (int) : node tag.
@@ -982,7 +987,7 @@ def nodeEigenvector(*args) -> list:
     """
     pass
 
-def nodeDOFs(nodeTag:int) -> list:
+def nodeDOFs(nodeTag: int) -> list:
     """Returns the DOF numbering of a node.
 
     * nodeTag (int) : node tag.
@@ -991,7 +996,7 @@ def nodeDOFs(nodeTag:int) -> list:
 
 def nodeMass(nodeTag: int, dof: int = -1) -> list:
     """``nodeMass(nodeTag, dof=-1)``
-    
+
     Returns the mass at a specified node.
 
     * nodeTag (int) : node tag.
@@ -1056,7 +1061,7 @@ def numIter() -> int:
 
 def printA(*args) -> None:
     """``printA('-file', filename, '-ret')``
-    
+
     print the contents of a FullGeneral system that the integrator creates to the screen or a file if the '-file' option is used.
     If using a static integrator, the resulting matrix is the stiffness matrix.
     If a transient integrator, it will be some combination of mass and stiffness matrices.
@@ -1069,7 +1074,7 @@ def printA(*args) -> None:
 
 def printB(*args) -> None:
     """``printA('-file', filename, '-ret')``
-    
+
     print the right hand side of a FullGeneral system that the integrator creates to the screen or a file if the '-file' option is used.
 
     * filename (str) : name of file to which output is sent, by default, print to the screen. (optional)
@@ -1079,7 +1084,7 @@ def printB(*args) -> None:
 
 def printModel(*args) -> None:
     """``printModel('-JSON', '-file', filename, '-node', '-flag', flag, *nodes=[], *eles=[])``
-    
+
     This command is used to print output to screen or file.
 
     * filename (str) : name of file to which output is sent, by default, print to the screen. (optional)
@@ -1088,7 +1093,7 @@ def printModel(*args) -> None:
     * flag (int) : integer flag to be sent to the print() method, depending on the node and element type (optional)
     * nodes (list (int)) : a list of nodes tags to be printed, default is to print all, (optional)
     * eles (list (int)) : a list of element tags to be printed, default is to print all, (optional)
-    
+
     Note
 
     * This command was called print in Tcl. Since print is a built-in function in Python, it is renamed to printModel.
@@ -1109,7 +1114,7 @@ def record() -> None:
 
 def recorder(*args) -> None:
     """``recorder(recorderType, *recorderArgs)``
-    
+
     This command is used to generate a recorder object which is to monitor what is happening
     during the analysis and generate output for the user.
     See https://openseespydoc.readthedocs.io/en/latest/src/recorder.html
@@ -1119,33 +1124,33 @@ def recorder(*args) -> None:
 
     * >0 an integer tag that can be used as a handle on the recorder for the ``remove`` recorder commmand.
     * -1 recorder command failed if integer -1 returned.
-    
+
     Args
     -----
     recorderType (str) : recorder type
     recorderArgs (list) : a list of recorder arguments
-    
+
     ``recorder('Node', '-file', filename, '-xml', filename, '-binary', filename,
     '-tcp', inetAddress, port, '-precision', nSD=6, '-timeSeries', tsTag, '-time', '-dT', deltaT=0.0,
     '-closeOnWrite', '-node', *nodeTags=[], '-nodeRange', startNode, endNode,
     '-region', regionTag, '-dof', *dofs=[], respType)``
-    
+
     ``recorder('EnvelopeNode', '-file', filename, '-xml', filename, '-precision', nSD=6,
     '-timeSeries', tsTag, '-time', '-dT', deltaT=0.0, '-closeOnWrite', '-node', *nodeTags=[],
     '-nodeRange', startNode, endNode, '-region', regionTag, '-dof', *dofs=[], respType)``
-    
+
     ``recorder('Element', '-file', filename, '-xml', filename, '-binary', filename, '-precision', nSD=6,
     '-timeSeries', tsTag, '-time', '-dT', deltaT=0.0, '-closeOnWrite', '-ele', *eleTags=[],
     '-eleRange', startEle, endEle, '-region', regionTag, *args)``
-    
+
     ``recorder('EnvelopeElement', '-file', filename, '-xml', filename, '-binary', filename, '-precision', nSD=6,
     '-timeSeries', tsTag, '-time', '-dT', deltaT=0.0, '-closeOnWrite', '-ele', *eleTags=[],
     '-eleRange', startEle, endEle, '-region', regionTag, *args)``
-    
+
     ``recorder('PVD', filename, '-precision', precision=10, '-dT', dT=0.0, *res)``
-    
+
     ``recorder('BgPVD', filename, '-precision', precision=10, '-dT', dT=0.0, *res)``
-    
+
     ``recorder('Collapse', '-node', nodeTag, '-file_infill', fileNameinf, '-checknodes', nTagbotn, nTagmidn, nTagtopn,
     '-global_gravaxis', globgrav, '-secondary', '-eles', *eleTags, '-eleRage', start, end,
     '-region', regionTag, '-time', '-dT', dT, '-file', fileName, '-mass', *massValues,
@@ -1285,7 +1290,7 @@ def getFixedDOFs(nodeTag: int) -> list:
 
 def getConstrainedNodes(*args) -> list:
     """``getConstrainedNodes(<rNodeTag>)``
-    
+
     * rNodeTag: int, retained node tag, optional,
         if not input, all constrained nodes tags will return.
     """
@@ -1297,7 +1302,7 @@ def getConstrainedDOFs(*args) -> list:
     pass
 
 def getRetainedNodes(*args) -> list:
-    """``getRetainedNodes(<cNodeTag?>)``
+    """``getRetainedNodes(<cNodeTag>)``
     """
     pass
 
@@ -1313,7 +1318,7 @@ def updateElementDomain() -> None:
 
 def updateMaterialStage(*args) -> None:
     """``updateMaterialStage('-material', matTag, '-stage', value, <'-parameter', paramTag>)``
-    
+
     This function is used in geotechnical modeling to maintain elastic nDMaterial response during the application of gravity loads.
     The material is then updated to allow for plastic strains during additional static loads or earthquakes.
     See https://openseespydoc.readthedocs.io/en/latest/src/updateMaterialStage.html
@@ -1326,14 +1331,14 @@ def updateMaterialStage(*args) -> None:
 
 def getNDM(*args) -> int:
     """``getNDM(<nodeTag>)``
-    
+
     * nodeTag: int, optional.
     """
     pass
 
 def getNDF() -> int:
     """``getNDM(<nodeTag>)``
-    
+
     * nodeTag: int, optional.
     """
     pass
@@ -1355,42 +1360,42 @@ def getNumElements() -> int:
 
 def getEleClassTags(*args) -> list:
     """``getEleClassTags(<eleTag>)``
-    
+
     * eleTag: int, optional
     """
     pass
 
 def getEleLoadClassTags(*args) -> list:
     """``getEleLoadClassTags(<patternTag>)``
-    
+
     *patternTag: int, optional
     """
     pass
 
 def getEleLoadTags(*args) -> list:
     """``getEleLoadTags(<patternTag>)``
-    
+
     *patternTag: int, optional
     """
     pass
 
 def getEleLoadData(*args) -> list:
     """``getEleLoadData(<patternTag>)``
-    
+
     *patternTag: int, optional
     """
     pass
 
 def getNodeLoadTags(*args) -> list:
     """``getNodeLoadTags(<patternTag>)``
-    
+
     *patternTag: int, optional
     """
     pass
 
 def getNodeLoadData(*args) -> list:
     """``getNodeLoadData(<patternTag>)``
-    
+
     *patternTag: int, optional
     """
     pass
@@ -1398,12 +1403,14 @@ def getNodeLoadData(*args) -> list:
 # ------------
 def loadConst(*args) -> None:
     """``loadConst('-time', pseudoTime)``
-    
-    This command is used to set the loads constant in the domain and to also set the time in the domain. When setting the loads constant,
-    the procedure will invoke setLoadConst() on all LoadPattern objects which exist in the domain at the time the command is called.
+
+    This command is used to set the loads constant in the domain and to also set the time in the domain.
+    When setting the loads constant,
+    the procedure will invoke setLoadConst() on all LoadPattern
+    objects which exist in the domain at the time the command is called.
 
     pseudoTime (float) : Time domain is to be set to (optional)
-    
+
     Note
     -----
     Load Patterns added afer this command is invoked are not set to constant.
@@ -1412,7 +1419,7 @@ def loadConst(*args) -> None:
 
 def modalDamping(*args) -> None:
     """``modalDamping(*factor)``
-    
+
     Set modal damping factor. The eigen() must be called before.
 
     * factor (list) : damping factor.
@@ -1421,7 +1428,7 @@ def modalDamping(*args) -> None:
 
 def reactions(*args) -> None:
     """``reactions('-dynamic', '-rayleigh')``
-    
+
     Calculate the reactions. Call this command before the nodeReaction().
 
     * '-dynamic' (str) : Include dynamic effects.
@@ -1431,15 +1438,15 @@ def reactions(*args) -> None:
 
 def remove(*args) -> None:
     """``remove(type, tag)``
-    
+
     This commmand is used to remove components from the model.
     See https://openseespydoc.readthedocs.io/en/latest/src/remove.html
 
     * type (str) : type of the object, 'ele', 'loadPattern', 'parameter', 'node', 'timeSeries', 'sp', 'mp'.
     * tag (int) : tag of the object
-    
+
     ``remove('recorders')`` ----> Remove all recorder objects.
-    
+
     ``remove('sp', nodeTag, dofTag, patternTag)`` ----> Remove a sp object based on node
     """
     pass
@@ -1457,13 +1464,13 @@ def reset() -> None:
 
 def sdfResponse(*args) -> list:
     """``sdfResponse(m, zeta, k, Fy, alpha, dtF, filename, dt[, uresidual, umaxprev])``
-    
+
     It is a command that computes bilinear single degree of freedom response in C++,
     and is much quicker than using the OpenSees model builder.
     The command implements Newmark’s method with an inner Newton loop.
-    
+
     See https://openseespydoc.readthedocs.io/en/latest/src/sdfResponse.html
-    
+
     Args
     -----
     * m (float) : mass
@@ -1476,7 +1483,7 @@ def sdfResponse(*args) -> list:
     * dt (float) : time step for analysis
     * uresidual (float) : residual displacement at the end of previous analysis (optional, default=0)
     * umaxprev (float) : previous displacement (optional, default=0),
-    
+
     The command returns a list of five response quantities.
 
     Returns
@@ -1493,13 +1500,13 @@ def database(type: str, dbName: str) -> None:
     """Create a database.
 
     * type (str) : database type:
-    
+
         'File' - outputs database into a file;
-        
+
         'MySQL' - creates a SQL database;
-        
+
         'BerkeleyDB' - creates a BerkeleyDB database.
-        
+
     * dbName (str) : database name.
     """
     pass
@@ -1543,7 +1550,7 @@ def setNodeCoord(nodeTag: int, dim: int, value: float) -> None:
 
 def setNodeDisp(*args) -> None:
     """``setNodeDisp(nodeTag, dof, value, <'-commit'>)``
-    
+
     set the nodal displacement at the specified DOF.
 
     * nodeTag (int) : node tag.
@@ -1555,7 +1562,7 @@ def setNodeDisp(*args) -> None:
 
 def setNodeVel(*args) -> None:
     """``setNodeVel(nodeTag, dof, value, <'-commit'>)``
-    
+
     set the nodal velocity at the specified DOF.
 
     * nodeTag (int) : node tag.
@@ -1567,7 +1574,7 @@ def setNodeVel(*args) -> None:
 
 def setNodeAccel(*args) -> None:
     """``setNodeAccel(nodeTag, dof, value, <'-commit'>)``
-    
+
     set the nodal acceleration at the specified DOF.
 
     * nodeTag (int) : node tag.
@@ -1644,20 +1651,20 @@ def convertTextToBinary(inputfile: str, outputfile: str) -> None:
 
 def mesh(*args) -> None:
     """``mesh(type, tag, *args)``
-    
+
     Create a mesh object. See below for available mesh types.
     See https://openseespydoc.readthedocs.io/en/latest/src/mesh.html
-    
+
     ``mesh('line', tag, numnodes, *ndtags, id, ndf, meshsize, eleType='', *eleArgs=[])``
-    
+
     ``mesh('tri', tag, numlines, *ltags, id, ndf, meshsize, eleType='', *eleArgs=[])``
-    
+
     ``mesh('quad', tag, numlines, *ltags, id, ndf, meshsize, eleType='', *eleArgs=[])``
-    
+
     ``mesh('tet', tag, nummesh, *mtags, id, ndf, meshsize, eleType='', *eleArgs=[])``
-    
+
     ``mesh('part', tag, type, *pArgs, eleType='', *eleArgs=[], '-vel', *vel0, '-pressure', p0)``
-    
+
     ``mesh('bg', basicsize, *lower, *upper, '-tol', tol, '-meshtol', meshtol,
     '-wave', wavefilename, numl, *locations, '-numsub', numsub, '-structure', id, numnodes, *snodes,
     '-largeSize', level, *llower, *lupper)``
@@ -1670,16 +1677,16 @@ def remesh(alpha: float = -1.0) -> None:
     pass
 
 # ----------- Sensitivity Commands ---------------
-def parameter(tag:int, *args) -> None:
+def parameter(tag: int, *args) -> None:
     """``parameter(tag, <specific parameter args>)``
-    
+
     See https://openseespydoc.readthedocs.io/en/latest/src/parameter.html
-    
+
     In DDM-based FE response sensitivity analysis, the sensitivity parameters can be material, geometry or discrete loading parameters.
 
     * tag (int) : integer tag identifying the parameter.
     * <specific parameter args> : depend on the object in the FE model encapsulating the desired parameters.
-    
+
     Note
     -----
     Each parameter must be unique in the FE domain, and all parameter tags must be numbered sequentially starting from 1.
@@ -1689,16 +1696,16 @@ def parameter(tag:int, *args) -> None:
     To identify the elastic modulus, E, of the material 1 at section 3 of element 4, the <specific object arguments> string becomes:
 
     ``parameter(1, 'element', 4, 'section', 3, 'material', 1, 'E')``
-    
+
     To identify the elastic modulus, E, of elastic section 3 of element 4 (for elastic section,
     no specific material need to be defined), the <specific object arguments> string becomes:
 
     ``parameter(1, 'element', 4, 'section', 3, 'E')``
-    
+
     To parameterize E for element 4 with material 1 (no section need to be defined), the <specific object arguments> string simplifies as:
 
     ``parameter(1, 'element', 4, 'material', 1, 'E')``
-    
+
     Note
     ------
     Notice that the format of the <specific object arguments> is different for each considered element/section/material.
@@ -1706,9 +1713,9 @@ def parameter(tag:int, *args) -> None:
     """
     pass
 
-def addToParameter(tag:int, *args) -> None:
+def addToParameter(tag: int, *args) -> None:
     """``addToParameter(tag, <specific parameter args>)``
-    
+
     In case that more objects (e.g., element, section) are mapped to an existing parameter,
     the command can be used to relate these additional objects to the specific parameter.
 
@@ -1728,7 +1735,7 @@ def updateParameter(tag: int, newValue: float) -> None:
 
 def setParameter(*args) -> None:
     """``setParameter('-val', newValue, <'-ele', *eleTags>, <'-eleRange', start, end>, <*args>)``
-    
+
     set value for an element parameter
 
     * newValue (float) : the updated value to which the parameter needs to be set.
@@ -1743,10 +1750,10 @@ def getParamTags() -> list:
     """Return a list of tags for all parameters.
     """
     pass
-    
+
 def getParamValue(paramTag: int) -> float:
     """Return the value of a parameter.
-    
+
     * paramTag (int) : integer tag identifying the parameter.
     """
     pass
@@ -1761,9 +1768,9 @@ def sensitivityAlgorithm(type: str) -> None:
     """This command is used to create a sensitivity algorithm.
 
     * type (str) : the type of the sensitivity algorithm,
-    
+
     ``'-computeAtEachStep'`` automatically compute at the end of each step
-    
+
     ``'-compuateByCommand'`` compute by calling computeGradients.
     """
     pass
@@ -1826,7 +1833,7 @@ def sensNodePressure(nodeTag: int, paramTag: int) -> float:
 # -------------Reliability Commands---------------
 def randomVariable(*args) -> None:
     """``randomVariable(tag, dist, '-mean', mean, '-stdv', stdv, '-startPoint', startPoint, '-parameters', *params)``
-    
+
     Create a random variable with user specified distribution.
     See https://openseespydoc.readthedocs.io/en/latest/src/randomVariable.html
     """
@@ -1850,14 +1857,14 @@ def barrier() -> None:
 
 def send(*args) -> None:
     """``send('-pid', pid, *data)``
-    
+
     Send information to another processor.
 
     * pid (int) : ID of processor where data is sent to
     * data (list (int)) : can be a list of integers;
     * data (list (float)) : can be a list of floats;
     * data (str) : can be a string
-    
+
     Note
     -----
     ``send`` command and ``recv`` command must match and the order of calling both commands matters.
@@ -1866,12 +1873,12 @@ def send(*args) -> None:
 
 def recv(*args) -> None:
     """``recv('-pid', pid)``
-    
+
     Receive information from another processor.
 
     * pid (int) : ID of processor where data is received from
     * pid (str) : if pid is 'ANY', the processor can receive data from any processor.
-    
+
     Note
     -----
     ``send`` command and ``recv`` command must match and the order of calling both commands matters.
@@ -1884,7 +1891,7 @@ def Bcast(*data) -> None:
     * data (list (int)) : can be a list of integers
     * data (list (float)) : can be a list of floats
     * data (str) : can be a string
-    
+
     Note
     -----
     Run the same command to receive data sent from pid = 0.
@@ -1920,7 +1927,7 @@ def domainChange() -> None:
 
 def partition(*args) -> None:
     """``partition('-ncuts', ncuts, '-niter', niters, '-ufactor', ufactor, '-info')``
-    
+
     In a parallel environment, this command partitions the model.
     It requires that all processors have the exact same model to be partitioned.
 

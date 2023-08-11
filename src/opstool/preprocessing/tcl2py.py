@@ -223,7 +223,7 @@ def _TclInterp(prefix):
     def _timeSeries(*args):
         args = _remove_commit(args)
         args = [_type_convert(i) for i in args]
-        if args[0] == 'Path':
+        if args[0] in ['Path', 'Series']:
             if ('-time' in args) or ('-values' in args):
                 time, values = None, None
                 if '-time' in args:
@@ -264,7 +264,11 @@ def _TclInterp(prefix):
                     f"and a new [bold #f47721]timeSeries[/bold #f47721] is created with tag "
                     f"[bold #34bf49]{args[1]}[/bold #34bf49], "
                     f"please check this [bold #34bf49]pattern tag={args[1]}[/bold #34bf49]!")
-                contents.append(f"{prefix}timeSeries('{args[2]}', {args[1]})")
+                tsargs = list(args[2].split())
+                if len(tsargs) == 1:
+                    contents.append(f"{prefix}timeSeries('{tsargs[0]}', {args[1]})")
+                else:
+                    contents.append(f"{prefix}timeSeries('{tsargs[0]}', {args[1]}, *{tsargs[1:]})")
                 args = list(args)
                 args[2] = args[1]
                 args = tuple(args)
