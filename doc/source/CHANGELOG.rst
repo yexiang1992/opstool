@@ -1,6 +1,10 @@
 Changelog
 =============
 
+v0.8.5
+--------------------
+- Added the Arg `show_local_crd_shell` to display the local axes of shell elements.
+
 v0.8.4
 --------------------
 - Fixed incorrect calculation of section properties caused by :py:meth:`opstool.preprocessing.SecMesh.centering`

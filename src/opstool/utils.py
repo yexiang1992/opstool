@@ -196,10 +196,11 @@ def run_model(file_name: str):
     --------
     None
     """
-    if not file_name.endswith(".py"):
-        file_name += ".py"
-    with open(file_name, 'r') as f:
-        exec(f.read())
+    # if not file_name.endswith(".py"):
+    #     file_name += ".py"
+    # with open(file_name, 'r') as f:
+    #     exec(f.read())
+    exec(f"from {file_name} import *")
 
 
 def add_ops_hints_file():

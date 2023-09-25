@@ -13,6 +13,7 @@ opst.load_ops_examples("CableStayedBridge")
 # opst.plot_model(backend="pyvista")    # or backend="plotly"
 # opst.plot_eigen(mode_tags=[1, 12], backend="pyvista", subplots=True)   # or backend="plotly"
 # opst.gen_grav_load(ts_tag=1, pattern_tag=1, factor=-9.81, direction="Z")
+# opst.plot_model(backend="plotly", show_local_crd_shell=True)
 ModelData = opst.GetFEMdata()
 ModelData.get_model_data()
 ModelData.get_eigen_data(mode_tag=15)
@@ -27,11 +28,12 @@ opsv = opst.OpsVisPlotly(
 fig = opsv.model_vis(
     show_node_label=False,
     show_ele_label=False,
-    show_local_crd=False,
+    show_local_crd=True,
+    show_local_crd_shell=True,
     show_fix_node=True,
     # show_load=True,
     # load_alpha=0.5,
-    label_size=8,
+    label_size=15,
     show_outline=True,
     opacity=1.0,
 )

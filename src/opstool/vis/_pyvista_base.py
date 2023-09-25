@@ -15,6 +15,7 @@ def _model_vis(
         show_ele_label: bool = False,
         label_size: float = 10,
         show_local_crd: bool = False,
+        show_local_crd_shell: bool = False,
         local_crd_alpha: float = 1.0,
         show_fix_node: bool = True,
         fix_node_alpha: float = 1.0,
@@ -81,6 +82,10 @@ def _model_vis(
         )
         _show_link_local_axes(
             plotter, model_info, alpha=local_crd_alpha, label_size=label_size
+        )
+    if show_local_crd_shell:
+        _show_shell_local_axes(
+            plotter, model_info, cells, alpha=local_crd_alpha, label_size=label_size
         )
     # fix nodes
     if show_fix_node:
@@ -424,6 +429,80 @@ def _show_link_local_axes(
         # warnings.warn("Model has no link elements!")
         pass
 
+def _show_shell_local_axes(
+        plotter, model_info, cells, alpha: float = 1.0, label_size: float = 10
+):
+    node_coords = model_info["coord_no_deform"]
+    plane_cells = cells["plane"]
+    xlocal, ylocal, zlocal, midpoints, lengths = [], [], [], [], []
+    i = 0
+    while i < len(plane_cells):
+        n = plane_cells[i]
+        cell = plane_cells[i+1 : i+n+1]
+        coord = node_coords[cell]
+        if n == 3:
+            coord_ = coord
+            v1, v2 = coord_[1] - coord_[0], coord_[2] - coord_[0]
+        elif n == 6:
+            coord_ = coord[[0, 2, 4]]
+            v1, v2 = coord_[1] - coord_[0], coord_[2] - coord_[0]
+        elif n == 4:
+            coord_ = coord
+            v1 = 0.5 * ((coord_[1] + coord_[2]) - (coord_[0] + coord_[3]))
+            v2 = 0.5 * ((coord_[2] + coord_[3]) - (coord_[0] + coord_[1]))
+        else:
+            coord_ = coord[[0, 2, 4, 6]]
+            v1 = 0.5 * ((coord_[1] + coord_[2]) - (coord_[0] + coord_[3]))
+            v2 = 0.5 * ((coord_[2] + coord_[3]) - (coord_[0] + coord_[1]))
+        x, y, z = gram_schmidt(v1, v2)
+        xyzo = np.mean(coord, axis=0)
+        xlocal.append(x)
+        ylocal.append(y)
+        zlocal.append(z)
+        midpoints.append(xyzo)
+        lengths.append((np.linalg.norm(v1) + np.linalg.norm(v2)) / 2)
+        i += n + 1
+    xlocal, ylocal, zlocal = np.array(xlocal), np.array(ylocal), np.array(zlocal)
+    midpoints, lengths = np.array(midpoints), np.array(lengths)
+    if len(lengths) > 0:
+        length = np.mean(lengths) / 6 * alpha
+        _ = plotter.add_arrows(midpoints, xlocal, mag=length, color="#cf6275")
+        _ = plotter.add_arrows(midpoints, ylocal, mag=length, color="#04d8b2")
+        _ = plotter.add_arrows(midpoints, zlocal, mag=length, color="#9aae07")
+        plotter.add_point_labels(
+            midpoints + length * xlocal,
+            ["x"] * midpoints.shape[0],
+            font_size=label_size,
+            text_color="#cf6275",
+            bold=False,
+            shape=None,
+            render_points_as_spheres=True,
+            point_size=1.0e-5,
+            always_visible=True,
+        )
+        plotter.add_point_labels(
+            midpoints + length * ylocal,
+            ["y"] * midpoints.shape[0],
+            font_size=label_size,
+            text_color="#04d8b2",
+            bold=False,
+            shape=None,
+            render_points_as_spheres=True,
+            point_size=1.0e-5,
+            always_visible=True,
+        )
+        plotter.add_point_labels(
+            midpoints + length * zlocal,
+            ["z"] * midpoints.shape[0],
+            font_size=label_size,
+            text_color="#9aae07",
+            bold=False,
+            shape=None,
+            render_points_as_spheres=True,
+            point_size=1.0e-5,
+            always_visible=True,
+        )
+
 
 def _show_fix_node(plotter, model_info, alpha: float = 1.0):
     fixed_dofs = model_info["FixNodeDofs"]
@@ -542,7 +621,7 @@ def _show_link(obj, plotter, points, cells):
             xaxis = np.array(coord2 - coord1)
             global_z = [0.0, 0.0, 1.0]
             cos_angle = xaxis.dot(global_z) / (
-                    np.linalg.norm(xaxis) * np.linalg.norm(global_z)
+                np.linalg.norm(xaxis) * np.linalg.norm(global_z)
             )
             if np.abs(1 - cos_angle ** 2) < 1e-10:
                 yaxis = np.cross([-1.0, 0.0, 0.0], xaxis)
@@ -1902,3 +1981,13 @@ def _generate_all_mesh(
         face_plot = None
 
     return point_plot, line_plot, face_plot
+
+
+def gram_schmidt(v1, v2):
+    x, y_ = v1, v2
+    y = y_ - (np.dot(x, y_) / np.dot(x, x)) * x
+    z = np.cross(x, y)
+    x = x / np.linalg.norm(x)
+    y = y / np.linalg.norm(y)
+    z = z / np.linalg.norm(z)
+    return x, y, z

@@ -95,6 +95,7 @@ def _model_vis(
     show_node_label: bool = False,
     show_ele_label: bool = False,
     show_local_crd: bool = False,
+    show_local_crd_shell: bool = False,
     local_crd_alpha: float = 1.0,
     show_fix_node: bool = True,
     fix_node_alpha: float = 1.0,
@@ -130,6 +131,7 @@ def _model_vis(
         show_node_label=show_node_label,
         show_ele_label=show_ele_label,
         show_local_crd=show_local_crd,
+        show_local_crd_shell=show_local_crd_shell,
         local_crd_alpha=local_crd_alpha,
         show_fix_node=show_fix_node,
         fix_node_alpha=fix_node_alpha,
@@ -156,6 +158,7 @@ def _plot_model(
     show_node_label: bool = False,
     show_ele_label: bool = False,
     show_local_crd: bool = False,
+    show_local_crd_shell: bool = False,
     local_crd_alpha: float = 1.0,
     show_fix_node: bool = True,
     fix_node_alpha: float = 1.0,
@@ -346,6 +349,8 @@ def _plot_model(
     # local axes
     if show_local_crd:
         _show_local_axes(obj, plotter, model_info, local_crd_alpha)
+    if show_local_crd_shell:
+        _show_shell_local_axes(obj, plotter, model_info, cells, local_crd_alpha)
     # mp constraint lines
     _show_mp_constraint(obj, plotter, model_info, show_constrain_dof)
     if show_load:
@@ -693,6 +698,89 @@ def _show_local_axes(obj, plotter, model_info, alpha: float = 1.0):
                 "Local Axis",
                 ["z"] * len(link_midpoints),
                 obj.line_width,
+                arrow_heights,
+                arrow_widths,
+            )
+        )
+
+
+def _show_shell_local_axes(
+        obj, plotter, model_info, cells, alpha: float = 1.0
+):
+    node_coords = model_info["coord_no_deform"]
+    cells = cells["plane"]
+    xlocal, ylocal, zlocal, midpoints, lengths = [], [], [], [], []
+    for cell in cells:
+        n = len(cell) - 1
+        coord = node_coords[cell[1:]]
+        if n == 3:
+            coord_ = coord
+            v1, v2 = coord_[1] - coord_[0], coord_[2] - coord_[0]
+        elif n == 6:
+            coord_ = coord[[0, 2, 4]]
+            v1, v2 = coord_[1] - coord_[0], coord_[2] - coord_[0]
+        elif n == 4:
+            coord_ = coord
+            v1 = 0.5 * ((coord_[1] + coord_[2]) - (coord_[0] + coord_[3]))
+            v2 = 0.5 * ((coord_[2] + coord_[3]) - (coord_[0] + coord_[1]))
+        else:
+            coord_ = coord[[0, 2, 4, 6]]
+            v1 = 0.5 * ((coord_[1] + coord_[2]) - (coord_[0] + coord_[3]))
+            v2 = 0.5 * ((coord_[2] + coord_[3]) - (coord_[0] + coord_[1]))
+        x, y, z = gram_schmidt(v1, v2)
+        xyzo = np.mean(coord, axis=0)
+        xlocal.append(x)
+        ylocal.append(y)
+        zlocal.append(z)
+        midpoints.append(xyzo)
+        lengths.append((np.linalg.norm(v1) + np.linalg.norm(v2)) / 2)
+    xaxis, yaxis, zaxis = np.array(xlocal), np.array(ylocal), np.array(zlocal)
+    midpoints, lengths = np.array(midpoints), np.array(lengths)
+    if len(lengths) > 0:
+        lengths = [np.mean(lengths) / 5 * alpha] * len(lengths)
+        arrow_heights = [0.4 * ll for ll in lengths]
+        arrow_widths = [0.8 * h for h in arrow_heights]
+        plotter.extend(
+            _make_lines_arrows(
+                midpoints,
+                lengths,
+                xaxis,
+                yaxis,
+                zaxis,
+                "#cf6275",
+                "Local Axis",
+                ["x"] * len(midpoints),
+                obj.line_width * 1.5,
+                arrow_heights,
+                arrow_widths,
+            )
+        )
+        plotter.extend(
+            _make_lines_arrows(
+                midpoints,
+                lengths,
+                yaxis,
+                xaxis,
+                zaxis,
+                "#04d8b2",
+                "Local Axis",
+                ["y"] * len(midpoints),
+                obj.line_width * 1.5,
+                arrow_heights,
+                arrow_widths,
+            )
+        )
+        plotter.extend(
+            _make_lines_arrows(
+                midpoints,
+                lengths,
+                zaxis,
+                xaxis,
+                yaxis,
+                "#9aae07",
+                "Local Axis",
+                ["z"] * len(midpoints),
+                obj.line_width * 1.5,
                 arrow_heights,
                 arrow_widths,
             )
@@ -2961,3 +3049,13 @@ def _reshape_cell(data):
     else:
         data2 = []
     return data2
+
+
+def gram_schmidt(v1, v2):
+    x, y_ = v1, v2
+    y = y_ - (np.dot(x, y_) / np.dot(x, x)) * x
+    z = np.cross(x, y)
+    x = x / np.linalg.norm(x)
+    y = y / np.linalg.norm(y)
+    z = z / np.linalg.norm(z)
+    return x, y, z

@@ -174,6 +174,7 @@ class OpsVisPlotly:
         show_node_label: bool = False,
         show_ele_label: bool = False,
         show_local_crd: bool = False,
+        show_local_crd_shell: bool = False,
         local_crd_alpha: float = 1.0,
         show_fix_node: bool = True,
         fix_node_alpha: float = 1.0,
@@ -206,6 +207,8 @@ class OpsVisPlotly:
             Whether to display the ele label.
         show_local_crd: bool, default=False
             Whether to display the local axes of beam and link elements.
+        show_local_crd_shell: bool, default=False
+            Whether to display the local axes of shell elements.
         local_crd_alpha: float, default=1.0
             On existing displays, the scaling factor for the local axis sizes.
         show_fix_node: bool, default=True
@@ -261,6 +264,7 @@ class OpsVisPlotly:
             show_ele_label=show_ele_label,
             show_local_crd=show_local_crd,
             local_crd_alpha=local_crd_alpha,
+            show_local_crd_shell=show_local_crd_shell,
             show_fix_node=show_fix_node,
             fix_node_alpha=fix_node_alpha,
             show_load=show_load,

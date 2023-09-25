@@ -13,6 +13,7 @@ def plot_model(
     show_node_label: bool = False,
     show_ele_label: bool = False,
     show_local_crd: bool = False,
+    show_local_crd_shell: bool = False,
     local_crd_alpha: float = 1.0,
     show_fix_node: bool = True,
     fix_node_alpha: float = 1.0,
@@ -38,11 +39,13 @@ def plot_model(
     on_notebook: bool, default=False
         Whether work in a notebook.
     show_node_label: bool, default=False
-            Whether to display the node label.
+        Whether to display the node label.
     show_ele_label: bool, default=False
         Whether to display the ele label.
     show_local_crd: bool, default=False
         Whether to display the local axes of beam and link elements.
+    show_local_crd_shell: bool, default=False
+        Whether to display the local axes of shell elements.
     local_crd_alpha: float, default=1.0
         On existing displays, the scaling factor for the local axis sizes.
     show_fix_node: bool, default=True
@@ -89,6 +92,7 @@ def plot_model(
             show_node_label=show_node_label,
             show_ele_label=show_ele_label,
             show_local_crd=show_local_crd,
+            show_local_crd_shell=show_local_crd_shell,
             local_crd_alpha=local_crd_alpha,
             show_fix_node=show_fix_node,
             fix_node_alpha=fix_node_alpha,
@@ -115,6 +119,7 @@ def plot_model(
             show_node_label=show_node_label,
             show_ele_label=show_ele_label,
             show_local_crd=show_local_crd,
+            show_local_crd_shell=show_local_crd_shell,
             local_crd_alpha=local_crd_alpha,
             show_fix_node=show_fix_node,
             fix_node_alpha=fix_node_alpha,
