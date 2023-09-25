@@ -1247,7 +1247,7 @@ class SecMesh:
                 y = vertices[:, 1]
                 ax.triplot(x, y, triangles=faces, lw=0.25, color="k")
                 patches = [
-                    plt.Polygon(vertices[face_link, :2], True) for face_link in faces
+                    plt.Polygon(vertices[face_link, :2], closed=True) for face_link in faces
                 ]
                 coll = PatchCollection(
                     patches,
