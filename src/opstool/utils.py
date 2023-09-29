@@ -204,6 +204,8 @@ def run_model(file_name: str):
 
 
 def add_ops_hints_file():
+    """Added the openseespy hints file.
+    """
     src_file = Path(__file__).resolve().parent / "opensees.pyi"
     if sys.platform.startswith('linux'):
         import openseespylinux.opensees as ops

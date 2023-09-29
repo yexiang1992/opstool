@@ -4,6 +4,8 @@ Changelog
 v0.8.5
 --------------------
 - Added the Arg ``show_local_crd_shell`` to display the local axes of shell elements.
+- Fixed the bugs in show zeroLength link elements.
+- Added the function :py:func:`opstool.add_ops_hints_file`
 
 v0.8.4
 --------------------
