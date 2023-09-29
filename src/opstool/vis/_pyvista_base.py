@@ -644,6 +644,7 @@ def _show_link(obj, plotter, points, cells):
             )
     # plot
     if len(points_zero) > 0:
+        # points_zero = np.array(points_zero)
         plotter.add_mesh(
             pv.PolyData(points_zero),
             color=obj.color_link,

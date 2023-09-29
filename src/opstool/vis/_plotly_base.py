@@ -430,6 +430,7 @@ def _show_link(obj, plotter, points, cells):
             )
     # plot
     if len(points_zero) > 0:
+        points_zero = np.array(points_zero)
         plotter.append(
             go.Scatter3d(
                 x=points_zero[:, 0],
