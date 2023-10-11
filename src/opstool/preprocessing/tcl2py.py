@@ -10,7 +10,8 @@ def tcl2py(input_file: str,
     """Convert OpenSees Tcl code to OpenSeesPy format.
 
     .. tip::
-        * This function supports `Tcl` syntax and will flatten your `Tcl` code, including loops,
+
+        * This function supports Tcl syntax and will flatten your Tcl code, including loops,
           judgments, assignments, proc, etc,.
         * Do not use assignment statements for OpenSees commands, such as
           ``set ok [analyze 1]``, ``set lambdaN [eigen 10]``, it will trigger
