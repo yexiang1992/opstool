@@ -7,19 +7,19 @@ def tcl2py(input_file: str,
            output_file: str,
            prefix: str = "ops",
            encoding: str = "utf-8"):
-    """Convert tcl code of opensees to openseespy code.
+    """Convert OpenSees Tcl code to OpenSeesPy format.
 
     .. tip::
-        * This function will flatten your `tcl` code, including loops,
-          judgments, assignments, proc, etc.
-        * Do not use assignment statements for openseens commands, such as
+        * This function supports `Tcl` syntax and will flatten your `Tcl` code, including loops,
+          judgments, assignments, proc, etc,.
+        * Do not use assignment statements for OpenSees commands, such as
           ``set ok [analyze 1]``, ``set lambdaN [eigen 10]``, it will trigger
-          an error!
+          an error! This is because this function does not run the OpenSees command at all.
         * It is recommended to remove `analysis related tcl code` and keep only
           commands such as model building and load definition to avoid
           possible exceptions.
           The `analysis-related python code` you can add manually, although
-          this function provides the ability to convert the analysis tcl code.
+          this function provides the ability to convert the analysis Tcl code.
 
     Parameters
     ----------
@@ -47,6 +47,7 @@ def tcl2py(input_file: str,
         prefix = ''
     with open(input_file, 'r', encoding=encoding) as f:
         tcl_src = f.read()
+    tcl_src = tcl_src.replace("#", "commits___ ")
     tcl_src = tcl_src.replace("{", " { ")
     tcl_src = tcl_src.replace("}", " } ")
     interp, contents = _TclInterp(prefix)
@@ -55,6 +56,7 @@ def tcl2py(input_file: str,
         interp.eval(tcl_src)
     finally:
         with open(output_file, mode='w', encoding=encoding) as fw:
+            fw.write("# This file is created by opstool.tcl2py(), author:: Yexiang Yan\n\n")
             fw.write(import_txt)
             for line in contents:
                 fw.write(line + "\n")
@@ -65,6 +67,14 @@ def tcl2py(input_file: str,
 def _TclInterp(prefix):
     interp = tkinter.Tcl()
     contents = []
+
+    def _commits(*args):
+        args = [src.replace("commits___", "#") for src in args]
+        if args:
+            args = " ".join(args).replace("# ", "#")
+            contents.append(f"# {args}")
+        else:
+            contents.append("#")
 
     def _puts(*args):
         if len(args) == 1:
@@ -1077,6 +1087,21 @@ def _TclInterp(prefix):
         args = tuple([_type_convert(i) for i in args])
         contents.append(f"{prefix}addCorrelate{args}")
 
+    def _correlate(*args):
+        args = _remove_commit(args)
+        args = tuple([_type_convert(i) for i in args])
+        contents.append(f"{prefix}correlate{args}")
+
+    def _performanceFunction(*args):
+        args = _remove_commit(args)
+        args = tuple([_type_convert(i) for i in args])
+        contents.append(f"{prefix}performanceFunction{args}")
+
+    def _gradPerformanceFunction(*args):
+        args = _remove_commit(args)
+        args = tuple([_type_convert(i) for i in args])
+        contents.append(f"{prefix}gradPerformanceFunction{args}")
+
     def _transformUtoX(*args):
         args = _remove_commit(args)
         args = tuple([_type_convert(i) for i in args])
@@ -1101,6 +1126,86 @@ def _TclInterp(prefix):
         args = _remove_commit(args)
         args = tuple([_type_convert(i) for i in args])
         contents.append(f"{prefix}probabilityTransformation{args}")
+
+    def _startPoint(*args):
+        args = _remove_commit(args)
+        args = tuple([_type_convert(i) for i in args])
+        contents.append(f"{prefix}startPoint{args}")
+
+    def _randomNumberGenerator(*args):
+        args = _remove_commit(args)
+        args = tuple([_type_convert(i) for i in args])
+        contents.append(f"{prefix}randomNumberGenerator{args}")
+
+    def _reliabilityConvergenceCheck(*args):
+        args = _remove_commit(args)
+        args = tuple([_type_convert(i) for i in args])
+        contents.append(f"{prefix}reliabilityConvergenceCheck{args}")
+
+    def _searchDirection(*args):
+        args = _remove_commit(args)
+        args = tuple([_type_convert(i) for i in args])
+        contents.append(f"{prefix}searchDirection{args}")
+
+    def _meritFunctionCheck(*args):
+        args = _remove_commit(args)
+        args = tuple([_type_convert(i) for i in args])
+        contents.append(f"{prefix}meritFunctionCheck{args}")
+
+    def _stepSizeRule(*args):
+        args = _remove_commit(args)
+        args = tuple([_type_convert(i) for i in args])
+        contents.append(f"{prefix}stepSizeRule{args}")
+
+    def _rootFinding(*args):
+        args = _remove_commit(args)
+        args = tuple([_type_convert(i) for i in args])
+        contents.append(f"{prefix}rootFinding{args}")
+
+    def _functionEvaluator(*args):
+        args = _remove_commit(args)
+        args = tuple([_type_convert(i) for i in args])
+        contents.append(f"{prefix}functionEvaluator{args}")
+
+    def _gradientEvaluator(*args):
+        args = _remove_commit(args)
+        args = tuple([_type_convert(i) for i in args])
+        contents.append(f"{prefix}gradientEvaluator{args}")
+
+    def _runFOSMAnalysis(*args):
+        args = _remove_commit(args)
+        args = tuple([_type_convert(i) for i in args])
+        contents.append(f"{prefix}runFOSMAnalysis{args}")
+
+    def _findDesignPoint(*args):
+        args = _remove_commit(args)
+        args = tuple([_type_convert(i) for i in args])
+        contents.append(f"{prefix}findDesignPoint{args}")
+
+    def _runFORMAnalysis(*args):
+        args = _remove_commit(args)
+        args = tuple([_type_convert(i) for i in args])
+        contents.append(f"{prefix}runFORMAnalysis{args}")
+
+    def _getLSFTags(*args):
+        args = _remove_commit(args)
+        args = tuple([_type_convert(i) for i in args])
+        contents.append(f"{prefix}getLSFTags{args}")
+
+    def _runImportanceSamplingAnalysis(*args):
+        args = _remove_commit(args)
+        args = tuple([_type_convert(i) for i in args])
+        contents.append(f"{prefix}runImportanceSamplingAnalysis{args}")
+
+    def _IGA(*args):
+        args = _remove_commit(args)
+        args = tuple([_type_convert(i) for i in args])
+        contents.append(f"{prefix}IGA{args}")
+
+    def _NDTest(*args):
+        args = _remove_commit(args)
+        args = tuple([_type_convert(i) for i in args])
+        contents.append(f"{prefix}NDTest{args}")
 
     def _getNumThreads(*args):
         args = _remove_commit(args)
@@ -1152,6 +1257,7 @@ def _TclInterp(prefix):
         args = tuple([_type_convert(i) for i in args])
         contents.append(f"{prefix}domainCommitTag{args}")
 
+    interp.createcommand('commits___', _commits)
     interp.createcommand('puts', _puts)
     interp.createcommand('wipe', _wipe)
     interp.createcommand('model', _model)
@@ -1334,13 +1440,31 @@ def _TclInterp(prefix):
     interp.createcommand("getPDF", _getRVPDF)
     interp.createcommand("getCDF", _getRVCDF)
     interp.createcommand("getInverseCDF", _getRVInverseCDF)
-    interp.createcommand("correlate", _addCorrelate)
+    interp.createcommand("correlate", _correlate)
+    interp.createcommand("performanceFunction", _performanceFunction)
+    interp.createcommand("gradPerformanceFunction", _gradPerformanceFunction)
     interp.createcommand("transformUtoX", _transformUtoX)
     interp.createcommand("wipeReliability", _wipeReliability)
     interp.createcommand("updateMaterialStage", _updateMaterialStage)
     interp.createcommand("sdfResponse", _sdfResponse)
     interp.createcommand("probabilityTransformation",
                          _probabilityTransformation)
+    interp.createcommand("startPoint", _startPoint)
+    interp.createcommand("randomNumberGenerator", _randomNumberGenerator)
+    interp.createcommand("reliabilityConvergenceCheck", _reliabilityConvergenceCheck)
+    interp.createcommand("searchDirection", _searchDirection)
+    interp.createcommand("meritFunctionCheck", _meritFunctionCheck)
+    interp.createcommand("stepSizeRule", _stepSizeRule)
+    interp.createcommand("rootFinding", _rootFinding)
+    interp.createcommand("functionEvaluator", _functionEvaluator)
+    interp.createcommand("gradientEvaluator", _gradientEvaluator)
+    interp.createcommand("runFOSMAnalysis", _runFOSMAnalysis)
+    interp.createcommand("findDesignPoint", _findDesignPoint)
+    interp.createcommand("runFORMAnalysis", _runFORMAnalysis)
+    interp.createcommand("getLSFTags", _getLSFTags)
+    interp.createcommand("runImportanceSamplingAnalysis", _runImportanceSamplingAnalysis)
+    interp.createcommand("IGA", _IGA)
+    interp.createcommand("NDTest", _NDTest)
     interp.createcommand("getNumThreads", _getNumThreads)
     interp.createcommand("setNumThreads", _setNumThreads)
     interp.createcommand("setStartNodeTag", _setStartNodeTag)
