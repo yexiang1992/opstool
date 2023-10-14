@@ -29,7 +29,7 @@ setup(
         "openseespy>=3.4.0.1",
         "plotly",
         "pyvista>=0.38.2",
-        "sectionproperties>=2.1.5",
+        "sectionproperties>=3.0.0",
         "shapely>=2.0.0",
         "h5py",
         "rich",
