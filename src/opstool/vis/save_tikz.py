@@ -12,7 +12,9 @@ COLORS = dict(
 )
 
 
-def _write_head(file, width=12, height=30, d3: bool = True):
+def _write_head(
+    file, width=12, height=30, d3: bool = True, azimuth: float = 60, elevation: float = 135
+):
     with open(file, "w", encoding="utf8") as f:
         f.write("% This file was created by opstool, all rights reserved!\n")
         f.write("\\documentclass{standalone}\n")
@@ -28,8 +30,7 @@ def _write_head(file, width=12, height=30, d3: bool = True):
         f.write("\\usepackage[active,tightpage]{preview}\n")
         f.write("\\PreviewEnvironment{tikzpicture}\n")
         if d3:
-            # 120 degree azimuth and 30 degree of elevation
-            f.write("\\tdplotsetmaincoords{120}{30}\n")
+            f.write(f"\\tdplotsetmaincoords{{{azimuth}}}{{{elevation}}}\n")
         f.write("\\setlength\\PreviewBorder{2mm}\n\n")
         f.write(
             f"\\geometry{{paperwidth={width}cm, paperheight={height}cm, margin=0cm}}\n"
@@ -246,12 +247,19 @@ def save_tikz(
     solid_opacity: float = 0.6,
     point_opacity: float = 0.8,
     line_opacity: float = 1.0,
+    azimuth: float = 60,
+    elevation: float = 135,
     show_beam_sec: bool = False,
     beam_sec_paras: dict = None,
     color_dict: dict = None,
 ):
     """Save the ``OpenSeesPy`` model data as a ``tikz`` command file in ``latex``,
     and then you can open it in your local tex editor, or run it online in ``overleaf``.
+
+    ..  tip::
+        You can adjust the 3D perspective via parameters `azimuth` and `elevation`.
+        Or find the following command ``\\tdplotsetmaincoords{}{}`` in the ``.tex`` file, you can change it manually,
+        the first is azimuth, the second is elevation.
 
     Parameters
     ----------
@@ -271,6 +279,10 @@ def save_tikz(
         The opacity of point, by default 0.75
     line_opacity : float, optional
         The opacity of line elements, by default 1.0
+    azimuth: float = 60, optional
+        Set the azimuth of the camera, by default 60
+    elevation: float = 135, optional
+        Set the elevation of the camera, by default 135
     show_beam_sec: bool default = False
         Whether to render the 3d section of beam or truss elements.
         If True, the Arg `beam_sec` in :py:meth:`opstool.vis.GetFEMdata.get_model_data`
@@ -306,7 +318,10 @@ def save_tikz(
     scale = paperwidth / bound[0] / 1.2
     points *= scale
     # write head
-    _write_head(output_file, width=paperwidth, height=paperheight, d3=D3)
+    _write_head(
+        output_file, width=paperwidth, height=paperheight, d3=D3,
+        azimuth=azimuth, elevation=elevation
+    )
     # plot
     _def_points(output_file, points, d3=D3)
     cell_types = ["truss", "link", "beam", "other_line"]
