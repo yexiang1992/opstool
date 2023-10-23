@@ -3,10 +3,13 @@ import tkinter
 from rich import print
 
 
-def tcl2py(input_file: str,
-           output_file: str,
-           prefix: str = "ops",
-           encoding: str = "utf-8"):
+def tcl2py(
+    input_file: str,
+    output_file: str,
+    prefix: str = "ops",
+    encoding: str = "utf-8",
+    keep_comments: bool = False,
+):
     """Convert OpenSees Tcl code to OpenSeesPy format.
 
     .. tip::
@@ -35,6 +38,9 @@ def tcl2py(input_file: str,
         i.e., ``from openseespy.opensees import *``.
     encoding: str, optional
         file encoding format, by default "utf-8".
+    keep_comments: bool, optional
+        Comments are preserved, by default False.
+        Note that this parameter will replace all opensees commands in the comment line, if any.
     """
     if not input_file.endswith(".tcl"):
         input_file += ".tcl"
@@ -46,9 +52,16 @@ def tcl2py(input_file: str,
     else:
         import_txt = "from openseespy.opensees import *\n\n"
         prefix = ''
-    with open(input_file, 'r', encoding=encoding) as f:
-        tcl_src = f.read()
-    tcl_src = tcl_src.replace("#", "commits___ ")
+    if keep_comments:
+        with open(input_file, 'r', encoding=encoding) as f:
+            tcl_list = f.readlines()
+        for i, src in enumerate(tcl_list):
+            if src[0] == "#":
+                tcl_list[i] = src.replace("#", "commits___ ").replace("$", "variable___ ")
+        tcl_src = "".join(tcl_list)
+    else:
+        with open(input_file, 'r', encoding=encoding) as f:
+            tcl_src = f.read()
     tcl_src = tcl_src.replace("{", " { ")
     tcl_src = tcl_src.replace("}", " } ")
     interp, contents = _TclInterp(prefix)
@@ -71,8 +84,9 @@ def _TclInterp(prefix):
 
     def _commits(*args):
         args = [src.replace("commits___", "#") for src in args]
+        args = [src.replace("variable___", "$") for src in args]
         if args:
-            args = " ".join(args).replace("# ", "#")
+            args = " ".join(args).replace("# ", "#").replace("$ ", "$")
             contents.append(f"# {args}")
         else:
             contents.append("#")
@@ -430,18 +444,19 @@ def _TclInterp(prefix):
         args = _remove_commit(args)
         args = tuple([_type_convert(i) for i in args])
         contents.append(f"{prefix}eigen{args}")
-        return 0
+        return None
 
     def _analyze(*args):
         args = _remove_commit(args)
         args = tuple([_type_convert(i) for i in args])
         contents.append(f"{prefix}analyze{args}")
-        return 0
+        return None
 
     def _modalProperties(*args):
         args = _remove_commit(args)
         args = tuple([_type_convert(i) for i in args])
         contents.append(f"{prefix}modalProperties{args}")
+        return None
 
     def _responseSpectrumAnalysis(*args):
         args = _remove_commit(args)
