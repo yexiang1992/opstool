@@ -1329,14 +1329,14 @@ def updateMaterialStage(*args) -> None:
     """
     pass
 
-def getNDM(*args) -> int:
+def getNDM(*args) -> list:
     """``getNDM(<nodeTag>)``
 
     * nodeTag: int, optional.
     """
     pass
 
-def getNDF() -> int:
+def getNDF(*args) -> list:
     """``getNDM(<nodeTag>)``
 
     * nodeTag: int, optional.
@@ -1830,12 +1830,230 @@ def sensNodePressure(nodeTag: int, paramTag: int) -> float:
     """
     pass
 
+def getNumElements() -> int:
+    """
+    Get the number of elements.
+    """
+    pass
+
 # -------------Reliability Commands---------------
 def randomVariable(*args) -> None:
-    """``randomVariable(tag, dist, '-mean', mean, '-stdv', stdv, '-startPoint', startPoint, '-parameters', *params)``
+    """``randomVariable(tag, dist, '-mean', mean, '-stdv', stdv,
+    '-startPoint', startPoint, '-parameters', *params)``
 
     Create a random variable with user specified distribution.
     See https://openseespydoc.readthedocs.io/en/latest/src/randomVariable.html
+    """
+    pass
+
+def getRVTags() -> list:
+    """Get the tags of all random variables.
+    """
+    pass
+
+def getRVParamTag(rvTag: int) -> int:
+    """Get parameter tag for random variable rvTag.
+    """
+    pass
+
+def getRVValue(rvTag: int) -> float:
+    """Get the current value for random variable rvTag.
+    """
+    pass
+
+def getMean(rvTag: int) -> float:
+    """Get the mean for random variable rvTag.
+    """
+    pass
+
+def getStdv(rvTag: int) -> float:
+    """Get the standard deviation for random variable rvTag.
+    """
+    pass
+
+def getPDF(rvTag: int, X: float) -> float:
+    """Get the probability density function value for random variable rvTag at X.
+    """
+    pass
+
+def getCDF(rvTag: int, X: float) -> float:
+    """Get the cumulative distribution function value for random variable rvTag at X.
+    """
+    pass
+
+def getInverseCDF(rvTag: int, p: float) -> float:
+    """Get the inverse CDF value for random variable rvTag at probability p.
+    """
+    pass
+
+def correlate(rvTag1: int, rvTag2: int, rho: float) -> None:
+    """Add the correlation coefficient rho between rvTag1 and rvTag2.
+    """
+    pass
+
+def functionEvaluator(type_: str, *args) -> None:
+    """
+    ``functionEvaluator('Python', <'-file', filename>) ``
+    """
+    pass
+
+def gradientEvaluator(type_: str, *args) -> None:
+    """
+    ``functionEvaluator('FiniteDifference', '-pert', perturbationFactor=1000.0)``
+
+    ``functionEvaluator('Implicit')``
+    """
+    pass
+
+def performanceFunction(tag: int, *args) -> None:
+    """
+    ``performanceFunction(tag: int, <lsf: str>)``
+    Add performance function lsf with tag to the reliability domain.
+    """
+    pass
+
+def gradPerformanceFunction(lsfTag: int, rvTag: int, expr: str) -> None:
+    """
+    Add gradient of LSF with tag lsfTag for random variable rvTag.
+
+    Parameters
+    -----------
+    lsfTag: int, the tag of limit state function.
+    rvTag: int, random variable with tag rvTag.
+    expr: str, gradient expression.
+    """
+    pass
+
+def transformUtoX(*args) -> list:
+    """
+    ``transformUtoX(u1, u2, ... , un, <rvTag1, rvTag2, ... , rvTagn>)``
+
+    The value of the standard normal distribution ``u`` is converted into
+    the value of each random variable ``X`` according to the ``probabilityTransformation``.
+    """
+    pass
+
+def wipeReliability() -> None:
+    """Wipe the Reliability domin.
+    """
+    pass
+
+def probabilityTransformation(type_: str, *args) -> None:
+    """Create probability transformation.
+
+    ``probabilityTransformation('Nataf', <'-print', printTag(0)>)``
+
+    ``probabilityTransformation('AllIndependent', <'-print', printTag(0)>)``
+    """
+    pass
+
+def startPoint(type_: str, *args) -> None:
+    """Set the start point.
+
+    ``startPoint('Mean')``
+
+    ``startPoint('Zero')``
+
+    ``startPoint('Origin')``
+
+    ``startPoint('-file', filename)``
+    """
+    pass
+
+def randomNumberGenerator(type_: str) -> None:
+    """
+    ``randomNumberGenerator('CStdLib')``
+    """
+    pass
+
+def reliabilityConvergenceCheck(type_: str, *args) -> None:
+    """Set Standard or Optimality convergence check.
+
+    ``reliabilityConvergenceCheck('Standard',
+    <<'-e1', e1>, <'-e2', e2>, <'-scaleValue', scaleValue>, <'-print', print>>)``
+
+    ``reliabilityConvergenceCheck('OptimalityCondition',
+    <<'-e1', e1>, <'-e2', e2>, <'-scaleValue', scaleValue>, <'-print', print>>)``
+    """
+    pass
+
+def searchDirection(type_: str, *args) -> None:
+    """Set the type of search direction.
+
+    ``searchDirection('iHLRF')``
+
+    ``searchDirection('PolakHe', <<'-gamma', gamma>, <'-delta', delta>>)``
+
+    ``searchDirection('GradientProjection')``
+
+    ``searchDirection('SQP', <<'-c_bar', c_bar>, <'-e_bar', e_bar>>)``
+    """
+    pass
+
+def meritFunctionCheck(type_: str, *args) -> None:
+    """Set the type of merit function check.
+
+    ``meritFunctionCheck('AdkZhang', <<'-multi', multi>, <'-add', add>, <'-factor', factor>>)``
+
+    ``meritFunctionCheck('PolakHe', <'-factor', factor(0.5)>)``
+
+    ``meritFunctionCheck('SQP', <'-factor', factor(0.5)>)``
+    """
+    pass
+
+def stepSizeRule(type_: str, *args) -> None:
+    """Set the type of step size rule.
+
+    ``stepSizeRule('Armijo', <<'-print', printFlag(0)>, <'-maxNum', maxNumReductions(10)>,
+    <'-base', base(0.5)>, <'-initial', b0(1.0), numberOfShortSteps(2)>,
+    <'-sphere', radius(50.0), surfaceDistance(0.1), evolution(0.5)>>)``
+
+    ``stepSizeRule('Fixed', <'-stepSize', stepSize(1.0)>)``
+    """
+    pass
+
+def rootFinding(type_: str, *args) -> None:
+    """Set the type of rootFinding.
+
+    ``rootFinding('Secant', <<'-maxIter', maxIter(50)>, <'-tol', tol(1e-3)>,
+    <'-maxStepLength', maxStepLength(1.0)>>)``
+    """
+    pass
+
+def findDesignPoint(type_: str, *args) -> None:
+    """Set the type of findDesignPoint.
+
+    ``findDesignPoint('StepSearch', <<'-maxNumIter', maxIter(100)>,
+    <'-printAllPointsX', fileName>, <'-printAllPointsY', fileName>,
+    <'-printDesignPointX', fileName>,<'-printDesignPointY', fileName>,
+    <'-printCurrentPointX', fileName>,<'-printCurrentPointY', fileName>,>)``
+    """
+    pass
+
+def runFOSMAnalysis(filename: str) -> None:
+    """Run FOSM Analysis.
+    """
+    pass
+
+def runFORMAnalysis(filename: str, *args) -> None:
+    """Run FORM Analysis.
+
+    ``runFORMAnalysis(filename, <'-relSens', relSensTag(0)>)``
+    """
+    pass
+
+def getLSFTags() -> list:
+    """Get all the tags of Limit State Functions.
+    """
+    pass
+
+def runImportanceSamplingAnalysis(filename: str, *args) -> None:
+    """
+    ``runImportanceSamplingAnalysis(filename,
+    <'-type', <'failureProbability'>,<'outCrossingFailureProbability'>,
+    'responseStatistics'>, 'saveGvalues'>>, <'-variance', samplingVariance(1.0)>,
+    '-maxNum', maxNum(1000)>,<'-targetCOV', targetCOV(0.05)>,
+    <'-print', printFlag(0)>)``
     """
     pass
 
@@ -1851,7 +2069,8 @@ def getNP() -> int:
     pass
 
 def barrier() -> None:
-    """Set a barrier for all processors, i.e., faster processors will pause here to wait for all processors to reach to this point.
+    """Set a barrier for all processors, i.e., faster processors
+    will pause here to wait for all processors to reach to this point.
     """
     pass
 
@@ -1913,7 +2132,8 @@ def Bcast(*data) -> None:
 def setStartNodeTag(ndtag: int) -> None:
     """Set the starting node tag for the mesh command. The purpose of this command is to control
     the node tags generated by the mesh command. Some nodes are shared by processors,
-    which must have same tags. Nodes which are unique to a processor must have uniques tags across all processors.
+    which must have same tags. Nodes which are unique to a processor must have uniques 
+    tags across all processors.
 
     * ndtag (int) : starting node tag for the next call of mesh command.
     """
@@ -1921,7 +2141,8 @@ def setStartNodeTag(ndtag: int) -> None:
 
 def domainChange() -> None:
     """Mark the domain has changed manually.
-    This is used to notify processors whose domain is not changed, but the domain in other processors have changed.
+    This is used to notify processors whose domain is not changed,
+    but the domain in other processors have changed.
     """
     pass
 
@@ -1932,11 +2153,64 @@ def partition(*args) -> None:
     It requires that all processors have the exact same model to be partitioned.
 
     * ncuts (int) : Specifies the number of different partitionings that it will compute.
-        The final partitioning is the one that achieves the best edge cut or communication volume. (Optional default is 1).
+        The final partitioning is the one that achieves the best edge cut or communication volume. 
+        (Optional default is 1).
     * niters (int) : Specifies the number of iterations for the refinement algorithms at
         each stage of the uncoarsening process. (Optional default is 10).
     * ufactor (int) : Specifies the maximum allowed load imbalance among the partitions.
         (Optional default is 30, indicating a load imbalance of 1.03).
     * '-info' (str) : print information. (optional)
+    """
+    pass
+
+def domainCommitTag(commitTag: int) -> int:
+    """
+    """
+    pass
+
+
+def IGA(type_: str, *args) -> None:
+    """Isogeometric Analysis.
+
+    See https://www.sciencedirect.com/science/article/abs/pii/S0010448523000490
+
+    ``IGA('Patch', tag, nodeStartTag, P, Q, noPtsX, noPtsY,
+    <'-type', ['KLShell' or 'KLShell_BendingStrip'>,
+    <'-nonLinearGeometry', [0 or 1]>,
+    <'-planeStressMatTags', *[list of tags]>,
+    <'-gFact', gx, gy, gz>,
+    <'-theta', *[list of thetas]>,
+    <'-thickness', *[list of layer thicknesses]>,
+    <'-uKnot', *[list of uKnots]>,
+    <'-vKnot', *[list of vKnots]>,
+    <'-controlPts', *[list coordinates of control points, u-direction first]>,
+    <'-sectionTag', sectionTag>,
+    <'-nodeStartTag', nodeStartTag>,
+    <'-elementStartTag', elementStartTag>)``
+
+    ``IGA('SurfacePatch', tag, nodeStartTag, P, Q, noPtsX, noPtsY,
+    <'-type', ['KLShell' or 'KLShell_BendingStrip'>,
+    <'-nonLinearGeometry', [0 or 1]>,
+    <'-planeStressMatTags', *[list of tags]>,
+    <'-gFact', gx, gy, gz>,
+    <'-theta', *[list of thetas]>,
+    <'-thickness', *[list of layer thicknesses]>,
+    <'-uKnot', *[list of uKnots]>,
+    <'-vKnot', *[list of vKnots]>,
+    <'-controlPts', *[list coordinates of control points, u-direction first]>,
+    <'-sectionTag', sectionTag>,
+    <'-nodeStartTag', nodeStartTag>,
+    <'-elementStartTag', elementStartTag>)``
+    """
+    pass
+
+def NDTest(type_: str, *args) -> None:
+    """
+
+    Parameters
+    -----------
+    type_: str, optional "SetStrain", "CommitState", "PrintStress", "PrintStrain",
+        "GetStrain", "GetStress", "GetTangentStiffness", "UpdateIntegerParameter",
+        "UpdateDoubleParameter"
     """
     pass

@@ -1,6 +1,10 @@
 Changelog
 =============
 
+v0.8.6
+---------
+- Fixed ``get_frame_props`` bugs in :py:class:`opstool.preprocessing.SecMesh`
+
 v0.8.5
 --------------------
 - Added the Arg ``show_local_crd_shell`` to display the local axes of shell elements.
