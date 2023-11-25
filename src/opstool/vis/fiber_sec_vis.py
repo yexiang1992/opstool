@@ -70,6 +70,7 @@ class FiberSecVis:
         ele_tag: int,
         sec_tag: int,
         mat_color: dict = None,
+        plot_style: str = "ggplot",
     ):
         """plot the fiber section.
 
@@ -82,6 +83,8 @@ class FiberSecVis:
         mat_color: dict
             Dict for assign color by matTag, {matTag1:color1,matTag2:color2, and so on}
             matTag is the material tag defined in openseespy, bu it must in the section.
+        plot_style: str, matplotlib plot style, default='ggplot'
+            See https://matplotlib.org/stable/gallery/style_sheets/style_sheets_reference.html
 
         Returns
         ----------
@@ -92,7 +95,7 @@ class FiberSecVis:
             raise ValueError("ele_tag and sec_tag not in set_fiber_secs()!")
         fiber_data = self.fiber_sec_step_data[key][0][:, :6]
 
-        plt.style.use("seaborn")
+        plt.style.use(plot_style)
         # plt.style.use('ggplot')
         fig, ax = plt.subplots(figsize=(6, 6))
         txt = f"ele--sec: {ele_tag}--{sec_tag}\n"
@@ -172,6 +175,7 @@ class FiberSecVis:
         step: int = None,
         show_variable: str = "strain",
         show_mats=None,
+        plot_style: str = "ggplot"
     ):
         """fiber section response vis.
 
@@ -188,6 +192,8 @@ class FiberSecVis:
         show_mats: Union[int, list[int], tuple[int]]
             matTags to dispaly. matTag is the material tag defined in openseespy, bu it must in the section.
             If None, all tags will display.
+        plot_style: str, matplotlib plot style, default='ggplot'
+            See https://matplotlib.org/stable/gallery/style_sheets/style_sheets_reference.html
 
         Returns
         --------
@@ -230,7 +236,7 @@ class FiberSecVis:
         # start plot
         # --------------------------------------------------------------
         # ------------------------------------------------------
-        plt.style.use("seaborn")
+        plt.style.use(plot_style)
         # plt.style.use('ggplot')
         fig, ax = plt.subplots(figsize=(6, 6 * aspect_ratio))
         patches = [
@@ -282,6 +288,7 @@ class FiberSecVis:
         show_variable: str = "strain",
         show_mats=None,
         framerate: int = 24,
+        plot_style: str = 'ggplot'
     ):
         """fiber section response animation.
 
@@ -299,6 +306,8 @@ class FiberSecVis:
             Mat tag to dispaly. If None, all tags will display.
         framerate: int, default=24
             The number of frames per second.
+        plot_style: str, matplotlib plot style, default='ggplot'
+            See https://matplotlib.org/stable/gallery/style_sheets/style_sheets_reference.html
 
         Returns
         -------
@@ -342,7 +351,7 @@ class FiberSecVis:
         eps = fiber_data[matidx, 6][0, 0]
 
         # ------------------------------------------------------
-        plt.style.use("seaborn")
+        plt.style.use(plot_style)
         # plt.style.use('ggplot')
         fig, ax = plt.subplots(figsize=(8, 8 * aspect_ratio))
         patches = [
@@ -506,6 +515,7 @@ def plot_fiber_sec(
     colormap: str = "viridis",
     opacity: float = 0.75,
     mat_color: dict = None,
+    plot_style: str = 'ggplot'
 ):
     """plot the fiber section geometry.
 
@@ -533,6 +543,8 @@ def plot_fiber_sec(
     mat_color: dict
         Dict for assign color by matTag, {matTag1:color1,matTag2:color2, and so on}
         matTag is the material tag defined in openseespy, bu it must in the section.
+    plot_style: str, matplotlib plot style, default='ggplot'
+        See https://matplotlib.org/stable/gallery/style_sheets/style_sheets_reference.html
 
     Returns
     ----------
@@ -549,7 +561,7 @@ def plot_fiber_sec(
     shape = shape_dict[n_sec]
     figsize = 5 * shape[1], 4 * shape[0]
 
-    plt.style.use("seaborn")
+    plt.style.use(plot_style)
     fig, axs = plt.subplots(shape[0], shape[1], figsize=figsize)
 
     for i, elesec in enumerate(ele_sec):
