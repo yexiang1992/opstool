@@ -51,16 +51,18 @@ def tcl2py(
         prefix += "."
     else:
         import_txt = "from openseespy.opensees import *\n\n"
-        prefix = ''
+        prefix = ""
     if keep_comments:
-        with open(input_file, 'r', encoding=encoding) as f:
+        with open(input_file, "r", encoding=encoding) as f:
             tcl_list = f.readlines()
         for i, src in enumerate(tcl_list):
             if src[0] == "#":
-                tcl_list[i] = src.replace("#", "commits___ ").replace("$", "variable___ ")
+                tcl_list[i] = src.replace("#", "commits___ ").replace(
+                    "$", "variable___ "
+                )
         tcl_src = "".join(tcl_list)
     else:
-        with open(input_file, 'r', encoding=encoding) as f:
+        with open(input_file, "r", encoding=encoding) as f:
             tcl_src = f.read()
     tcl_src = tcl_src.replace("{", " { ")
     tcl_src = tcl_src.replace("}", " } ")
@@ -69,13 +71,17 @@ def tcl2py(
     try:
         interp.eval(tcl_src)
     finally:
-        with open(output_file, mode='w', encoding=encoding) as fw:
-            fw.write("# This file is created by opstool.tcl2py(), author:: Yexiang Yan\n\n")
+        with open(output_file, mode="w", encoding=encoding) as fw:
+            fw.write(
+                "# This file is created by opstool.tcl2py(), author:: Yexiang Yan\n\n"
+            )
             fw.write(import_txt)
             for line in contents:
                 fw.write(line + "\n")
-    print(f"[bold #34bf49]OpenSeesPy[/bold #34bf49] file "
-          f"[bold #d20962]{output_file}[/bold #d20962] has been created successfully!")
+    print(
+        f"[bold #34bf49]OpenSeesPy[/bold #34bf49] file "
+        f"[bold #d20962]{output_file}[/bold #d20962] has been created successfully!"
+    )
 
 
 def _TclInterp(prefix):
@@ -170,16 +176,28 @@ def _TclInterp(prefix):
     def _section(*args):
         args = _remove_commit(args)
         args = tuple([_type_convert(i) for i in args])
-        if args[0].lower() in ('ndfiber', 'fiber'):
-            if args[0].lower() == "fiber" and ('-GJ' not in args or '-torsion' not in args):
-                print("[bold #d20962]Warning[/bold #d20962]: "
-                      "-GJ or -torsion not used for fiber section, GJ=10000 is assumed!")
-                new_args = (args[0], args[1], '-GJ', 1.E4)
+        if args[0] in (
+            "Fiber",
+            "fiberSec",
+            "FiberWarping",
+            "FiberAsym",
+            "FiberThermal",
+            "NDFiber",
+            "NDFiberWarping",
+        ):
+            if args[0] not in ["NDFiber", "NDFiberWarping"] and (
+                "-GJ" not in args or "-torsion" not in args
+            ):
+                print(
+                    "[bold #d20962]Warning[/bold #d20962]: "
+                    "-GJ or -torsion not used for fiber section, GJ=100000000 is assumed!"
+                )
+                new_args = (args[0], args[1], "-GJ", 1.0e8)
             else:
-                new_args = args[:-1]
+                new_args = args[:4]
             contents.append(f"{prefix}section{new_args}")
             txt = args[-1]
-            txt.replace("\\n", '')
+            txt.replace("\\n", "")
             interp.eval(txt)
         else:
             contents.append(f"{prefix}section{args}")
@@ -202,8 +220,7 @@ def _TclInterp(prefix):
     def _element(*args):
         args = _remove_commit(args)
         args = [_type_convert(i) for i in args]
-        if args[0] not in ['nonlinearBeamColumn',
-                           'forceBeamColumn', 'dispBeamColumn']:
+        if args[0] not in ["nonlinearBeamColumn", "forceBeamColumn", "dispBeamColumn"]:
             args = tuple([_type_convert(i) for i in args])
             contents.append(f"{prefix}element{args}")
         else:
@@ -212,14 +229,16 @@ def _TclInterp(prefix):
             if isinstance(secTag, int):
                 Np = args[4]
                 transfTag = args[6]
-                if args[0] == 'dispBeamColumn':
+                if args[0] == "dispBeamColumn":
                     contents.append(
                         f"{prefix}beamIntegration"
-                        f"('Legendre', {eleTag}, {secTag}, {Np})")
+                        f"('Legendre', {eleTag}, {secTag}, {Np})"
+                    )
                 else:
                     contents.append(
                         f"{prefix}beamIntegration"
-                        f"('Lobatto', {eleTag}, {secTag}, {Np})")
+                        f"('Lobatto', {eleTag}, {secTag}, {Np})"
+                    )
                 idx = 7
             else:
                 transfTag = args[4]
@@ -233,43 +252,45 @@ def _TclInterp(prefix):
                         break
                 contents.append(
                     f"{prefix}beamIntegration"
-                    f"('{args[5]}', {eleTag}, *{interp_paras})")
-            if args[0] == 'nonlinearBeamColumn':
-                args[0] = 'forceBeamColumn'
-            if '-mass' not in args and '-iter' not in args:
+                    f"('{args[5]}', {eleTag}, *{interp_paras})"
+                )
+            if args[0] == "nonlinearBeamColumn":
+                args[0] = "forceBeamColumn"
+            if "-mass" not in args and "-iter" not in args:
                 contents.append(
                     f"{prefix}element('{args[0]}', {eleTag}, {args[2]}, "
-                    f"{args[3]}, {transfTag}, {eleTag})")
+                    f"{args[3]}, {transfTag}, {eleTag})"
+                )
             else:
                 contents.append(
                     f"{prefix}element('{args[0]}', {eleTag}, {args[2]}, "
-                    f"{args[3]}, {transfTag}, {eleTag}, *{args[idx:]})")
+                    f"{args[3]}, {transfTag}, {eleTag}, *{args[idx:]})"
+                )
 
     def _timeSeries(*args):
         args = _remove_commit(args)
         args = [_type_convert(i) for i in args]
-        if args[0] in ['Path', 'Series']:
-            if ('-time' in args) or ('-values' in args):
+        if args[0] in ["Path", "Series"]:
+            if ("-time" in args) or ("-values" in args):
                 time, values = None, None
-                if '-time' in args:
-                    idx = args.index('-time')
+                if "-time" in args:
+                    idx = args.index("-time")
                     time = list(args[idx + 1].split())
                     time = [float(i) for i in time]
                     args.pop(idx)
                     args.pop(idx)
-                if '-values' in args:
-                    idx = args.index('-values')
+                if "-values" in args:
+                    idx = args.index("-values")
                     values = list(args[idx + 1].split())
                     values = [float(i) for i in values]
                     args.pop(idx)
                     args.pop(idx)
                 if time and values:
-                    args = args[:2] + ['-time', *time,
-                                       '-values', *values] + args[2:]
+                    args = args[:2] + ["-time", *time, "-values", *values] + args[2:]
                 elif values is None:
-                    args = args[:2] + ['-time', *time] + args[2:]
+                    args = args[:2] + ["-time", *time] + args[2:]
                 else:
-                    args = args[:2] + ['-values', *values] + args[2:]
+                    args = args[:2] + ["-values", *values] + args[2:]
                 txt = f"{prefix}timeSeries('Path', {args[1]}, *{args[2:]})"
                 contents.append(txt)
             else:
@@ -288,12 +309,15 @@ def _TclInterp(prefix):
                     f"followed [bold #ff4c4c]plain[/bold #ff4c4c], "
                     f"and a new [bold #f47721]timeSeries[/bold #f47721] is created with tag "
                     f"[bold #34bf49]{args[1]}[/bold #34bf49], "
-                    f"please check this [bold #34bf49]pattern tag={args[1]}[/bold #34bf49]!")
+                    f"please check this [bold #34bf49]pattern tag={args[1]}[/bold #34bf49]!"
+                )
                 tsargs = list(args[2].split())
                 if len(tsargs) == 1:
                     contents.append(f"{prefix}timeSeries('{tsargs[0]}', {args[1]})")
                 else:
-                    contents.append(f"{prefix}timeSeries('{tsargs[0]}', {args[1]}, *{tsargs[1:]})")
+                    contents.append(
+                        f"{prefix}timeSeries('{tsargs[0]}', {args[1]}, *{tsargs[1:]})"
+                    )
                 args = list(args)
                 args[2] = args[1]
                 args = tuple(args)
@@ -301,7 +325,7 @@ def _TclInterp(prefix):
             else:
                 contents.append(f"{prefix}pattern{args[:-1]}")
             txt = args[-1]
-            txt.replace("\\n", '')
+            txt.replace("\\n", "")
             interp.eval(txt)
         else:
             contents.append(f"{prefix}pattern{args}")
@@ -368,12 +392,10 @@ def _TclInterp(prefix):
             eleargs = args[-2].split()
             eleargs = [_type_convert(i) for i in eleargs]
             args = args[:-2] + eleargs
-            args = [f"'{i}'" if isinstance(i, str) else str(i)
-                    for i in args]
+            args = [f"'{i}'" if isinstance(i, str) else str(i) for i in args]
             args.append("*crds")
         else:
-            args = [f"'{i}'" if isinstance(i, str) else str(i)
-                    for i in args[:-1]]
+            args = [f"'{i}'" if isinstance(i, str) else str(i) for i in args[:-1]]
             args.append("*crds")
         txt = f"{prefix}block2D(" + ", ".join(args) + ")"
         contents.append(txt)
@@ -390,12 +412,10 @@ def _TclInterp(prefix):
             eleargs = args[-2].split()
             eleargs = [_type_convert(i) for i in eleargs]
             args = args[:-2] + eleargs
-            args = [f"'{i}'" if isinstance(i, str) else str(i)
-                    for i in args]
+            args = [f"'{i}'" if isinstance(i, str) else str(i) for i in args]
             args.append("*crds")
         else:
-            args = [f"'{i}'" if isinstance(i, str) else str(i)
-                    for i in args[:-1]]
+            args = [f"'{i}'" if isinstance(i, str) else str(i) for i in args[:-1]]
             args.append("*crds")
         txt = f"{prefix}block3D(" + ", ".join(args) + ")"
         contents.append(txt)
@@ -1273,68 +1293,68 @@ def _TclInterp(prefix):
         args = tuple([_type_convert(i) for i in args])
         contents.append(f"{prefix}domainCommitTag{args}")
 
-    interp.createcommand('commits___', _commits)
-    interp.createcommand('puts', _puts)
-    interp.createcommand('wipe', _wipe)
-    interp.createcommand('model', _model)
-    interp.createcommand('node', _node)
-    interp.createcommand('fix', _fix)
-    interp.createcommand('fixX', _fixX)
-    interp.createcommand('fixY', _fixY)
-    interp.createcommand('fixZ', _fixZ)
-    interp.createcommand('equalDOF', _equalDOF)
-    interp.createcommand('equalDOF_Mixed', _equalDOF_Mixed)
-    interp.createcommand('rigidDiaphragm', _rigidDiaphragm)
-    interp.createcommand('rigidLink', _rigidLink)
-    interp.createcommand('element', _element)
-    interp.createcommand('timeSeries', _timeSeries)
+    interp.createcommand("commits___", _commits)
+    interp.createcommand("puts", _puts)
+    interp.createcommand("wipe", _wipe)
+    interp.createcommand("model", _model)
+    interp.createcommand("node", _node)
+    interp.createcommand("fix", _fix)
+    interp.createcommand("fixX", _fixX)
+    interp.createcommand("fixY", _fixY)
+    interp.createcommand("fixZ", _fixZ)
+    interp.createcommand("equalDOF", _equalDOF)
+    interp.createcommand("equalDOF_Mixed", _equalDOF_Mixed)
+    interp.createcommand("rigidDiaphragm", _rigidDiaphragm)
+    interp.createcommand("rigidLink", _rigidLink)
+    interp.createcommand("element", _element)
+    interp.createcommand("timeSeries", _timeSeries)
     # interp.createcommand('Series', _timeSeries)
-    interp.createcommand('pattern', _pattern)
-    interp.createcommand('load', _load)
-    interp.createcommand('eleLoad', _eleLoad)
-    interp.createcommand('sp', _sp)
-    interp.createcommand('groundMotion', _groundMotion)
-    interp.createcommand('imposedMotion', _imposedMotion)
+    interp.createcommand("pattern", _pattern)
+    interp.createcommand("load", _load)
+    interp.createcommand("eleLoad", _eleLoad)
+    interp.createcommand("sp", _sp)
+    interp.createcommand("groundMotion", _groundMotion)
+    interp.createcommand("imposedMotion", _imposedMotion)
     interp.createcommand("imposedSupportMotion", _imposedMotion)
-    interp.createcommand('mass', _mass)
-    interp.createcommand('uniaxialMaterial', _uniaxialMaterial)
-    interp.createcommand('nDMaterial', _nDMaterial)
+    interp.createcommand("mass", _mass)
+    interp.createcommand("uniaxialMaterial", _uniaxialMaterial)
+    interp.createcommand("nDMaterial", _nDMaterial)
     interp.createcommand("beamIntegration", _beamIntegration)
-    interp.createcommand('section', _section)
-    interp.createcommand('fiber', _fiber)
-    interp.createcommand('patch', _patch)
-    interp.createcommand('layer', _layer)
-    interp.createcommand('frictionModel', _frictionModel)
-    interp.createcommand('geomTransf', _geomTransf)
-    interp.createcommand('region', _region)
-    interp.createcommand('rayleigh', _rayleigh)
-    interp.createcommand('block2D', _block2D)
-    interp.createcommand('block2d', _block2D)
-    interp.createcommand('block3D', _block3D)
-    interp.createcommand('block3d', _block3D)
-    interp.createcommand('ShallowFoundationGen', _ShallowFoundationGen)
-    interp.createcommand('constraints', _constraints)
-    interp.createcommand('numberer', _numberer)
-    interp.createcommand('system', _system)
-    interp.createcommand('test', _test)
-    interp.createcommand('algorithm', _algorithm)
-    interp.createcommand('integrator', _integrator)
-    interp.createcommand('analysis', _analysis)
-    interp.createcommand('eigen', _eigen)
-    interp.createcommand('analyze', _analyze)
-    interp.createcommand('modalProperties', _modalProperties)
-    interp.createcommand('responseSpectrumAnalysis', _responseSpectrumAnalysis)
-    interp.createcommand('record', _record)
-    interp.createcommand('recorder', _recorder)
-    interp.createcommand('print', _print)
-    interp.createcommand('printA', _printA)
-    interp.createcommand('logFile', _logFile)
-    interp.createcommand('remove', _remove)
-    interp.createcommand('loadConst', _loadConst)
-    interp.createcommand('wipeAnalysis', _wipeAnalysis)
-    interp.createcommand('modalDamping', _modalDamping)
-    interp.createcommand('database', _database)
-    interp.createcommand('getTime', _getTime)
+    interp.createcommand("section", _section)
+    interp.createcommand("fiber", _fiber)
+    interp.createcommand("patch", _patch)
+    interp.createcommand("layer", _layer)
+    interp.createcommand("frictionModel", _frictionModel)
+    interp.createcommand("geomTransf", _geomTransf)
+    interp.createcommand("region", _region)
+    interp.createcommand("rayleigh", _rayleigh)
+    interp.createcommand("block2D", _block2D)
+    interp.createcommand("block2d", _block2D)
+    interp.createcommand("block3D", _block3D)
+    interp.createcommand("block3d", _block3D)
+    interp.createcommand("ShallowFoundationGen", _ShallowFoundationGen)
+    interp.createcommand("constraints", _constraints)
+    interp.createcommand("numberer", _numberer)
+    interp.createcommand("system", _system)
+    interp.createcommand("test", _test)
+    interp.createcommand("algorithm", _algorithm)
+    interp.createcommand("integrator", _integrator)
+    interp.createcommand("analysis", _analysis)
+    interp.createcommand("eigen", _eigen)
+    interp.createcommand("analyze", _analyze)
+    interp.createcommand("modalProperties", _modalProperties)
+    interp.createcommand("responseSpectrumAnalysis", _responseSpectrumAnalysis)
+    interp.createcommand("record", _record)
+    interp.createcommand("recorder", _recorder)
+    interp.createcommand("print", _print)
+    interp.createcommand("printA", _printA)
+    interp.createcommand("logFile", _logFile)
+    interp.createcommand("remove", _remove)
+    interp.createcommand("loadConst", _loadConst)
+    interp.createcommand("wipeAnalysis", _wipeAnalysis)
+    interp.createcommand("modalDamping", _modalDamping)
+    interp.createcommand("database", _database)
+    interp.createcommand("getTime", _getTime)
     interp.createcommand("setTime", _setTime)
     interp.createcommand("testUniaxialMaterial", _testUniaxialMaterial)
     interp.createcommand("setStrain", _setStrain)
@@ -1382,8 +1402,9 @@ def _TclInterp(prefix):
     interp.createcommand("start", _startTimer)
     interp.createcommand("stop", _stopTimer)
     interp.createcommand("modalDampingQ", _modalDampingQ)
-    interp.createcommand("setElementRayleighDampingFactors",
-                         _setElementRayleighDampingFactors)
+    interp.createcommand(
+        "setElementRayleighDampingFactors", _setElementRayleighDampingFactors
+    )
     interp.createcommand("setPrecision", _setPrecision)
     interp.createcommand("searchPeerNGA", _searchPeerNGA)
     interp.createcommand("domainChange", _domainChange)
@@ -1420,8 +1441,7 @@ def _TclInterp(prefix):
     interp.createcommand("limitCurve", _limitCurve)
 
     interp.createcommand("equalDOF_Mixed", _equalDOF_Mixed)
-    interp.createcommand("setElementRayleighFactors",
-                         _setElementRayleighFactors)
+    interp.createcommand("setElementRayleighFactors", _setElementRayleighFactors)
     interp.createcommand("mesh", _mesh)
     interp.createcommand("remesh", _remesh)
     interp.createcommand("parameter", _parameter)
@@ -1463,8 +1483,7 @@ def _TclInterp(prefix):
     interp.createcommand("wipeReliability", _wipeReliability)
     interp.createcommand("updateMaterialStage", _updateMaterialStage)
     interp.createcommand("sdfResponse", _sdfResponse)
-    interp.createcommand("probabilityTransformation",
-                         _probabilityTransformation)
+    interp.createcommand("probabilityTransformation", _probabilityTransformation)
     interp.createcommand("startPoint", _startPoint)
     interp.createcommand("randomNumberGenerator", _randomNumberGenerator)
     interp.createcommand("reliabilityConvergenceCheck", _reliabilityConvergenceCheck)
@@ -1478,7 +1497,9 @@ def _TclInterp(prefix):
     interp.createcommand("findDesignPoint", _findDesignPoint)
     interp.createcommand("runFORMAnalysis", _runFORMAnalysis)
     interp.createcommand("getLSFTags", _getLSFTags)
-    interp.createcommand("runImportanceSamplingAnalysis", _runImportanceSamplingAnalysis)
+    interp.createcommand(
+        "runImportanceSamplingAnalysis", _runImportanceSamplingAnalysis
+    )
     interp.createcommand("IGA", _IGA)
     interp.createcommand("NDTest", _NDTest)
     interp.createcommand("getNumThreads", _getNumThreads)

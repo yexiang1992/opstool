@@ -1,6 +1,10 @@
 Changelog
 =============
 
+v0.8.7
+---------
+- Updated the class :class:`opstool.analysis.MomentCurvature` to moment-curvature analysis of fiber section.
+
 v0.8.6
 ---------
 - Fixed ``get_frame_props`` bugs in :py:class:`opstool.preprocessing.SecMesh`

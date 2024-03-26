@@ -122,12 +122,12 @@ Extract limit state points based on fiber strain thresholds or other criteria.
    # The concrete fiber in the confined area reaches the ultimate compressive strain 0.0144
    phiu, Mu = mc.get_limit_state(matTag=matTagCCore,
                                  threshold=-0.0144,
-                                 use_peak_drop20=False
+                                 peak_drop=False
                                  )
-   # or use_peak_drop20
+   # or use peak_drop 
    # phiu, Mu = mc.get_limit_state(matTag=matTagCCore,
    #                               threshold=-0.0144,
-   #                               use_peak_drop20=True
+   #                               peak_drop=0.2
    #                              )
 
 Equivalent linearization according to area:

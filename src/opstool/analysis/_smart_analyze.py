@@ -340,6 +340,7 @@ class SmartAnalyze:
             self.control["testTol"],
             self.control.copy(),
             self.current.copy(),
+            self.control["debugMode"],
         )
         if ok < 0:
             color = _get_random_color()
@@ -365,7 +366,7 @@ class SmartAnalyze:
                 )
                 self.current["counter"] = 0
         if (self.current["segs"] > 0) and (
-            self.current["progress"] >= self.current["segs"]
+                self.current["progress"] >= self.current["segs"]
         ):
             color = _get_random_color()
             custime = f"[{color}]{self._get_time():.3f}[/{color}]"
@@ -407,6 +408,7 @@ class SmartAnalyze:
             self.control["testTol"],
             self.control.copy(),
             self.current.copy(),
+            self.control["debugMode"]
         )
         if ok < 0:
             color = _get_random_color()
@@ -432,7 +434,7 @@ class SmartAnalyze:
                 self.current["counter"] = 0
 
         if (self.current["segs"] > 0) and (
-            self.current["progress"] >= self.current["segs"]
+                self.current["progress"] >= self.current["segs"]
         ):
             color = _get_random_color()
             value = f"[bold {color}]{self._get_time():.3f}[/bold {color}]"
@@ -442,13 +444,14 @@ class SmartAnalyze:
         return 0
 
     def _RecursiveAnalyze(
-        self,
-        step: float,
-        algoIndex: int,
-        testIterTimes: int,
-        testTol: float,
-        vcontrol: dict,
-        vcurrent: dict,
+            self,
+            step: float,
+            algoIndex: int,
+            testIterTimes: int,
+            testTol: float,
+            vcontrol: dict,
+            vcurrent: dict,
+            print_info: bool
     ):
         """RecursiveAnalyze.
 
@@ -468,6 +471,8 @@ class SmartAnalyze:
             real-time control parameter dictionary
         vcurrent : dict
             real-time status parameter dictionary
+        print_info: bool
+            If True, print info
 
         Returns
         -------
@@ -477,18 +482,18 @@ class SmartAnalyze:
 
         if vcontrol["debugMode"]:
             color = _get_random_color()
-            values = (
-                f"[bold {color}]step=%.3e, algoIndex=%i, testIterTimes=%i, testTol=%.3e[/bold {color}]"
-                % (step, vcontrol["algoTypes"][algoIndex], testIterTimes, testTol)
+            values = (f"[bold {color}]step=%.3e, algoIndex=%i, testIterTimes=%i, testTol=%.3e[/bold {color}]" %
+                      (step, vcontrol["algoTypes"][algoIndex], testIterTimes, testTol)
             )
             print(f"*** {self.logo} Run Recursive: {values}\n")
 
         if algoIndex != vcurrent["algoIndex"]:
-            color = _get_random_color()
-            values = f"[bold {color}]%i[/bold {color}]" % (
-                vcontrol["algoTypes"][algoIndex]
-            )
-            print(f">>> {self.logo} Setting algorithm to {values}\n")
+            if print_info:
+                color = _get_random_color()
+                values = f"[bold {color}]%i[/bold {color}]" % (
+                    vcontrol["algoTypes"][algoIndex]
+                )
+                print(f">>> {self.logo} Setting algorithm to {values}\n")
             self._setAlgorithm(
                 vcontrol["algoTypes"][algoIndex], self.control["UserAlgoArgs"]
             )
@@ -496,27 +501,30 @@ class SmartAnalyze:
 
         if testIterTimes != vcurrent["testIterTimes"] or testTol != vcurrent["testTol"]:
             if testIterTimes != vcurrent["testIterTimes"]:
-                color = _get_random_color()
-                values = f"[bold {color}]%i[/bold {color}]" % testIterTimes
-                print(f">>> {self.logo} Setting test iteration times to {values}\n")
+                if print_info:
+                    color = _get_random_color()
+                    values = f"[bold {color}]%i[/bold {color}]" % testIterTimes
+                    print(f">>> {self.logo} Setting test iteration times to {values}\n")
                 vcurrent["testIterTimes"] = testIterTimes
             if testTol != vcurrent["testTol"]:
-                color = _get_random_color()
-                print(
-                    f">>> {self.logo} Setting test tolerance to [bold {color}]%f[/bold {color}]\n"
-                    % testTol
-                )
+                if print_info:
+                    color = _get_random_color()
+                    print(
+                        f">>> {self.logo} Setting test tolerance to [bold {color}]%f[/bold {color}]\n"
+                        % testTol
+                    )
                 vcurrent["testTol"] = testTol
             ops.test(
                 vcontrol["testType"], testTol, testIterTimes, vcontrol["testPrintFlag"]
             )
         # static step size
         if vcontrol["analysis"] == "Static" and vcurrent["step"] != step:
-            color = _get_random_color()
-            print(
-                f">>> {self.logo} Setting step to [bold {color}]%.3e[/bold {color}]\n"
-                % step
-            )
+            if print_info:
+                color = _get_random_color()
+                print(
+                    f">>> {self.logo} Setting step to [bold {color}]%.3e[/bold {color}]\n"
+                    % step
+                )
             ops.integrator(
                 "DisplacementControl", vcurrent["node"], vcurrent["dof"], step
             )
@@ -529,17 +537,15 @@ class SmartAnalyze:
         if ok == 0:
             return 0
         # If not convergence, add test iteration times. Use current step, algorithm and test tolerance.
-        if (
-            vcontrol["tryAddTestTimes"]
-            and testIterTimes != vcontrol["testIterTimesMore"]
-        ):
+        if vcontrol["tryAddTestTimes"] and testIterTimes != vcontrol["testIterTimesMore"]:
             norm = ops.testNorm()
             color = _get_random_color()
             if norm[-1] < vcontrol["normTol"]:
-                print(
-                    f">>> {self.logo} Adding test times to [bold {color}]%i[/bold {color}].\n"
-                    % (vcontrol["testIterTimesMore"])
-                )
+                if print_info:
+                    print(
+                        f">>> {self.logo} Adding test times to [bold {color}]%i[/bold {color}].\n"
+                        % (vcontrol["testIterTimesMore"])
+                    )
                 return self._RecursiveAnalyze(
                     step,
                     algoIndex,
@@ -547,25 +553,28 @@ class SmartAnalyze:
                     testTol,
                     vcontrol,
                     vcurrent,
+                    print_info
                 )
             else:
-                print(
-                    f">>> {self.logo} Not adding test times for norm [bold {color}]%.3e[/bold {color}].\n"
-                    % (norm[-1])
-                )
+                if print_info:
+                    print(
+                        f">>> {self.logo} Not adding test times for norm [bold {color}]%.3e[/bold {color}].\n"
+                        % (norm[-1])
+                    )
 
         # Change algorithm. Set back test iteration times.
         if vcontrol["tryAlterAlgoTypes"] and (algoIndex + 1) < len(
-            vcontrol["algoTypes"]
+                vcontrol["algoTypes"]
         ):
             algoIndex += 1
             color = _get_random_color()
-            print(
-                f">>> {self.logo} Setting algorithm to [bold {color}]%i[/bold {color}].\n"
-                % (vcontrol["algoTypes"][algoIndex])
-            )
+            if print_info:
+                print(
+                    f">>> {self.logo} Setting algorithm to [bold {color}]%i[/bold {color}].\n"
+                    % (vcontrol["algoTypes"][algoIndex])
+                )
             return self._RecursiveAnalyze(
-                step, algoIndex, testIterTimes, testTol, vcontrol, vcurrent
+                step, algoIndex, testIterTimes, testTol, vcontrol, vcurrent, print_info
             )
 
         # If step length is too small, try add test tolerance. set algorithm and test iteration times back.
@@ -581,13 +590,11 @@ class SmartAnalyze:
                 f">>> {self.logo} current step [bold {color}]%.3e[/bold {color}] beyond the min step!\n"
                 % stepNew
             )
-            if (
-                vcontrol["tryLooseTestTol"]
-                and vcurrent["testTol"] != vcontrol["looseTestTolTo"]
-            ):
-                print(
-                    f"!!! {self.logo} Warning: [bold {color}]Loosing test tolerance[/bold {color}]\n"
-                )
+            if vcontrol["tryLooseTestTol"] and (vcurrent["testTol"] != vcontrol["looseTestTolTo"]):
+                if print_info:
+                    print(
+                        f"!!! {self.logo} Warning: [bold {color}]Loosing test tolerance[/bold {color}]\n"
+                    )
                 return self._RecursiveAnalyze(
                     step,
                     0,
@@ -595,23 +602,25 @@ class SmartAnalyze:
                     vcontrol["looseTestTolTo"],
                     vcontrol,
                     vcurrent,
+                    print_info
                 )
             # Here, all methods have been tried. Return negative value.
             return -1
 
         stepRest = step - stepNew
         color = _get_random_color()
-        print(
-            f">>> {self.logo} Dividing the current step [bold {color}]%.3e into %.3e and %.3e[/bold {color}]\n"
-            % (step, stepNew, stepRest)
-        )
+        if print_info:
+            print(
+                f">>> {self.logo} Dividing the current step [bold {color}]%.3e into %.3e and %.3e[/bold {color}]\n"
+                % (step, stepNew, stepRest)
+            )
         ok = self._RecursiveAnalyze(
-            stepNew, 0, testIterTimes, testTol, vcontrol, vcurrent
+            stepNew, 0, testIterTimes, testTol, vcontrol, vcurrent, print_info
         )
         if ok < 0:
             return -1
         ok = self._RecursiveAnalyze(
-            stepRest, 0, testIterTimes, testTol, vcontrol, vcurrent
+            stepRest, 0, testIterTimes, testTol, vcontrol, vcurrent, print_info
         )
         if ok < 0:
             return -1

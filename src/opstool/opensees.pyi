@@ -4,6 +4,8 @@ Author: Yexiang Yan
 Mail: yexiang_yan@outlook.com
 """
 
+from typing import Union
+
 def model(*args) -> None:
     """``model('basic', '-ndm', ndm, '-ndf', ndf)``
 
@@ -182,6 +184,17 @@ def unloadingRule(*args) -> None:
 def limitCurve(*args) -> None:
     """``limitCurve(type, arg1, arg2, ...)``
 
+    ``limitCurve("Axial", tag, eleTag, Fsw, Kdeg, Fres, defType, forType, <ndI, ndJ, dof, perpDirn, delta, eleRemove>)``
+
+    ``limitCurve("Shear", tag, eleTag, rho, fc, b, h, d, Fsw, Kdeg, Fres, defType, forType, <ndI, ndJ, dof, perpDirn, delta>)``
+
+    ``limitCurve("ThreePoint", tag, eleTag, x1, y1, x2, y2, x3, y3, Kdeg, Fres, defType, forType, <ndI, ndJ, dof, perpDirn>)``
+
+    ``limitCurve("RotationShearCurve", crvTag, eleTag, ndI, ndJ, rotAxis, Vn, Vr, Kdeg, rotLim)``
+
+    ``limitCurve("RotationShearCurve", crvTag, eleTag, ndI, ndJ, rotAxis, Vn, Vr, Kdeg, defType,
+                 b, d, h, L, st, As, Acc, ld, db, rhot, fc, fy, fyt, delta)``
+
     Construct a failure curve for a limit state material.
     See https://opensees.berkeley.edu/wiki/index.php/Limit_Curve
     """
@@ -204,17 +217,26 @@ def nDMaterial(*args) -> None:
 def section(*args) -> None:
     """``section(secType, secTag, *secArgs)``
 
+    This command is used to construct a SectionForceDeformation object, hereto referred to as Section, which represents
+    force-deformation (or resultant stress-strain) relationships at beam-column and plate sample points.
+
     See https://openseespydoc.readthedocs.io/en/latest/src/section.html
 
-    ``section('Elastic', secTag, E_mod, A, Iz, G_mod=None, alphaY=None)`` for 2D
+    ``section('Elastic', secTag, E_mod, A, Iz, <G_mod, alphaY>)`` for 2D
 
-    ``section('Elastic', secTag, E_mod, A, Iz, Iy, G_mod, Jxx, alphaY=None, alphaZ=None)`` for 3D
+    ``section('Elastic', secTag, E_mod, A, Iz, Iy, G_mod, Jxx, <alphaY, alphaZ>)`` for 3D
 
     ``section('Fiber', secTag, '-GJ', GJ)``
 
     ``section('Fiber', secTag, '-torsion', torsionMatTag)``
 
     ``section('Aggregator', secTag, *mats, '-section', sectionTag)``
+
+    ``section('ElasticMembranePlateSection', secTag, E_mod, nu, h, rho, <Ep_modifier>)``
+
+    ``section('PlateFiber', secTag, matTag, h)``
+
+    ``section('LayeredShell', sectionTag, nLayers, *mats)``
     """
     pass
 
@@ -310,8 +332,7 @@ def fix(*args) -> None:
 
     * nodeTag (int) : tag of node to be constrained
     * constrValues (list (int)) : a list of constraint values (0 or 1), must be preceded with *.
-        0 free
-        1 fixed
+        0--free;  1--fixed
     """
     pass
 
@@ -685,12 +706,27 @@ def algorithm(*args) -> None:
     * algoType (str) : algorithm type
     * algoArgs (list) : a list of algorithm arguments
 
-    ``algorithm('Linear', "secant"?, "initial"?, "factorOnce"?)``
+    ``algorithm("Linear", <"-secant">, <"-initial">, <"-factorOnce">)``
 
-    ``algorithm('Newton', "secant"?, "initial"?, "initialThenCurrent"?)``
+    ``algorithm("Newton", <"-Initial",> <"-intialThenCurrent",> <"-Hall", iFactor(0.1), cFactor(0.9)>)``
 
-    ``algorithm('KrylovNewton', <"iterate", 'current'?>, <"increment",'current'?>, <"maxDim", 3>)``
+    ``algorithm("ModifiedNewton", <"-secant",> <"-factoronce",> <"-initial",> <"-Hall", iFactor(0.1), cFactor(0.9)>)``
+
+    ``algorithm("NewtonLineSearch", <"-type", typeSearch("InitialInterpolated"),> <"-tol", tol(0.8),>
+    <"-maxIter", maxIter(10),> <"-minEta", minEta(0.1),> <"-maxEta", maxEta(10.0)>, <"-pFlag", pFlag(1))``
+
+    ``algorithm("KrylovNewton", <"-iterate", tangIter("current"),> <"-increment", tangIncr("current"),> <"-maxDim", maxDim(3)>)``
+
+    ``algorithm("SecantNewton", <"-iterate", tangIter("current"),> <"-increment", tangIncr("current"),> <"-maxDim", maxDim(3),>
+    <"-numTerms", numTerms(2),> <"-cutOut", R1(3.5), R2(0.3)>)``
+
+    ``algorithm("BFGS", <"-initial",> <"-count", count(10)>)``
+
+    ``algorithm("Broyden", <"-initial",> <"-count", count=10>)``
+
+    ``algorithm("ExpressNewton", <nIter(2)>, <kMultiplier(1.0)>, <"-initialTangent">, <"-currentTangent">, <"-factorOnce">)``
     """
+    
     pass
 
 def integrator(*args) -> None:
@@ -870,7 +906,7 @@ def basicStiffness(eleTag: int) -> list:
     """
     pass
 
-def eleDynamicalForce(eleTag: int, dof: int = -1) -> list:
+def eleDynamicalForce(eleTag: int, dof: int = -1) -> Union[list, float]:
     """``eleDynamicalForce(eleTag, dof)``
 
     Returns the elemental dynamic force.
@@ -880,7 +916,7 @@ def eleDynamicalForce(eleTag: int, dof: int = -1) -> list:
     """
     pass
 
-def eleForce(eleTag: int, dof: int = -1) -> list:
+def eleForce(eleTag: int, dof: int = -1) -> Union[list, float]:
     """Returns the elemental resisting force.
 
     * eleTag (int) : element tag.
@@ -913,7 +949,7 @@ def getEleTags(*args) -> list:
     """
     pass
 
-def getLoadFactor(patternTag: int) -> list:
+def getLoadFactor(patternTag: int) -> float:
     """
     Returns the load factor λ for the pattern with patternTag
 
@@ -934,7 +970,7 @@ def getTime() -> float:
     """
     pass
 
-def nodeAccel(nodeTag: int, dof: int = -1) -> list:
+def nodeAccel(nodeTag: int, dof: int = -1) -> Union[list, float]:
     """Returns the current acceleration at a specified node.
 
     * nodeTag (int) : node tag.
@@ -943,7 +979,7 @@ def nodeAccel(nodeTag: int, dof: int = -1) -> list:
     """
     pass
 
-def nodeVel(nodeTag: int, dof: int = -1) -> list:
+def nodeVel(nodeTag: int, dof: int = -1) -> Union[list, float]:
     """Returns the current velocity at a specified node.
 
     * nodeTag (int) : node tag.
@@ -952,7 +988,7 @@ def nodeVel(nodeTag: int, dof: int = -1) -> list:
     """
     pass
 
-def nodeDisp(nodeTag: int, dof: int = -1) -> list:
+def nodeDisp(nodeTag: int, dof: int = -1) -> Union[list, float]:
     """Returns the current displacement at a specified node.
 
     * nodeTag (int) : node tag.
@@ -976,7 +1012,7 @@ def nodeCoord(*args) -> list:
     """
     pass
 
-def nodeEigenvector(*args) -> list:
+def nodeEigenvector(*args) -> Union[list, float]:
     """``nodeEigenvector(nodeTag, eigenvector, dof=-1)``
 
     Returns the eigenvector at a specified node.
@@ -994,7 +1030,7 @@ def nodeDOFs(nodeTag: int) -> list:
     """
     pass
 
-def nodeMass(nodeTag: int, dof: int = -1) -> list:
+def nodeMass(nodeTag: int, dof: int = -1) -> Union[list, float]:
     """``nodeMass(nodeTag, dof=-1)``
 
     Returns the mass at a specified node.
@@ -1013,7 +1049,7 @@ def nodePressure(nodeTag: int) -> list:
     """
     pass
 
-def nodeReaction(nodeTag: int, dof: int = -1) -> list:
+def nodeReaction(nodeTag: int, dof: int = -1) -> Union[list, float]:
     """Returns the reactions at a specified node.
     Must call reactions() command before this command.
 
@@ -1042,7 +1078,7 @@ def nodeResponse(nodeTag: int, dof: int, responseID: int) -> float:
     """
     pass
 
-def nodeUnbalance(nodeTag: int, dof: int = -1) -> list:
+def nodeUnbalance(nodeTag: int, dof: int = -1) -> Union[list, float]:
     """Returns the unbalanced force at a specified node.
 
     * nodeTag (int) : node tag.
@@ -1059,7 +1095,7 @@ def numIter() -> int:
     """Return the number of iterations."""
     pass
 
-def printA(*args) -> None:
+def printA(*args) -> Union[list, None]:
     """``printA('-file', filename, '-ret')``
 
     print the contents of a FullGeneral system that the integrator creates to the screen or a file if the '-file' option is used.
@@ -1072,7 +1108,7 @@ def printA(*args) -> None:
     """
     pass
 
-def printB(*args) -> None:
+def printB(*args) -> Union[list, None]:
     """``printA('-file', filename, '-ret')``
 
     print the right hand side of a FullGeneral system that the integrator creates to the screen or a file if the '-file' option is used.
@@ -1112,7 +1148,7 @@ def record() -> None:
     """
     pass
 
-def recorder(*args) -> None:
+def recorder(*args) -> int:
     """``recorder(recorderType, *recorderArgs)``
 
     This command is used to generate a recorder object which is to monitor what is happening
@@ -1158,7 +1194,7 @@ def recorder(*args) -> None:
     """
     pass
 
-def sectionForce(eleTag: int, secNum: int, dof: int = -1) -> list:
+def sectionForce(eleTag: int, secNum: int, dof: int = -1) -> Union[list, float]:
     """Returns the section force for a beam-column element.
     The dof of the section depends on the section type. Please check with the section manual.
 
@@ -1168,7 +1204,7 @@ def sectionForce(eleTag: int, secNum: int, dof: int = -1) -> list:
     """
     pass
 
-def sectionDeformation(eleTag: int, secNum: int, dof: int = -1) -> list:
+def sectionDeformation(eleTag: int, secNum: int, dof: int = -1) -> Union[list, float]:
     """Returns the section deformation for a beam-column element.
     The dof of the section depends on the section type. Please check with the section manual.
 
@@ -1196,7 +1232,7 @@ def sectionFlexibility(eleTag: int, secNum: int) -> list:
     """
     pass
 
-def sectionLocation(eleTag: int, secNum: int = 0) -> list:
+def sectionLocation(eleTag: int, secNum: int = 0) -> Union[list, float]:
     """Returns the locations of integration points of a section for a beam-column element.
 
     * eleTag (int) : element tag.
@@ -1205,7 +1241,7 @@ def sectionLocation(eleTag: int, secNum: int = 0) -> list:
     """
     pass
 
-def sectionWeight(eleTag: int, secNum: int = 0) -> list:
+def sectionWeight(eleTag: int, secNum: int = 0) -> Union[list, float]:
     """Returns the weights of integration points of a section for a beam-column element.
 
     * eleTag (int) : element tag.
@@ -1223,7 +1259,7 @@ def testIter() -> int:
     """
     pass
 
-def testNorm() -> int:
+def testNorm() -> float:
     """Returns the norms from the convergence test for the last analysis step.
 
     Note
@@ -1233,7 +1269,7 @@ def testNorm() -> int:
     """
     pass
 
-def testNorms() -> int:
+def testNorms() -> float:
     """Returns the norms from the convergence test for the last analysis step.
 
     Note
@@ -1248,28 +1284,38 @@ def version() -> str:
     """
     pass
 
-def setStrain(strain: float, strainRate: float = 0.0) -> None:
+def testUniaxialMaterial(tag: int) -> None:
     """
+    Define the test uniaxial material.
+
+    Parameters
+    -----------
+    tag: int, the uniaxial material tag defined previously.
+    """
+    pass
+
+def setStrain(strain: float, strainRate: float = 0.0) -> None:
+    """Set the stain of the test uniaxial material.
     """
     pass
 
 def getStrain() -> float:
-    """
+    """Get the stain of the test uniaxial material.
     """
     pass
 
 def getStress() -> float:
-    """
+    """Get the stress of the test uniaxial material.
     """
     pass
 
 def getTangent() -> float:
-    """
+    """Get the tangent of the test uniaxial material.
     """
     pass
 
 def getDampTangent() -> float:
-    """
+    """Get the damp tangent of the test uniaxial material.
     """
     pass
 
@@ -1329,14 +1375,14 @@ def updateMaterialStage(*args) -> None:
     """
     pass
 
-def getNDM(*args) -> list:
+def getNDM(*args) -> Union[list, int]:
     """``getNDM(<nodeTag>)``
 
     * nodeTag: int, optional.
     """
     pass
 
-def getNDF(*args) -> list:
+def getNDF(*args) -> Union[list, int]:
     """``getNDM(<nodeTag>)``
 
     * nodeTag: int, optional.
@@ -1349,16 +1395,16 @@ def eleType(eleTag: int) -> str:
     pass
 
 def getCrdTransfTags() -> list:
-    """
+    """getCrdTransfTags
     """
     pass
 
 def getNumElements() -> int:
-    """
+    """getNumElements
     """
     pass
 
-def getEleClassTags(*args) -> list:
+def getEleClassTags(*args) -> Union[list, int]:
     """``getEleClassTags(<eleTag>)``
 
     * eleTag: int, optional
@@ -2204,13 +2250,32 @@ def IGA(type_: str, *args) -> None:
     """
     pass
 
-def NDTest(type_: str, *args) -> None:
-    """
+def NDTest(type_: str, *args) -> Union[list, None]:
+    """Test the nD material.
 
     Parameters
     -----------
     type_: str, optional "SetStrain", "CommitState", "PrintStress", "PrintStrain",
         "GetStrain", "GetStress", "GetTangentStiffness", "UpdateIntegerParameter",
         "UpdateDoubleParameter"
+    args: args for type_.
+
+    ``NDTest("SetStrain", tag, *strains)``
+
+    ``NDTest("CommitState", tag)``
+
+    ``NDTest("PrintStress", tag)``
+
+    ``NDTest("PrintStrain", tag)``
+
+    ``NDTest("GetStrain", tag)``
+
+    ``NDTest("GetStress", tag)``
+
+    ``NDTest("GetTangentStiffness", tag)``
+
+    ``NDTest("UpdateIntegerParameter", tag, responseID, theNewIntegerParameterValue)``
+
+    ``NDTest("UpdateDoubleParameter", tag, responseID, theNewDoubleParameterValue)``
     """
     pass
