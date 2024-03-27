@@ -8,3 +8,6 @@ Shapely
 h5py
 rich
 triangle
+numpy>=1.21.0rc1 # not directly required, pinned by Snyk to avoid a vulnerability
+setuptools>=65.5.1 # not directly required, pinned by Snyk to avoid a vulnerability
+vtk>=9.2.5 # not directly required, pinned by Snyk to avoid a vulnerability
