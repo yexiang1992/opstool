@@ -5,7 +5,15 @@
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
+import os
+import sys
 from pathlib import Path
+
+# include pkg root folder to sys.path
+current_folder = os.path.dirname(os.path.abspath(__file__))
+parent_folder = os.path.dirname(current_folder)
+sys.path.insert(0, parent_folder)
+
 
 this_dir = Path(__file__).resolve().parent.parent
 about = {}
