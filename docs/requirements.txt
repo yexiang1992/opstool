@@ -12,6 +12,7 @@ xarray
 shapely
 pyvista
 plotly
+gmsh
 matplotlib
 openseespy
 sectionproperties
