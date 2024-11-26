@@ -9,17 +9,16 @@ import os
 import sys
 from pathlib import Path
 
-# include pkg root folder to sys.path
-current_folder = os.path.dirname(os.path.abspath(__file__))
-parent_folder = os.path.dirname(current_folder)
-sys.path.insert(0, parent_folder)
-
 
 this_dir = Path(__file__).resolve().parent.parent
 about = {}
 with open(this_dir / "opstool" / "__about__.py") as f:
     exec(f.read(), about)
 __version__ = about["__version__"]
+
+# include pkg root folder to sys.path
+os.environ["PYTHONPATH"] = ":".join((str(this_dir), os.environ.get("PYTHONPATH", "")))
+sys.path.append(str(this_dir))
 
 project = "opstool"
 copyright = "2024, Yexiang Yan"
