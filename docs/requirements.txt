@@ -19,4 +19,4 @@ rich
 Sphinx
 pythreejs
 triangle
-jinja2==3.0.3
+jinja2==2.11
