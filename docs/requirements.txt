@@ -7,3 +7,16 @@ furo
 notebook
 jupyterlab
 numpy
+scipy
+xarray
+shapely
+pyvista
+plotly
+matplotlib
+openseespy
+sectionproperties
+rich
+Sphinx
+pythreejs
+triangle
+jinja2==3.0.3
