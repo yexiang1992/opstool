@@ -16,7 +16,6 @@ build:
 
 apt_packages:
   - libglu1-mesa
-  - libgl1-mesa-glx
 
 # Build documentation in the "docs/" directory with Sphinx
 sphinx:
