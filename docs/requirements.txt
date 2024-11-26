@@ -1,0 +1,9 @@
+sphinx-autodoc-typehints
+sphinx-copybutton
+jupyter-sphinx
+nbsphinx
+sphinx_design
+furo
+
+notebook
+jupyterlab
