@@ -22,3 +22,4 @@ Sphinx
 pythreejs
 triangle
 jinja2
+opencv-python-headless
