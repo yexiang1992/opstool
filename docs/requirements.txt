@@ -4,6 +4,6 @@ jupyter-sphinx
 nbsphinx
 sphinx_design
 furo
-
 notebook
 jupyterlab
+numpy
