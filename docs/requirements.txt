@@ -6,7 +6,7 @@ jupyter-sphinx==0.5.3
 nbsphinx==0.9.5
 sphinx_design==0.6.1
 furo==2024.8.6
-jupyterlab==4.2.5 
+notebook
 numpy==1.26.4 
 scipy==1.14.1 
 xarray==2024.10.0 
