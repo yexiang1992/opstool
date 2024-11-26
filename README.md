@@ -35,13 +35,13 @@ it is recommended that you use [Anaconda](https://www.anaconda.com/) to avoid li
 
 1. **Preprocessing Tools**:
    - *Fiber Section Meshing*: Generate detailed fiber meshes for various geometries.
-   - *GMSH Integration*: Import and convert `Gmsh <https://gmsh.info/>`__ models, including geometry, mesh, and physical groups.
+   - *GMSH Integration*: Import and convert [Gmsh](https://gmsh.info/) models, including geometry, mesh, and physical groups.
    - *Unit System Management*: Ensure consistency with automatic unit conversions.
    - *Mass Generation*: Automate lumped mass calculations.
 2. **Postprocessing Capabilities**:
-   - Easy retrieval and interpretation of analysis results using `xarray <https://docs.xarray.dev/en/stable/index.html#>`__.
+   - Easy retrieval and interpretation of analysis results using [xarray](https://docs.xarray.dev/en/stable/index.html#).
 3. **Visualization**:
-   - Powered by `PyVista <https://docs.pyvista.org/>`__ (VTK-based) and `Plotly <https://plotly.com/python/>`__ (web-based).
+   - Powered by [Pyvista](https://docs.pyvista.org/) (VTK-based) and [Plotly](https://plotly.com/python/) (web-based).
    - Nearly identical APIs for flexible visualization of model geometry, modal analysis, and simulation results.
    - Supports most common OpenSees elements.
 4. **Intelligent Analysis**:
@@ -60,8 +60,6 @@ understanding and solving your structural engineering challenges.
 Whether you are building models, visualizing results, or interpreting data, 
 ``opstool`` is your go-to solution for OpenSeesPy workflows.
 
-
-
-### License
+## License
 
 This software is published under the [GPLv3 license](https://www.gnu.org/licenses/gpl-3.0.en.html).
