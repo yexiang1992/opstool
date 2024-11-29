@@ -191,6 +191,47 @@ class Gmsh2OPS:
             f"MinEleTag {min(self.all_ele_tags)}.\n"
         )
 
+    def get_node_tags(
+            self,
+            dim_entity_tags: Union[list, tuple, None] = None,
+            physical_group_names: Union[list, tuple, str, None] = None,
+    )-> list:
+        """Return node tags in Gmsh, which will also be the same as in OpenSeesPy.
+
+        Parameters
+        -----------
+        dim_entity_tags: list, the GMSH [(dim, entity tag), ...].
+            A list of GMSH dimension and entity tags.
+            If None, `physical_group_names` will be used.
+        physical_group_names: list, tuple, str, or None, default None.
+            The physical group name or list of physical group names.
+            If None, `dim_entity_tags` will be used.
+
+        .. Note::
+            * If `dim_entity_tags` and `physical_group_names` are both None, all entities will be converted.
+            * If `dim_entity_tags` and `physical_group_names` are both not None, `dim_entity_tags` will be used.
+
+        Returns
+        ---------
+        node_tags: list
+            A list containing node tags.
+        """
+        if dim_entity_tags is None and physical_group_names is None:
+            entity_tags = self.gmsh_nodes.keys()
+        elif dim_entity_tags is not None:
+            entity_tags = np.atleast_2d(dim_entity_tags)
+        else:
+            if isinstance(physical_group_names, str):
+                physical_group_names = [physical_group_names]
+            entity_tags = []
+            for pname in physical_group_names:
+                entity_tags.extend(self.gmsh_physical_groups[pname])
+        node_tags = []
+        for key in entity_tags:
+            for tag in self.gmsh_nodes[key].keys():
+                node_tags.append(tag)
+        return node_tags
+
     def create_node_cmds(
         self,
         dim_entity_tags: Union[list, tuple, None] = None,
@@ -275,6 +316,51 @@ class Gmsh2OPS:
                     else:
                         content = [f'"{item}"' if isinstance(item, str) else str(item) for item in coords[:self.ndm]]
                         outf.write(f"ops.node({tag}, {", ".join(content)})\n")
+
+    def get_element_tags(
+        self,
+        dim_entity_tags: Union[list, tuple, None] = None,
+        physical_group_names: Union[list, tuple, str, None] = None,
+    ) -> list:
+        """Return element tags in Gmsh, which will also be the same as in OpenSeesPy.
+
+        Parameters
+        -----------
+        dim_entity_tags: list, the GMSH [(dim, entity tag), ...].
+            A list of dimension and entity tag containing element information
+            that will be converted to OpenSeesPy elements. If None, `physical_group_names` will be used.
+        physical_group_names: list, tuple, str, or None, default None.
+            The physical group name or list of physical group names. If None, `dim_entity_tags` will be used.
+
+        .. Note::
+            * If `dim_entity_tags` and `physical_group_names` are both None, all entities will be converted.
+            * If `dim_entity_tags` and `physical_group_names` are both not None, `dim_entity_tags` will be used.
+
+        Returns
+        ---------
+        ele_tags: list
+            A list containing element tags.
+        """
+        ele_tags = []
+        if dim_entity_tags is None and physical_group_names is None:
+            for _, ele_nodes in self.gmsh_eles.items():
+                if ele_nodes:
+                    for tag in ele_nodes.keys():
+                        ele_tags.append(tag)
+            return ele_tags
+        elif dim_entity_tags is not None:
+            entity_tags = np.atleast_2d(dim_entity_tags)
+        else:
+            if isinstance(physical_group_names, str):
+                physical_group_names = [physical_group_names]
+            entity_tags = []
+            for pname in physical_group_names:
+                entity_tags.extend(self.gmsh_physical_groups[pname])
+        for etag in entity_tags:
+            etag = (int(etag[0]), int(etag[1]))
+            for tag in self.gmsh_eles[etag].keys():
+                ele_tags.append(tag)
+        return ele_tags
 
     def create_element_cmds(
         self,
