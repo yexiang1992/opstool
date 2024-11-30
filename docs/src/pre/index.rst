@@ -11,3 +11,4 @@ The following is a guide to the preprocessing features provided by `opstool`.
    read_gmsh.ipynb
    tcl2py.rst
    unit_system.rst
+   loads.ipynb
