@@ -110,7 +110,7 @@ Contents
    :caption: Quick Start
 
    installation.rst
-   Known_issues.rst
+   known_issues.rst
    quick_start.rst
 
 .. toctree::
