@@ -566,7 +566,8 @@ class Gmsh2OPS:
                             outf.write(f"fix {tag} {dofs_}\n")
                         else:
                             content = [f'"{item}"' if isinstance(item, str) else str(item) for item in dofs]
-                            outf.write(f"ops.fix({tag}, {", ".join(content)})\n")
+                            content = ", ".join(content)
+                            outf.write(f"ops.fix({tag}, {content})\n")
                         fixed_tags.append(tag)
 
     def get_dim_entity_tags(self, dim: int = None) -> list:
