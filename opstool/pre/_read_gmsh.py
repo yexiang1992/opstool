@@ -315,7 +315,8 @@ class Gmsh2OPS:
                         outf.write(f"node {tag} {coords}\n")
                     else:
                         content = [f'"{item}"' if isinstance(item, str) else str(item) for item in coords[:self.ndm]]
-                        outf.write(f"ops.node({tag}, {", ".join(content)})\n")
+                        content = ", ".join(content)
+                        outf.write(f"ops.node({tag}, {content})\n")
 
     def get_element_tags(
         self,
@@ -467,8 +468,9 @@ class Gmsh2OPS:
                         )
                     else:
                         content = [f'"{item}"' if isinstance(item, str) else str(item) for item in ops_ele_args]
+                        content = ", ".join(content)
                         outf.write(
-                            f'ops.element("{ops_ele_type}", {tag}, *{ntags[:-1]}, {", ".join(content)})\n'
+                            f'ops.element("{ops_ele_type}", {tag}, *{ntags[:-1]}, {content})\n'
                         )
 
     def create_fix_cmds(
