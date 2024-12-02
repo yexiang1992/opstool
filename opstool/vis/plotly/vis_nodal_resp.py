@@ -111,8 +111,10 @@ class PlotNodalResponse(PlotResponseBase):
         max_norm = self._set_txt_props(f"{max_norm:.3E}")
         min_norm = self._set_txt_props(f"{min_norm:.3E}")
         title += f"<b>Norm.Max:</b> {max_norm}<br><b>Norm.Min:</b> {min_norm}"
-        title += f"<br><b>step:</b> {self._set_txt_props(f"{step}")}; "
-        title += f"<b>time</b>: {self._set_txt_props(f"{t_:.3f}")}"
+        step_txt = self._set_txt_props(f"{step}")
+        title += f"<br><b>step:</b> {step_txt}; "
+        t_txt = self._set_txt_props(f"{t_:.3f}")
+        title += f"<b>time</b>: {t_txt}"
         txt = dict(
             font=dict(size=self.pargs.font_size),
             text=title,

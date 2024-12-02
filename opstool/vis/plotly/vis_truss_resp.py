@@ -212,8 +212,10 @@ class PlotTrussResponse(PlotResponseBase):
         maxv = self._set_txt_props(f"{maxv:.3E}")
         minv = self._set_txt_props(f"{minv:.3E}")
         title += f"<b>Max.:</b> {maxv}<br><b>Min.:</b> {minv}"
-        title += f"<br><b>step:</b> {self._set_txt_props(f"{step}")}; "
-        title += f"<b>time</b>: {self._set_txt_props(f"{t_:.3f}")}"
+        step_txt = self._set_txt_props(f"{step}")
+        title += f"<br><b>step:</b> {step_txt}; "
+        t_txt = self._set_txt_props(f"{t_:.3f}")
+        title += f"<b>time</b>: {t_txt}"
         txt = dict(
             font=dict(size=self.pargs.font_size),
             text=title,

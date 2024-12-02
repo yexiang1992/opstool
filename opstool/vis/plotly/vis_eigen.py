@@ -65,21 +65,23 @@ class PlotEigenBase:
         fi = self.ModalProps.loc[:, "eigenFrequency"][step]
         txt = f'<span style="font-weight:bold; font-size:{self.pargs.title_font_size}px">Mode {step + 1}</span>'
         # txt = f"<b>Mode {step + 1}</b>"
-        txt += f"<br><b>Period (s):</b> {self._set_txt_props(f"{1 / fi:.6f}; ", color="blue")}"
+        period_txt = self._set_txt_props(f"{1/fi:.6f}; ", color="blue")
+        txt += f"<br><b>Period (s):</b> {period_txt}"
+        fi_txt = self._set_txt_props(f"{fi:.6f};", color="blue")
         txt += (
-            f"<b>Frequency (Hz):</b> {self._set_txt_props(f"{fi:.6f};", color="blue")}"
+            f"<b>Frequency (Hz):</b> {fi_txt}"
         )
         if not self.show_zaxis:
             txt += "<br><b>Modal participation mass ratios (%)</b><br>"
             mx = self.ModalProps.loc[:, "partiMassRatiosMX"][step]
             my = self.ModalProps.loc[:, "partiMassRatiosMY"][step]
             rmz = self.ModalProps.loc[:, "partiMassRatiosRMZ"][step]
-            txt += f"{self._set_txt_props(f"{mx:7.3f} {my:7.3f} {rmz:7.3f}", color="blue")}"
+            txt += self._set_txt_props(f"{mx:7.3f} {my:7.3f} {rmz:7.3f}", color="blue")
             txt += "<br><b>Cumulative modal participation mass ratios (%)</b><br>"
             mx = self.ModalProps.loc[:, "partiMassRatiosCumuMX"][step]
             my = self.ModalProps.loc[:, "partiMassRatiosCumuMY"][step]
             rmz = self.ModalProps.loc[:, "partiMassRatiosCumuRMZ"][step]
-            txt += f"{self._set_txt_props(f"{mx:7.3f} {my:7.3f} {rmz:7.3f}", color="blue")}"
+            txt += self._set_txt_props(f"{mx:7.3f} {my:7.3f} {rmz:7.3f}", color="blue")
             txt += "<br><b>{:>7} {:>7} {:>7}</b>".format("X", "Y", "RZ")
         else:
             txt += "<br><b>Modal participation mass ratios (%)</b><br>"
@@ -89,7 +91,9 @@ class PlotEigenBase:
             rmx = self.ModalProps.loc[:, "partiMassRatiosRMX"][step]
             rmy = self.ModalProps.loc[:, "partiMassRatiosRMY"][step]
             rmz = self.ModalProps.loc[:, "partiMassRatiosRMZ"][step]
-            txt += f"{self._set_txt_props(f"{mx:7.3f} {my:7.3f} {mz:7.3f} {rmx:7.3f} {rmy:7.3f} {rmz:7.3f}", color="blue")}"
+            txt += self._set_txt_props(
+                f"{mx:7.3f} {my:7.3f} {mz:7.3f} {rmx:7.3f} {rmy:7.3f} {rmz:7.3f}", color="blue"
+            )
             txt += "<br><b>Cumulative modal participation mass ratios (%)</b><br>"
             mx = self.ModalProps.loc[:, "partiMassRatiosCumuMX"][step]
             my = self.ModalProps.loc[:, "partiMassRatiosCumuMY"][step]
@@ -97,9 +101,11 @@ class PlotEigenBase:
             rmx = self.ModalProps.loc[:, "partiMassRatiosCumuRMX"][step]
             rmy = self.ModalProps.loc[:, "partiMassRatiosCumuRMY"][step]
             rmz = self.ModalProps.loc[:, "partiMassRatiosCumuRMZ"][step]
-            txt += f"{self._set_txt_props(f"{mx:7.3f} {my:7.3f} {mz:7.3f} {rmx:7.3f} {rmy:7.3f} {rmz:7.3f}", color="blue")}"
+            txt += self._set_txt_props(
+                f"{mx:7.3f} {my:7.3f} {mz:7.3f} {rmx:7.3f} {rmy:7.3f} {rmz:7.3f}", color="blue"
+            )
             txt += (
-                f"<br><b>{"X":>7} {"Y":>7} {"Z":>7} {"RX":>7} {"RY":>7} {"RZ":>7}</b>"
+                f"<br><b>{'X':>7} {'Y':>7} {'Z':>7} {'RX':>7} {'RY':>7} {'RZ':>7}</b>"
             )
             # f'<span style="color:blue; font-weight:bold;">{"X":>7} {"Y":>7} {"Z":>7} {"RX":>7} {"RY":>7} {"RZ":>7}</span>'
         return txt
