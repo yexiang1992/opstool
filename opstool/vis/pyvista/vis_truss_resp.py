@@ -347,6 +347,11 @@ def plot_truss_responses(
         Response type, optional, one of ["axialForce", "axialDefo", "Stress", "Strain"].
     alpha: float, default: 1.0
         Scale the size of the response graph.
+
+        .. Note::
+            You can adjust the scale to make the response graph more visible.
+            A negative number will reverse the direction.
+
     line_width: float, default: 1.5.
         Line width of the response graph.
     cpos: str, default: iso
@@ -426,6 +431,11 @@ def plot_truss_responses_animation(
         Response type, optional, one of ["axialForce", "axialDefo", "Stress", "Strain"].
     alpha: float, default: 1.0
         Scale the size of the response graph.
+
+        .. Note::
+            You can adjust the scale to make the response graph more visible.
+            A negative number will reverse the direction.
+
     line_width: float, default: 1.5.
         Line width of the response graph.
     cpos: str, default: iso

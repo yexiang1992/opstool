@@ -664,6 +664,11 @@ def plot_frame_responses(
         Whether to display the response value.
     scale: float, default: 1.0
         Scale the size of the response graph.
+
+        .. Note::
+            You can adjust the scale to make the response graph more visible.
+            A negative number will reverse the direction.
+
     line_width: float, default: 1.5.
         Line width of the response graph.
     show_outline: bool, default: False
@@ -741,6 +746,11 @@ def plot_frame_responses_animation(
 
     scale: float, default: 1.0
         Scale the size of the response graph.
+
+        .. Note::
+            You can adjust the scale to make the response graph more visible.
+            A negative number will reverse the direction.
+
     show_values: bool, default: True
         Whether to display the response value.
     framerate: int, default: None

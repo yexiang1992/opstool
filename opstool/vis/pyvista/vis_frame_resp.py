@@ -538,6 +538,11 @@ def plot_frame_responses(
         Whether to display the response value.
     scale: float, default: 1.0
         Scale the size of the response graph.
+
+        .. Note::
+            You can adjust the scale to make the response graph more visible.
+            A negative number will reverse the direction.
+
     cpos: str, default: iso
         Model display perspective, optional: "iso", "xy", "yx", "xz", "zx", "yz", "zy".
         If 3d, defaults to "iso". If 2d, defaults to "xy".
@@ -630,6 +635,11 @@ def plot_frame_responses_animation(
 
     scale: float, default: 1.0
         Scale the size of the response graph.
+
+        .. Note::
+            You can adjust the scale to make the response graph more visible.
+            A negative number will reverse the direction.
+
     show_values: bool, default: True
         Whether to display the response value.
     framerate: int, default: None
