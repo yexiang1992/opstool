@@ -1,5 +1,6 @@
 from typing import Union
 
+import numpy as np
 import openseespy.opensees as ops
 import xarray as xr
 
@@ -32,8 +33,9 @@ class CreateODB:
         .. Note::
             If True, the model data will be updated at each step.
             If no nodes and elements are added or removed during the analysis of your model,
-            keep this parameter set to **`False`**.
+            keep this parameter set to **False**.
             Enabling model updates unnecessarily can increase memory usage and slow down performance.
+            If some nodes or elements are deleted during the analysis, you should set this parameter to `True`.
 
     save_nodal_resp: bool, default: True
         Whether to save nodal responses.
@@ -51,6 +53,32 @@ class CreateODB:
         Whether to save plane element responses.
     save_brick_resp: bool, default: True
         Whether to save brick element responses.
+    node_tags: Union[list, tuple, int], default: None
+        Node tags to be saved.
+        If None, save all nodes' responses.
+    frame_tags: Union[list, tuple, int], default: None
+        Frame element tags to be saved.
+        If None, save all frame elements' responses.
+    truss_tags: Union[list, tuple, int], default: None
+        Truss element tags to be saved.
+        If None, save all truss elements' responses.
+    link_tags: Union[list, tuple, int], default: None
+        Link element tags to be saved.
+        If None, save all link elements' responses.
+    shell_tags: Union[list, tuple, int], default: None
+        Shell element tags to be saved.
+        If None, save all shell elements' responses.
+    plane_tags: Union[list, tuple, int], default: None
+        Plane element tags to be saved.
+        If None, save all plane elements' responses.
+    brick_tags: Union[list, tuple, int], default: None
+        Brick element tags to be saved.
+        If None, save all brick elements' responses.
+
+    .. Note::
+        If you enter optional node and element tags to avoid saving all data,
+        make sure these tags are not deleted during the analysis.
+        Otherwise, unexpected behavior may occur.
     """
 
     def __init__(
@@ -65,6 +93,13 @@ class CreateODB:
             save_fiber_sec_resp: bool = True,
             save_plane_resp: bool = True,
             save_brick_resp: bool = True,
+            node_tags: Union[list, tuple, int] = None,
+            frame_tags: Union[list, tuple, int] = None,
+            truss_tags: Union[list, tuple, int] = None,
+            link_tags: Union[list, tuple, int] = None,
+            shell_tags: Union[list, tuple, int] = None,
+            plane_tags: Union[list, tuple, int] = None,
+            brick_tags: Union[list, tuple, int] = None,
     ):
         self.odb_tag = odb_tag
         self.model_update = model_update
@@ -76,6 +111,29 @@ class CreateODB:
         self.save_fiber_sec_resp = save_fiber_sec_resp
         self.save_plane_resp = save_plane_resp
         self.save_brick_resp = save_brick_resp
+
+        self.node_tags = node_tags
+        self.frame_tags = frame_tags
+        self.truss_tags = truss_tags
+        self.link_tags = link_tags
+        self.shell_tags = shell_tags
+        self.plane_tags = plane_tags
+        self.brick_tags = brick_tags
+
+        if node_tags is not None:
+            self.node_tags = [int(tag) for tag in np.atleast_1d(node_tags)]
+        if frame_tags is not None:
+            self.frame_tags = [int(tag) for tag in np.atleast_1d(frame_tags)]
+        if truss_tags is not None:
+            self.truss_tags = [int(tag) for tag in np.atleast_1d(truss_tags)]
+        if link_tags is not None:
+            self.link_tags = [int(tag) for tag in np.atleast_1d(link_tags)]
+        if shell_tags is not None:
+            self.shell_tags = [int(tag) for tag in np.atleast_1d(shell_tags)]
+        if plane_tags is not None:
+            self.plane_tags = [int(tag) for tag in np.atleast_1d(plane_tags)]
+        if brick_tags is not None:
+            self.brick_tags = [int(tag) for tag in np.atleast_1d(brick_tags)]
 
         self.ModelInfo = None
         self.NodalResp = None
@@ -91,28 +149,56 @@ class CreateODB:
 
     def initialize(self):
         self.ModelInfo = ModelInfoStepData(model_update=self.model_update)
-        node_tags = self.ModelInfo.get_current_node_tags()
+        if self.node_tags is not None:
+            node_tags = self.node_tags
+        else:
+            node_tags = self.ModelInfo.get_current_node_tags()
         if len(node_tags) > 0 and self.save_nodal_resp:
             self.NodalResp = NodalRespStepData(node_tags)
-        frame_tags = self.ModelInfo.get_current_frame_tags()
+        # -----------------------------------------------------------------
+        if self.frame_tags is not None:
+            frame_tags = self.frame_tags
+        else:
+            frame_tags = self.ModelInfo.get_current_frame_tags()
         frame_load_data = self.ModelInfo.get_current_frame_load_data()
         if len(frame_tags) > 0 and self.save_frame_resp:
             self.FrameResp = FrameRespStepData(frame_tags, frame_load_data)
-        truss_tags = self.ModelInfo.get_current_truss_tags()
+        # -----------------------------------------------------------------
+        if self.truss_tags is not None:
+            truss_tags = self.truss_tags
+        else:
+            truss_tags = self.ModelInfo.get_current_truss_tags()
         if len(truss_tags) > 0 and self.save_truss_resp:
             self.TrussResp = TrussRespStepData(truss_tags)
-        link_tags = self.ModelInfo.get_current_link_tags()
+        # -----------------------------------------------------------------
+        if self.link_tags is not None:
+            link_tags = self.link_tags
+        else:
+            link_tags = self.ModelInfo.get_current_link_tags()
         if len(link_tags) > 0 and self.save_link_resp:
             self.LinkResp = LinkRespStepData(link_tags)
-        shell_tags = self.ModelInfo.get_current_shell_tags()
+        # -----------------------------------------------------------------
+        if self.shell_tags is not None:
+            shell_tags = self.shell_tags
+        else:
+            shell_tags = self.ModelInfo.get_current_shell_tags()
         if len(shell_tags) > 0 and self.save_shell_resp:
             self.ShellResp = ShellRespStepData(shell_tags)
+        # -----------------------------------------------------------------
         if self.save_fiber_sec_resp:
             self.FiberSecResp = FiberSecRespStepData()
-        plane_tags = self.ModelInfo.get_current_plane_tags()
+        # -----------------------------------------------------------------
+        if self.plane_tags is not None:
+            plane_tags = self.plane_tags
+        else:
+            plane_tags = self.ModelInfo.get_current_plane_tags()
         if len(plane_tags) > 0 and self.save_plane_resp:
             self.PlaneResp = PlaneRespStepData(plane_tags)
-        brick_tags = self.ModelInfo.get_current_brick_tags()
+        # -----------------------------------------------------------------
+        if self.brick_tags is not None:
+            brick_tags = self.brick_tags
+        else:
+            brick_tags = self.ModelInfo.get_current_brick_tags()
         if len(brick_tags) > 0 and self.save_brick_resp:
             self.BrickResp = BrickRespStepData(brick_tags)
 
@@ -145,28 +231,56 @@ class CreateODB:
             print information, by default, False
         """
         self.ModelInfo.add_data_one_step()
-        node_tags = self.ModelInfo.get_current_node_tags()
+        if self.node_tags is not None:
+            node_tags = self.node_tags
+        else:
+            node_tags = self.ModelInfo.get_current_node_tags()
         if len(node_tags) > 0 and self.save_nodal_resp:
             self.NodalResp.add_data_one_step(node_tags)
-        frame_tags = self.ModelInfo.get_current_frame_tags()
+        # -----------------------------------------------------------------
+        if self.frame_tags is not None:
+            frame_tags = self.frame_tags
+        else:
+            frame_tags = self.ModelInfo.get_current_frame_tags()
         frame_load_data = self.ModelInfo.get_current_frame_load_data()
         if len(frame_tags) > 0 and self.save_frame_resp:
             self.FrameResp.add_data_one_step(frame_tags, frame_load_data)
-        truss_tags = self.ModelInfo.get_current_truss_tags()
+        # -----------------------------------------------------------------
+        if self.truss_tags is not None:
+            truss_tags = self.truss_tags
+        else:
+            truss_tags = self.ModelInfo.get_current_truss_tags()
         if len(truss_tags) > 0 and self.save_truss_resp:
             self.TrussResp.add_data_one_step(truss_tags)
-        link_tags = self.ModelInfo.get_current_link_tags()
+        # -----------------------------------------------------------------
+        if self.link_tags is not None:
+            link_tags = self.link_tags
+        else:
+            link_tags = self.ModelInfo.get_current_link_tags()
         if len(link_tags) > 0 and self.save_link_resp:
             self.LinkResp.add_data_one_step(link_tags)
-        shell_tags = self.ModelInfo.get_current_shell_tags()
+        # -----------------------------------------------------------------
+        if self.shell_tags is not None:
+            shell_tags = self.shell_tags
+        else:
+            shell_tags = self.ModelInfo.get_current_shell_tags()
         if len(shell_tags) > 0 and self.save_shell_resp:
             self.ShellResp.add_data_one_step(shell_tags)
         if self.save_fiber_sec_resp:
             self.FiberSecResp.add_data_one_step()
-        plane_tags = self.ModelInfo.get_current_plane_tags()
+        # -----------------------------------------------------------------
+        if self.plane_tags is not None:
+            plane_tags = self.plane_tags
+        else:
+            plane_tags = self.ModelInfo.get_current_plane_tags()
+        # -----------------------------------------------------------------
         if len(plane_tags) > 0 and self.save_plane_resp:
             self.PlaneResp.add_data_one_step(plane_tags)
-        brick_tags = self.ModelInfo.get_current_brick_tags()
+        # -----------------------------------------------------------------
+        if self.brick_tags is not None:
+            brick_tags = self.brick_tags
+        else:
+            brick_tags = self.ModelInfo.get_current_brick_tags()
         if len(brick_tags) > 0 and self.save_brick_resp:
             self.BrickResp.add_data_one_step(brick_tags)
 
