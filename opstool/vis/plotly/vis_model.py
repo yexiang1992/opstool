@@ -815,8 +815,8 @@ def _plot_bc(plotter, fixed_dofs, fixed_coords, s, show_zaxis, color):
             color=color,
             hoverinfo="skip",
         )
-    else:
-        warnings.warn("Info:: Model has no fixed nodes!")
+    # else:
+    #     warnings.warn("Info:: Model has no fixed nodes!")
     return bc_plot
 
 
