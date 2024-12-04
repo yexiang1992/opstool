@@ -517,16 +517,15 @@ class FiberSecMesh:
         ----------
         None
         """
-        if not self.color_map:
-            for name in self.geom_group_map.keys():
-                self.color_map[name] = get_random_color()
         if not self.mesh_size_map:
             for name, geom in self.geom_group_map.items():
                 area = geom.calculate_area()
                 self.mesh_size_map[name] = np.sqrt(2 * area / 100)
         geoms, mesh_sizes = [], []
         for name, geom in self.geom_group_map.items():
-            if geom.material != DEFAULT_MATERIAL:
+            if geom.material is None:
+                geom.material = DEFAULT_MATERIAL
+            elif geom.material != DEFAULT_MATERIAL:
                 geom.material = create_material(
                     name=name,
                     elastic_modulus=geom.material.elastic_modulus,
@@ -540,6 +539,7 @@ class FiberSecMesh:
             self.geom_names.append(name)
         if len(geoms) == 1:
             geom_obj = geoms[0]
+            mesh_sizes = mesh_sizes[0]
         else:
             geom_obj = CompoundGeometry(geoms)
         mesh_obj = geom_obj.create_mesh(mesh_sizes=mesh_sizes)
@@ -556,9 +556,13 @@ class FiberSecMesh:
         triangles = self.mesh_obj["triangles"][:, :3]
         triangle_attributes = self.mesh_obj["triangle_attributes"]
         attributes = np.unique(triangle_attributes)
-        for name, attri in zip(self.geom_group_map.keys(), attributes):
-            idx = triangle_attributes == attri
-            self.fiber_cells_map[name] = triangles[idx[:, 0]]
+        if len(self.geom_group_map) == 1:
+            for name in self.geom_group_map.keys():
+                self.fiber_cells_map[name] = triangles
+        else:
+            for name, attri in zip(self.geom_group_map.keys(), attributes):
+                idx = triangle_attributes == attri
+                self.fiber_cells_map[name] = triangles[idx[:, 0]]
         # * fiber data
         iys, izs = [], []
         for name, faces in self.fiber_cells_map.items():
@@ -601,6 +605,15 @@ class FiberSecMesh:
             fiber center dict, fiber area dict
         """
         return self.fiber_centers_map, self.fiber_areas_map
+
+    def get_section(self):
+        """Return the section object.
+
+        Returns
+        -------
+        section: `Section <https://sectionproperties.readthedocs.io/en/stable/user_guide/section.html>`_
+        """
+        return self.section
 
     def add_rebar_points(
         self,
@@ -1660,6 +1673,9 @@ class FiberSecMesh:
 
         # self.section.display_mesh_info()
         # self.section.plot_mesh()
+        if not self.color_map:
+            for name in self.geom_group_map.keys():
+                self.color_map[name] = get_random_color()
         vertices = self.points
         x = vertices[:, 0]
         y = vertices[:, 1]
