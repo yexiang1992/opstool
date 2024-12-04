@@ -24,6 +24,8 @@ Utility functions for creating geometry and materials
 
 .. autofunction:: opstool.pre.section.create_patch_from_dxf
 
+.. autofunction:: opstool.pre.section.create_polygon_points
+
 .. autofunction:: opstool.pre.section.create_circle_points
 
 .. autofunction:: opstool.pre.section.offset

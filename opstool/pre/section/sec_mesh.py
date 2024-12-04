@@ -15,6 +15,36 @@ from rich.table import Table
 from ...utils import CONSOLE, PKG_PREFIX, get_random_color, get_random_color_rich
 
 
+def create_polygon_points(
+    start: Union[list[float, float], tuple[float, float]] = (0., 0.),
+    incrs: list[list[float, float]] = None,
+    close: bool = False,
+):
+    """Create a polygon points.
+
+    Parameters
+    ----------
+    start : list[float, float]
+        The start point, [x0, y0].
+    incrs : list[list[float, float]], default=None
+        The increment points, [[dx1, dy1], [dx2, dy2],...,[dxn, dyn]].
+    close : bool, default=False
+        Close the polygon or not.
+
+    Returns
+    -------
+    points: list[list[float, float]]
+        coord points on the polygon line.
+    """
+    points = [start]
+    if incrs is None:
+        incrs = []
+    for incr in incrs:
+        points.append([points[-1][0] + incr[0], points[-1][1] + incr[1]])
+    if close:
+        points.append(points[0])
+    return points
+
 def create_circle_points(
     xo: list,
     radius: float,
