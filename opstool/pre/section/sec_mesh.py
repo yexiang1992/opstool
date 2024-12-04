@@ -180,7 +180,9 @@ def create_polygon_patch(
 
     Returns
     -------
-    polygon geom obj
+    geometry:
+        `Geometry <https://sectionproperties.readthedocs.io/en/stable/user_guide/geometry.html>`_ in
+         ``sectionproperties``.
     """
     if material is None:
         material_ = DEFAULT_MATERIAL
@@ -231,7 +233,9 @@ def create_circle_patch(
 
     Returns
     -------
-    Cirle geom obj.
+    geometry:
+        `Geometry <https://sectionproperties.readthedocs.io/en/stable/user_guide/geometry.html>`_ in
+         ``sectionproperties``.
     """
     if material is None:
         material_ = DEFAULT_MATERIAL
@@ -273,7 +277,9 @@ def create_patch_from_dxf(
 
     Returns
     -------
-    geom obj.
+    geometry:
+        `Geometry <https://sectionproperties.readthedocs.io/en/stable/user_guide/geometry.html>`_ in
+         ``sectionproperties``.
     """
     return Geometry.from_dxf(
         dxf_filepath=filepath,
@@ -341,13 +347,17 @@ class FiberSecMesh:
 
         self.is_centring = False
 
-    def add_patch_group(self, patches):
+    def add_patch_group(
+            self,
+            patches: Union[dict[Geometry], list[Geometry], tuple[Geometry], Geometry]
+    ):
         """Add the patches.
 
         Parameters
         ------------
         patches : dict|patch|List[patch]
-            A dict of name as a key, geometry obj as value.
+            A dict of name as a key,
+            `Geometry <https://sectionproperties.readthedocs.io/en/stable/user_guide/geometry.html>`_ as value.
 
         Returns
         ----------
