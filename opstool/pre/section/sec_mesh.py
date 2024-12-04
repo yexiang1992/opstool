@@ -508,7 +508,10 @@ class FiberSecMesh:
             geoms.append(geom)
             mesh_sizes.append(0.5 * self.mesh_size_map[name] ** 2)
             self.geom_names.append(name)
-        geom_obj = CompoundGeometry(geoms)
+        if len(geoms) == 1:
+            geom_obj = geoms[0]
+        else:
+            geom_obj = CompoundGeometry(geoms)
         mesh_obj = geom_obj.create_mesh(mesh_sizes=mesh_sizes)
         self.section = Section(geom_obj, time_info=False)
         self.mesh_obj = mesh_obj.mesh
