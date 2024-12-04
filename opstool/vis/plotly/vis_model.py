@@ -121,6 +121,7 @@ class PlotModelBase:
         self,
         plotter: list,
         style: str,
+        show_ele_hover: bool = True,
     ):
         if len(self.ele_data_types) > 0:
             colors = _get_ele_color(self.ele_types)
@@ -136,14 +137,6 @@ class PlotModelBase:
                         face_vecj,
                         face_veck,
                     ) = self._get_plotly_unstru_data(self.points, cell_type, cell)
-                    ele_tags = self.ele_data_types[name].coords["eleTags"].values
-                    labels = []
-                    for etag, cell_ in zip(ele_tags, cell):
-                        ntags = self.nodal_tags[cell_[1:]]
-                        for _ in ntags:
-                            labels.append(
-                                f"eleTag: {etag}<br>connectNodeTags:<br> {ntags}"
-                            )
                     _plot_unstru(
                         plotter,
                         pos=face_points,
@@ -153,8 +146,7 @@ class PlotModelBase:
                         style=style,
                         color=colors[i],
                         name=name,
-                        customdata=labels,
-                        hovertemplate="%{customdata}",
+                        hoverinfo="skip",
                         line_width=self.pargs.line_width,
                         opacity=self.pargs.mesh_opacity,
                         show_edges=self.pargs.show_mesh_edges,
@@ -168,18 +160,34 @@ class PlotModelBase:
                     line_points, line_mid_points = self._get_plotly_line_data(
                         self.points, cell
                     )
-                    ele_tags = self.ele_data_types[name].coords["eleTags"].values
-                    labels = []
-                    for etag, cell_ in zip(ele_tags, cell):
-                        ntags = self.nodal_tags[cell_[1:]]
-                        for _ in ntags:
-                            labels.append(f"eleTag: {etag}<br>connectNodeTags: {ntags}")
                     _plot_lines(
                         plotter,
                         pos=line_points,
                         color=colors[i],
                         width=self.pargs.line_width,
                         name=name,
+                        hoverinfo="skip",
+                    )
+            # add element hover data
+            if show_ele_hover:
+                for i, name in enumerate(self.ele_types):
+                    cell = np.array(self.ele_data_types[name][:, :-1], dtype=int)
+                    ele_tags = self.ele_data_types[name].coords["eleTags"].values
+                    ele_centers, labels = [], []
+                    for etag, cell_ in zip(ele_tags, cell):
+                        ntags = self.nodal_tags[cell_[1:]]
+                        ele_centers.append(np.mean(self.points[cell_[1:]], axis=0))
+                        labels.append(
+                            f"eleTag: {etag}<br>connectedNodes:<br> {ntags}"
+                        )
+                    size = 2 if self.pargs.point_size < 2 else self.pargs.point_size
+                    _plot_points(
+                        plotter,
+                        pos=np.array(ele_centers),
+                        color=colors[i],
+                        size=size,
+                        name=name,
+                        symbol="diamond-open",
                         customdata=labels,
                         hovertemplate="%{customdata}",
                     )
@@ -663,6 +671,7 @@ def plot_model(
     odb_tag: Union[int, str] = None,
     show_node_numbering: bool = False,
     show_ele_numbering: bool = False,
+    show_ele_hover: bool = True,
     style: str = "surface",
     color: str = None,
     show_bc: bool = True,
@@ -689,6 +698,8 @@ def plot_model(
         Whether to display node tag labels.
     show_ele_numbering: bool, default: False
         Whether to display element tag labels.
+    show_ele_hover: bool, default: True
+        Whether to display element tag labels when hovering over the element.
     style: str, default: surface
         Visualization mesh style of surfaces and solids.
         One of the following: style='surface' or style='wireframe'
@@ -736,7 +747,7 @@ def plot_model(
             style,
         )
     else:
-        plotbase.plot_model(plotter, style)
+        plotbase.plot_model(plotter, style, show_ele_hover=show_ele_hover)
     if show_node_numbering:
         plotbase.plot_nodal_labels(plotter)
     if show_ele_numbering:
