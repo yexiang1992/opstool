@@ -15,6 +15,8 @@ Data Saving
 Result Reading
 --------------
 
+.. autofunction:: opstool.post.get_model_data
+
 .. autofunction:: opstool.post.get_eigen_data
 
 .. autofunction:: opstool.post.get_nodal_responses

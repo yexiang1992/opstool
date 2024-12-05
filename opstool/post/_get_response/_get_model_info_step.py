@@ -118,3 +118,20 @@ class ModelInfoStepData(ResponseBase):
         model_update = int(model_info["ModelUpdate"])
         model_update = True if model_update == 1 else False
         return model_info, model_update
+
+    @staticmethod
+    def read_data(dt: xr.DataTree, data_type: str):
+        """Read data from the data tree
+
+        Parameters:
+        -----------
+        dt: xr.DataTree
+            The data tree.
+        data_type: str
+            The data type to read.
+        """
+        model_update = int(dt["ModelInfo"]["ModelUpdate"]["ModelUpdate"])
+        data = dt["ModelInfo"][data_type][data_type]
+        if model_update == 1:
+            return data
+        return data.isel(time=0)

@@ -388,6 +388,48 @@ def loadODB(obd_tag, resp_type: str = "Nodal"):
     return model_info_steps, model_update, resp_step
 
 
+def get_model_data(
+        odb_tag: int = None,
+        data_type: str = "Nodal",
+        from_responses: bool = False
+):
+    """Read model data from a file.
+
+    Parameters
+    ----------
+    odb_tag: Union[int, str], default: one
+        Tag of output databases (ODB) to be read.
+    data_type: str, default: Nodal
+        Type of data to be read.
+        Optional: "Nodal"
+    from_responses: bool, default: False
+        Whether to read data from response data.
+        If True, the data will be read from the response data file.
+        This is useful when the model data is updated in an analysis process.
+
+    Returns
+    ---------
+    ModelData: xarray.Dataset if model_update is True, otherwise xarray.DataArray
+    """
+    if data_type.lower() == "nodal":
+        data_type = "NodalData"
+    else:
+        raise ValueError(f"Data type {data_type} not found.")
+    if from_responses:
+        filename = f"{RESULTS_DIR}/" + f"RespStepData-{odb_tag}.nc"
+        dt = xr.open_datatree(filename, engine="netcdf4")
+        data = ModelInfoStepData.read_data(dt, data_type)
+    else:
+        filename = f"{RESULTS_DIR}/" + f"ModelData-{odb_tag}.nc"
+        dt = xr.open_datatree(filename, engine="netcdf4")
+        data = dt["ModelInfo"][data_type][data_type]
+    color = get_random_color()
+    CONSOLE.print(
+        f"{PKG_PREFIX} Loading {data_type} data from [bold {color}]{filename}[/] ..."
+    )
+    return data
+
+
 def get_nodal_responses(
         odb_tag: int,
         resp_type: str = None,
@@ -437,7 +479,7 @@ def get_nodal_responses(
 
     color = get_random_color()
     CONSOLE.print(
-        f"{PKG_PREFIX} Loading response data from [bold {color}]{filename}[/] ..."
+        f"{PKG_PREFIX} Loading {resp_type} response data from [bold {color}]{filename}[/] ..."
     )
 
     nodal_resp = NodalRespStepData.read_response(dt, resp_type=resp_type, node_tags=node_tags)
@@ -513,7 +555,7 @@ def get_element_responses(
 
     color = get_random_color()
     CONSOLE.print(
-        f"{PKG_PREFIX} Loading response data from [bold {color}]{filename}[/] ..."
+        f"{PKG_PREFIX} Loading {ele_type} {resp_type} response data from [bold {color}]{filename}[/] ..."
     )
 
     if ele_type.lower() == "frame":
