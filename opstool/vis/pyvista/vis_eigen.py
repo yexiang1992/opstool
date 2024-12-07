@@ -136,7 +136,10 @@ class PlotEigenBase:
             )
         else:
             period = 1 / self.ModalProps.loc[:, "eigenFrequency"][step]
-            txt = f"Mode {step + 1}  T = {period:.6f} s"
+            if period < 1e-3:
+                txt = f"Mode {step + 1}  T = {period:.3E} s"
+            else:
+                txt = f"Mode {step + 1}  T = {period:.3f} s"
             plotter.add_text(
                 txt,
                 position="upper_left",
