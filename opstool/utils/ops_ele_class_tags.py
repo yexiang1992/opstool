@@ -383,17 +383,18 @@ ELE_TAG_Plane = [
     59,
     60,
     61,
-    116,
+    #116,  # QuadSurfaceLoad
     119,
     120,
     126,
     134,
-    180,
+    #180, # TriSurfaceLoad
     207,
     208,
     209,
     219,
 ]
+ELE_TAG_SURFACE_LOAD = [116, 180]
 ELE_TAG_Shell = [
     52,
     53,
@@ -450,6 +451,7 @@ OPS_ELE_TAGS = SimpleNamespace(
     Joint=ELE_TAG_Joint,
     Plane=ELE_TAG_Plane,
     Shell=ELE_TAG_Shell,
+    SurfaceLoad=ELE_TAG_SURFACE_LOAD,
 )
 OPS_ELE_CLASSTAG2TYPE = ELE_TYPE_TAGS
 

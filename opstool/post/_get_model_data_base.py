@@ -167,6 +167,8 @@ class FEMData:
             loc = 0
             for tag, classtag in zip(eletags, eleclasstags):
                 ntags = ops.eleNodes(tag)
+                if len(ntags) != 2:
+                    continue
                 wya, wyb, wza, wzb, wxa, wxb, xa, xb = (
                     0.0,
                     0.0,

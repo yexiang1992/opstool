@@ -14,6 +14,7 @@ from .plot_utils import (
 )
 from ...post import loadODB
 
+
 class PlotUnstruResponse(PlotResponseBase):
 
     def __init__(self, model_info_steps, resp_step, model_update):
@@ -277,7 +278,7 @@ def plot_unstruct_responses(
         #. For ``Plane`` elements, one of ["stresses", "strains"].
             I.e., stresses and strains at Gaussian integration points.
             If None, defaults to "stresses".
-        #. For ``Brick`` elements, one of ["stresses", "strains"].
+        #. For ``Brick`` or ``Solid`` elements, one of ["stresses", "strains"].
             I.e., stresses and strains at Gaussian integration points.
             If None, defaults to "stresses".
 
@@ -298,7 +299,7 @@ def plot_unstruct_responses(
             * "tau_max": Maximum shear stress (strains).
             * If None, defaults to "sigma_vm".
 
-        #. For ``Brick`` elements, one of ["sigma11", "sigma22", "sigma33", "sigma12", "sigma23", "sigma13", "p1", "p2", "p3", "sigma_vm", "tau_max", "sigma_oct", "tau_oct"]
+        #. For ``Brick`` or ``Solid`` elements, one of ["sigma11", "sigma22", "sigma33", "sigma12", "sigma23", "sigma13", "p1", "p2", "p3", "sigma_vm", "tau_max", "sigma_oct", "tau_oct"]
 
             * "sigma11, sigma22, sigma33": Normal stress (strain) along x, y, z.
             * "sigma12, sigma23, sigma13": Shear stress (strain).
@@ -396,7 +397,7 @@ def plot_unstruct_responses_animation(
         #. For ``Plane`` elements, one of ["stresses", "strains"].
             I.e., stresses and strains at Gaussian integration points.
             If None, defaults to "stresses".
-        #. For ``Brick`` elements, one of ["stresses", "strains"].
+        #. For ``Brick`` or ``Solid`` elements, one of ["stresses", "strains"].
             I.e., stresses and strains at Gaussian integration points.
             If None, defaults to "stresses".
 
@@ -417,7 +418,7 @@ def plot_unstruct_responses_animation(
             * "tau_max": Maximum shear stress (strains).
             * If None, defaults to "sigma_vm".
 
-        #. For ``Brick`` elements, one of ["sigma11", "sigma22", "sigma33", "sigma12", "sigma23", "sigma13", "p1", "p2", "p3", "sigma_vm", "tau_max", "sigma_oct", "tau_oct"]
+        #. For ``Brick`` or ``Solid`` elements, one of ["sigma11", "sigma22", "sigma33", "sigma12", "sigma23", "sigma13", "p1", "p2", "p3", "sigma_vm", "tau_max", "sigma_oct", "tau_oct"]
 
             * "sigma11, sigma22, sigma33": Normal stress (strain) along x, y, z.
             * "sigma12, sigma23, sigma13": Shear stress (strain).
@@ -537,7 +538,8 @@ def _check_input(ele_type, resp_type, resp_dof):
                 f"Not supported component {resp_dof}! "
                 "Valid options are: sigma11, sigma22, sigma12, p1, p2, sigma_vm, tau_max."
             )
-    elif ele_type.lower() == "brick":
+    elif ele_type.lower() in ["brick", "solid"]:
+        ele_type = "Brick"
         if resp_type is None:
             resp_type = "Stresses"
         if resp_type.lower() in ["stresses", "stress"]:
