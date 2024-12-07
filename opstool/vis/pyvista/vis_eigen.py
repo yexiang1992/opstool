@@ -135,9 +135,8 @@ class PlotEigenBase:
                 font="courier",
             )
         else:
-            txt = "Mode {}  T = {:.3f} s".format(
-                step + 1, 1 / self.ModalProps.loc[:, "eigenFrequency"][step]
-            )
+            period = 1 / self.ModalProps.loc[:, "eigenFrequency"][step]
+            txt = f"Mode {step + 1}  T = {period:.6f} s"
             plotter.add_text(
                 txt,
                 position="upper_left",

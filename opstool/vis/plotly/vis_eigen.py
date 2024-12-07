@@ -194,7 +194,7 @@ class PlotEigenBase:
         for i, idx in enumerate(range(modei, modej + 1)):
             f = self.ModalProps.loc[:, "eigenFrequency"]
             mode = self._set_txt_props(f"{idx}", color="#8eab12")
-            t = self._set_txt_props(f"{1 / f[idx - 1]:.3f}")
+            t = self._set_txt_props(f"{1 / f[idx - 1]:.6f}")
             txt = f"Mode <b>{mode}</b>: T = <b>{t}</b> s"
             subplot_titles.append(txt)
         self.FIGURE = make_subplots(
