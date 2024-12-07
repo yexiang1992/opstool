@@ -66,12 +66,12 @@ class BrickRespStepData(ResponseBase):
 
     def save_file(self, dt: xr.DataTree):
         self._to_xarray()
-        dt["/BrickResponses"] = self.resp_steps
+        dt["/SolidResponses"] = self.resp_steps
         return dt
 
     @staticmethod
     def read_file(dt: xr.DataTree):
-        resp_steps = dt["/BrickResponses"].to_dataset()
+        resp_steps = dt["/SolidResponses"].to_dataset()
         return resp_steps
 
     @staticmethod

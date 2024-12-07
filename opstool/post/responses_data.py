@@ -380,7 +380,7 @@ def loadODB(obd_tag, resp_type: str = "Nodal"):
         resp_step = ShellRespStepData.read_file(dt)
     elif resp_type.lower() == "plane":
         resp_step = PlaneRespStepData.read_file(dt)
-    elif resp_type.lower() == "brick":
+    elif resp_type.lower() in ["brick", "solid"]:
         resp_step = BrickRespStepData.read_file(dt)
     else:
         raise ValueError(f"Unsupported response type {resp_type}!")
@@ -500,7 +500,7 @@ def get_element_responses(
         Tag of output databases (ODB) to be read.
     ele_type: str, default: Frame
         Type of element to be read.
-        Optional: "Frame", "Truss", "Link", "Shell", "Plane", "Brick".
+        Optional: "Frame", "Truss", "Link", "Shell", "Plane", "Solid".
     resp_type: str, default: disp
         The response type, which depends on the parameter `ele_type`.
         If None, return all responses to that `ele_type`.
@@ -527,7 +527,7 @@ def get_element_responses(
         #. For `Plane`:
             * "stresses": Stresses at Gauss points.
             * "strains": Strains at Gauss points.
-        #. For `Brick`:
+        #. For `Brick` or 'Solid':
             * "stresses": Stresses at Gauss points.
             * "strains": Strains at Gauss points.
 
@@ -568,12 +568,12 @@ def get_element_responses(
         ele_resp = ShellRespStepData.read_response(dt, resp_type=resp_type, ele_tags=ele_tags)
     elif ele_type.lower() == "plane":
         ele_resp = PlaneRespStepData.read_response(dt, resp_type=resp_type, ele_tags=ele_tags)
-    elif ele_type.lower() == "brick":
+    elif ele_type.lower() in ["brick", "solid"]:
         ele_resp = BrickRespStepData.read_response(dt, resp_type=resp_type, ele_tags=ele_tags)
     else:
         raise ValueError(
             f"Unsupported element type {ele_type}, "
-            "must in [Frame, Truss, Link, Shell, Plane, Brick]!"
+            "must in [Frame, Truss, Link, Shell, Plane, Solid]!"
         )
 
     return ele_resp

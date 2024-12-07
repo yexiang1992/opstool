@@ -440,7 +440,7 @@ def plot_unstruct_responses(
         Display the response for each step in the form of a slideshow.
         Otherwise, show the step with the largest response.
     ele_type: str, default: "Shell"
-        Element type, optional, one of ["Shell", "Plane", "Brick"].
+        Element type, optional, one of ["Shell", "Plane", "Solid"].
     resp_type: str, default: None
         Response type, which dependents on the element type `ele_type`.
 
@@ -450,7 +450,7 @@ def plot_unstruct_responses(
         #. For ``Plane`` elements, one of ["stresses", "strains"].
             I.e., stresses and strains at Gaussian integration points.
             If None, defaults to "stresses".
-        #. For ``Brick`` elements, one of ["stresses", "strains"].
+        #. For ``Brick`` or ``Solid`` elements, one of ["stresses", "strains"].
             I.e., stresses and strains at Gaussian integration points.
             If None, defaults to "stresses".
 
@@ -542,7 +542,7 @@ def plot_unstruct_responses_animation(
     ele_tags: Union[int, list], default: None
         The tags of truss elements to be visualized. If None, all truss elements are selected.
     ele_type: str, default: "Shell"
-        Element type, optional, one of ["Shell", "Plane", "Brick"].
+        Element type, optional, one of ["Shell", "Plane", "Solid"].
     framerate: int, default: None
         Framerate for the display, i.e., the number of frames per second.
     resp_type: str, default: None
@@ -554,7 +554,7 @@ def plot_unstruct_responses_animation(
         #. For ``Plane`` elements, one of ["stresses", "strains"].
             I.e., stresses and strains at Gaussian integration points.
             If None, defaults to "stresses".
-        #. For ``Brick`` elements, one of ["stresses", "strains"].
+        #. For ``Brick`` or ``Solid`` elements, one of ["stresses", "strains"].
             I.e., stresses and strains at Gaussian integration points.
             If None, defaults to "stresses".
 
