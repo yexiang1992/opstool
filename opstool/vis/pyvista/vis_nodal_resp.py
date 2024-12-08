@@ -111,7 +111,7 @@ class PlotNodalResponse(PlotResponseBase):
         show_mp_constraint: bool = True,
     ):
         step = int(round(value))
-        node_nodeform_coords = self._get_node_data(step).to_numpy()
+        node_nodeform_coords = self._get_node_data(step)
         bounds = self._get_node_data(step).attrs["bounds"]
         model_dims = self._get_node_data(step).attrs["ndims"]
         line_cells, _ = _get_line_cells(self._get_line_data(step))
@@ -119,12 +119,27 @@ class PlotNodalResponse(PlotResponseBase):
             self._get_unstru_data(step)
         )
         t_ = self.time[step]
+        node_disp = self._get_deformation_data(step)
+        node_resp = self._get_resp_data(step, self.resp_type, self.component)
+        is_coord_equal = np.array_equal(
+            node_nodeform_coords.coords["tags"].values,
+            node_disp.coords["nodeTags"].values
+        )
+        if not is_coord_equal:
+            common_coords = np.intersect1d(
+                node_nodeform_coords.coords["tags"].values,
+                node_disp.coords["nodeTags"].values
+            )
+            node_nodeform_coords = node_nodeform_coords.sel({"tags": common_coords})
+            node_disp = node_disp.sel({"nodeTags": common_coords})
+            node_resp = node_resp.sel({"nodeTags": common_coords})
+        node_nodeform_coords = node_nodeform_coords.to_numpy()
+        node_disp = node_disp.to_numpy()
+        node_resp = node_resp.to_numpy()
         if alpha > 0.0:
-            node_disp = self._get_deformation_data(step).to_numpy()
             node_deform_coords = alpha * node_disp + node_nodeform_coords
         else:
             node_deform_coords = node_nodeform_coords
-        node_resp = self._get_resp_data(step, self.resp_type, self.component)
         if node_resp.ndim == 1:
             scalars = node_resp
         else:
