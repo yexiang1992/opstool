@@ -264,8 +264,8 @@ class PlotFrameResponse(PlotResponseBase):
                 force_scale = np.interp(locs, [0, 1], [f1, f2])
             else:
                 locs = sec_locs[i][~np.isnan(sec_locs[i])]
-                force = resp[i][~np.isnan(resp[i]).any(axis=0)][0]
-                force_scale = resp_scale[i][~np.isnan(resp_scale[i]).any(axis=0)][0]
+                force = resp[i][~np.isnan(resp[i])]
+                force_scale = resp_scale[i][~np.isnan(resp_scale[i])]
             pos1 = np.array([coord1 + loc * (coord2 - coord1) for loc in locs])
             pos2 = [coord + force_scale[i] * axis for i, coord in enumerate(pos1)]
             pos2 = np.array(pos2)

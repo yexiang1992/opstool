@@ -131,12 +131,16 @@ class FEMData:
 
     def _make_node_fixed(self):
         for tag in self.fixed_node_tags:
-            self.fixed_coords.append(self.node_coords[self.node_index[tag]])
-            fixeddofs = ops.getFixedDOFs(tag)
-            fixities = [0] * 6
-            for dof in fixeddofs:
-                fixities[dof - 1] = 1
-            self.fixed_dofs.append(fixities)
+            if tag in self.node_index.keys():
+                self.fixed_coords.append(self.node_coords[self.node_index[tag]])
+                fixeddofs = ops.getFixedDOFs(tag)
+                fixities = [0] * 6
+                for dof in fixeddofs:
+                    fixities[dof - 1] = 1
+                self.fixed_dofs.append(fixities)
+            else:
+                self.fixed_coords.append([np.nan]*3)
+                self.fixed_dofs.append([np.nan] * 6)
 
     def _make_nodal_load(self):
         self.node_load_data, self.pattern_node_tags = [], []

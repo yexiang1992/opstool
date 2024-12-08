@@ -213,6 +213,7 @@ def _get_beam_sec_resp(beam_tags, ele_load_data, local_forces):
             sec_d = np.zeros_like(sec_f)
         else:
             locs = ops.sectionLocation(eletag)
+            locs = locs / length
             for i, loc in enumerate(locs):
                 xlocs[i] = loc
                 forces = ops.sectionForce(eletag, i + 1)

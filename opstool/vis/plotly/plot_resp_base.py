@@ -82,7 +82,7 @@ class PlotResponseBase:
         dims = self.RespSteps[resp_type].dims
         da = self.RespSteps[resp_type].isel(time=time_idx)
         if self.ModelUpdate:
-            da = da.dropna(dim=dims[1], how="any")
+            da = da.dropna(dim=dims[1], how="all")
         if da.ndim == 1 or component is None:
             return da
         elif da.ndim == 2:
