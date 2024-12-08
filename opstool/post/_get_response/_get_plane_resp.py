@@ -139,7 +139,7 @@ def _calculate_stresses_measures(stress_array):
     # Calculate maximum shear stress
     tau_max = np.sqrt(((sig11 - sig22) / 2) ** 2 + sig12 ** 2)
 
-    data = np.stack([p1, p2, sig_vm, tau_max], axis=0)
+    data = np.stack([p1, p2, sig_vm, tau_max], axis=-1)
 
     return data
 
