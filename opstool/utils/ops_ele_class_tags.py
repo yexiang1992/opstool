@@ -438,6 +438,7 @@ ELE_TAG_Brick = [
     220,
 ]
 ELE_TAG_PFEM = [133, 141, 142, 143, 144, 164, 187, 189, 199, 200, 255]
+ELE_TAG_UP = [40, 46, 47, 48, 50, 51, 120, 122]
 
 OPS_ELE_TAGS = SimpleNamespace(
     Types=ELE_TYPE_TAGS,
@@ -452,6 +453,8 @@ OPS_ELE_TAGS = SimpleNamespace(
     Plane=ELE_TAG_Plane,
     Shell=ELE_TAG_Shell,
     SurfaceLoad=ELE_TAG_SURFACE_LOAD,
+    # solid-fluid coupled elements, solid displacement (u) and fluid pressure (p)
+    UP=ELE_TAG_UP
 )
 OPS_ELE_CLASSTAG2TYPE = ELE_TYPE_TAGS
 
