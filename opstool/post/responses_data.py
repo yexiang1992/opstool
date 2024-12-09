@@ -454,6 +454,11 @@ def get_nodal_responses(
         * "pressure" - Pressure applied to the node.
         * If None, return all responses.
 
+        .. Note::
+            If the nodes include fluid pressure dof,
+            such as those used for ...UP elements, the pore pressure should be extracted using ``resp_type="vel"``,
+            and the value is placed in the degree of freedom ``RZ``.
+
     node_tags: Union[list, tuple, int], default: None
         Node tags to be read.
         Such as [1, 2, 3] or numpy.array([1, 2, 3]) or 1.

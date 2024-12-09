@@ -519,6 +519,12 @@ def plot_nodal_responses(
         Optional: "UX", "UY", "UZ", "RX", "RY", "RZ".
         You can also pass on a list or tuple to display multiple dimensions, for example, ["UX", "UY"],
         ["UX", "UY", "UZ"], ["RX", "RY", "RZ"], ["RX", "RY"], ["RY", "RZ"], ["RX", "RZ"], and so on.
+
+        .. Note::
+            If the nodes include fluid pressure dof,
+            such as those used for ...UP elements, the pore pressure should be extracted using ``resp_type="vel"``,
+            and ``resp_dof="UZ"``.
+
     cpos: str, default: iso
         Model display perspective, optional: "iso", "xy", "yx", "xz", "zx", "yz", "zy".
         If 3d, defaults to "iso". If 2d, defaults to "xy".
