@@ -51,6 +51,14 @@ class NodalRespStepData(ResponseBase):
                 "nodeTags": node_tags,
                 "DOFs": ["UX", "UY", "UZ", "RX", "RY", "RZ"],
             },
+            attrs={
+                "UX": "Displacement in X direction",
+                "UY": "Displacement in Y direction",
+                "UZ": "Displacement in Z direction",
+                "RX": "Rotation about X axis",
+                "RY": "Rotation about Y axis",
+                "RZ": "Rotation about Z axis",
+            },
         )
         self.resp_steps.append(ds)
         self.times.append(ops.getTime())
@@ -126,6 +134,10 @@ def _get_nodal_resp(node_tags):
                     disp.extend([0, 0, 0])
                     vel.extend([0, 0, 0])
                     accel.extend([0, 0, 0])
+                elif len(disp) == 4:  # 3 ndim 4 dof
+                    disp = [disp[0], disp[1], disp[2], 0.0, 0.0, disp[3]]
+                    vel = [vel[0], vel[1], vel[2], 0.0, 0.0, vel[3]]
+                    accel = [accel[0], accel[1], accel[2], 0.0, 0.0, accel[3]]
                 elif len(disp) < 6:  # 3 ndim 6 dof
                     disp.extend([0] * (6 - len(disp)))
                     vel.extend([0] * (6 - len(vel)))
