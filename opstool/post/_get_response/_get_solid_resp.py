@@ -3,7 +3,7 @@ import openseespy.opensees as ops
 import xarray as xr
 
 from ._response_base import ResponseBase, _expand_to_uniform_array
-
+from ...utils import OPS_ELE_TAGS
 
 class BrickRespStepData(ResponseBase):
 
@@ -32,18 +32,25 @@ class BrickRespStepData(ResponseBase):
         data_vars = dict()
         data_vars["Stresses"] = (["eleTags", "GaussPoints", "DOFs"], stresses)
         data_vars["Strains"] = (["eleTags", "GaussPoints", "DOFs"], strains)
+        ndofs = stresses.shape[-1]
+        if ndofs == 13:
+            dofs = ["sigma11", "sigma22", "sigma33", "sigma12", "sigma23", "sigma13",
+                    "p1", "p2", "p3", "sigma_vm", "tau_max", "sigma_oct", "tau_oct"]
+        else:
+            dofs = ["sigma11", "sigma22", "sigma33", "sigma12", "sigma23", "sigma13", "eta_r",
+                    "p1", "p2", "p3", "sigma_vm", "tau_max", "sigma_oct", "tau_oct"]
         ds = xr.Dataset(
             data_vars=data_vars,
             coords={
                 "eleTags": ele_tags,
                 "GaussPoints": np.arange(stresses.shape[1])+1,
-                "DOFs": ["sigma11", "sigma22", "sigma33", "sigma12", "sigma23", "sigma13",
-                         "p1", "p2", "p3", "sigma_vm", "tau_max", "sigma_oct", "tau_oct"],
+                "DOFs": dofs,
             },
             attrs={
                 "sigma11, sigma22, sigma33": "Normal stress (strain) along x, y, z.",
                 "sigma12, sigma23, sigma13": "Shear stress (strain).",
                 "p1, p2, p3": "Principal stresses (strains).",
+                "eta_r": "Ratio between the shear (deviatoric) stress and peak shear strength at the current confinement",
                 "sigma_vm": "Von Mises stress.",
                 "tau_max": "Maximum shear stress (strains).",
                 "sigma_oct": "Octahedral normal stress (strains).",
@@ -99,13 +106,20 @@ def _get_gauss_resp(ele_tags):
         etag = int(etag)
         stress = ops.eleResponse(etag, "stresses")
         strain = ops.eleResponse(etag, "strains")
-        stresses.append(np.reshape(stress, (-1, 6)))
-        strains.append(np.reshape(strain, (-1, 6)))
+        strain = np.reshape(strain, (-1, 6))
+        if ops.getEleClassTags(etag)[0] in OPS_ELE_TAGS.UP:
+            stress = np.reshape(stress, (-1, 7))
+            eta_r = stress[:, -1].reshape(-1, 1)
+            strain = np.hstack((strain, eta_r))
+        else:
+            stress = np.reshape(stress, (-1, 6))
+        stresses.append(stress)
+        strains.append(strain)
     stresses = _expand_to_uniform_array(stresses)
     strains = _expand_to_uniform_array(strains)
 
-    stress_measures = _calculate_stresses_measures(stresses)
-    strain_measures = _calculate_stresses_measures(strains)
+    stress_measures = _calculate_stresses_measures(stresses[..., :6])
+    strain_measures = _calculate_stresses_measures(strains[..., :6])
 
     stresses = np.concatenate((stresses, stress_measures), axis=-1)
     strains = np.concatenate((strains, strain_measures), axis=-1)
