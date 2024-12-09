@@ -109,27 +109,31 @@ def _get_nodal_resp(node_tags):
             vel = ops.nodeVel(tag)
             accel = ops.nodeAccel(tag)
             if len(coord) == 1:
-                coord.extend([0, 0])
                 disp.extend([0, 0, 0, 0, 0])
                 vel.extend([0, 0, 0, 0, 0])
                 accel.extend([0, 0, 0, 0, 0])
             elif len(coord) == 2:
-                coord.extend([0])
                 if len(disp) == 2:  # 2 ndim 2 dof
                     disp.extend([0, 0, 0, 0])
                     vel.extend([0, 0, 0, 0])
                     accel.extend([0, 0, 0, 0])
-                elif len(disp) == 3:  # 2 ndim 3 dof
-                    disp = [disp[0], disp[1], 0.0, 0.0, 0.0, disp[-1]]
-                    vel = [vel[0], vel[1], 0.0, 0.0, 0.0, vel[-1]]
-                    accel = [accel[0], accel[1], 0.0, 0.0, 0.0, accel[-1]]
+                elif len(disp) >= 3:  # 2 ndim 3 dof
+                    disp = [disp[0], disp[1], 0.0, 0.0, 0.0, disp[2]]
+                    vel = [vel[0], vel[1], 0.0, 0.0, 0.0, vel[2]]
+                    accel = [accel[0], accel[1], 0.0, 0.0, 0.0, accel[2]]
             else:
                 if len(disp) == 3:  # 3 ndim 3 dof
                     disp.extend([0, 0, 0])
                     vel.extend([0, 0, 0])
                     accel.extend([0, 0, 0])
-                elif len(disp) == 6:  # 3 ndim 6 dof
-                    pass
+                elif len(disp) < 6:  # 3 ndim 6 dof
+                    disp.extend([0] * (6 - len(disp)))
+                    vel.extend([0] * (6 - len(vel)))
+                    accel.extend([0] * (6 - len(accel)))
+                elif len(disp) > 6:
+                    disp = disp[:6]
+                    vel = vel[:6]
+                    accel = accel[:6]
         else:
             disp = [np.nan, np.nan, np.nan, np.nan, np.nan, np.nan]
             vel = [np.nan, np.nan, np.nan, np.nan, np.nan, np.nan]
@@ -158,11 +162,15 @@ def _get_nodal_react(node_tags):
                 elif len(coord) == 2:
                     if len(fo) == 2:
                         fo.extend([0.0, 0.0, 0.0, 0.0])
-                    elif len(fo) == 3:
-                        fo = [fo[0], fo[1], 0.0, 0.0, 0.0, fo[-1]]
+                    elif len(fo) >= 3:
+                        fo = [fo[0], fo[1], 0.0, 0.0, 0.0, fo[2]]
                 else:
                     if len(fo) == 3:
                         fo.extend([0.0, 0.0, 0.0])
+                    elif len(fo) < 6:  # 3 ndim 6 dof
+                        fo.extend([0] * (6 - len(fo)))
+                    elif len(fo) > 6:
+                        fo = fo[:6]
             else:
                 fo = [np.nan, np.nan, np.nan, np.nan, np.nan, np.nan]
             forces.append(fo)
