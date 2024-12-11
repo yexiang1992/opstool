@@ -134,13 +134,14 @@ class PlotModelBase:
             plotter.add_point_labels(
                 self.points,
                 node_labels,
-                text_color="#ff4e00",
+                text_color="#87ae73",
                 font_size=self.pargs.font_size,
                 point_color=self.pargs.color_point,
                 bold=False,
                 render_points_as_spheres=True,
                 point_size=1e-5,
                 always_visible=True,
+                shape_opacity=0.0,
             )
 
     def plot_ele_labels(self, plotter):
@@ -151,10 +152,12 @@ class PlotModelBase:
             plotter.add_point_labels(
                 ele_centers,
                 ele_labels,
-                text_color="#01cd74",
+                text_color="#650021",
                 font_size=self.pargs.font_size,
+                point_size=self.pargs.point_size+2,
                 bold=False,
                 always_visible=True,
+                shape_opacity=0.0,
             )
 
     def plot_outline(self, plotter):
