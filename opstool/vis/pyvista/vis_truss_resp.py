@@ -213,6 +213,7 @@ class PlotTrussResponse(PlotResponseBase):
                 bold=True,
                 always_visible=True,
                 shape=None,
+                shape_opacity=0.0,
             )
         return resp_plot
 

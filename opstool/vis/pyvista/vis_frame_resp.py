@@ -373,6 +373,7 @@ class PlotFrameResponse(PlotResponseBase):
                 font_size=self.pargs.font_size,
                 bold=False,
                 always_visible=True,
+                shape_opacity=0.0,
             )
         else:
             plabel = None
