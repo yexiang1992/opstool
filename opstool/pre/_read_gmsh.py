@@ -656,7 +656,7 @@ class Gmsh2OPS:
             for dim, etag in entity_tags:
                 boundary_dimtags.append((dim, etag))
         _get_boundary_dim_tags(boundary_dimtags, entity_tags, self.gmsh_entities)
-        return list(set(boundary_dimtags))
+        return sorted(list(set(boundary_dimtags)), key=lambda x: (x[0], x[1]))
 
 
 def _get_boundary_dim_tags(boundary_dimtags, dim_entity_tags, entites):
