@@ -242,7 +242,7 @@ class FEMData:
     def _make_truss_info(self, ele_tag):
         self.truss_tags.append(ele_tag)
         ele_nodes = ops.eleNodes(ele_tag)
-        node_i, node_j = ele_nodes
+        node_i, node_j = ele_nodes[:2]
         idx_i, idx_j = self.node_index[node_i], self.node_index[node_j]
         # --------------------------------------------------------
         self.truss_cells.append([2, idx_i, idx_j])
@@ -273,7 +273,7 @@ class FEMData:
         return xaxis, yaxis, zaxis
 
     def _make_link_info(self, ele_tag):
-        node_i, node_j = ops.eleNodes(ele_tag)
+        node_i, node_j = ops.eleNodes(ele_tag)[:2]
         idx_i, idx_j = self.node_index[node_i], self.node_index[node_j]
         coordi, coordj = self.node_coords[idx_i], self.node_coords[idx_j]
         # --------------------------------------------------------
@@ -287,7 +287,7 @@ class FEMData:
         self.link_zaxis.append(zaxis)
 
     def _make_beam_info(self, ele_tag):
-        node_i, node_j = ops.eleNodes(ele_tag)
+        node_i, node_j = ops.eleNodes(ele_tag)[:2]
         idx_i, idx_j = self.node_index[node_i], self.node_index[node_j]
         # --------------------------------------------------------
         self.beam_tags.append(ele_tag)
@@ -336,7 +336,7 @@ class FEMData:
         self.contact_cells.append(cell)
 
     def _make_all_line_info(self, ele_tag, class_tag):
-        idxs = [self.node_index[tag_] for tag_ in ops.eleNodes(ele_tag)]
+        idxs = [self.node_index[tag_] for tag_ in ops.eleNodes(ele_tag)[:2]]
         key = OPS_ELE_CLASSTAG2TYPE[class_tag]
         self.ELE_CELLS_VTK[key].append([2] + idxs)
         self.ELE_CELLS_TYPE_VTK[key].append(LINE_CELL_TYPE_VTK[2])
