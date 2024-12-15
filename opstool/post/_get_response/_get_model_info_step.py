@@ -43,6 +43,7 @@ class ModelInfoStepData(ResponseBase):
 
     def _to_xarray(self):
         for key, data in self.model_info_steps.items():
+            print(key)
             new_data = xr.concat(data, dim="time", join="outer")
             new_data.coords["time"] = self.times
             self.model_info_steps[key] = new_data
@@ -53,7 +54,12 @@ class ModelInfoStepData(ResponseBase):
 
     def get_current_node_tags(self):
         da = self.model_info_steps["NodalData"][-1]
-        return da.coords["tags"].values
+        node_tags = list(da.coords["tags"].data)
+        unused_node_tags = da.attrs["unusedNodeTags"]
+        for tag in unused_node_tags:
+            if tag in node_tags:
+                node_tags.remove(tag)
+        return node_tags
 
     def get_current_truss_tags(self):
         da = self.model_info_steps["TrussData"][-1]
@@ -87,6 +93,12 @@ class ModelInfoStepData(ResponseBase):
 
     def get_current_brick_tags(self):
         da = self.model_info_steps["BrickData"][-1]
+        if len(da) > 0:
+            return da.coords["eleTags"].values
+        return []
+
+    def get_current_contact_tags(self):
+        da = self.model_info_steps["ContactData"][-1]
         if len(da) > 0:
             return da.coords["eleTags"].values
         return []

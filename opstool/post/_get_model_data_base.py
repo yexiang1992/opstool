@@ -44,6 +44,7 @@ class FEMData:
         # --------------------------nodal info------------------------------------
         # ------------------------------------------------------------------------
         self.node_tags = ops.getNodeTags()
+        self.unused_node_tags = []  # record unused nodal tags by this pacakge
         self.node_coords = []  # Nodal Coords
         self.node_index = dict()  # Key: nodeTag, value: index in self.node_coords
         self.node_ndims, self.node_ndofs = [], []  # Nodal Dims, Nodal dofs
@@ -68,7 +69,7 @@ class FEMData:
         # ------------------------------------------------------------------------
         # --------------------------Element info----------------------------------
         # ------------------------------------------------------------------------
-        self.ele_tags = ops.getEleTags()
+        self.ele_tags = []
         self.ele_centers, self.ele_class_tags = [], []
         # -----------------------------------------------------------------------
         self.truss_tags, self.truss_cells = [], []
@@ -83,6 +84,8 @@ class FEMData:
         self.link_tags, self.link_cells = [], []
         self.link_centers, self.link_lengths = [], []
         self.link_xaxis, self.link_yaxis, self.link_zaxis = [], [], []
+        # ------------------------------------------------------------------------
+        self.contact_tags, self.contact_cells = [], []
         # ------------------------------------------------------------------------
         self.plane_tags, self.plane_cells, self.plane_cells_type = [], [], []
         self.shell_tags, self.shell_cells, self.shell_cells_type = [], [], []
@@ -301,6 +304,37 @@ class FEMData:
         self.beam_yaxis.append(yaxis)
         self.beam_zaxis.append(zaxis)
 
+    def _make_contact_info(self, ele_tag, ele_class_tag):
+        ele_nodes = ops.eleNodes(ele_tag)
+        key = OPS_ELE_CLASSTAG2TYPE[ele_class_tag]
+        self.contact_tags.append(ele_tag)
+        cell = []
+        if ele_class_tag in [22, 23, 24, 25, 140]:  # zero-length element
+            if len(ele_nodes) == 2:
+                pass
+            elif len(ele_nodes) > 2:
+                mid = len(ele_nodes) // 2
+                part1 = ele_nodes[:mid]
+                part2 = ele_nodes[mid:]
+                part2 = part2[::-1]
+                for tag1, tag2 in zip(part1, part2):
+                    cell.extend([2, self.node_index[tag1], self.node_index[tag2]])
+                    self.ELE_CELLS_VTK[key].append([2, self.node_index[tag1], self.node_index[tag2]])
+                    self.ELE_CELLS_TYPE_VTK[key].append(LINE_CELL_TYPE_VTK[2])
+                    self.ELE_CELLS_TAGS[key].append(ele_tag)
+        else:
+            ele_nodes = ops.eleNodes(ele_tag)
+            cNode = ele_nodes[-2]
+            rNodes = ele_nodes[:-2]
+            # record the last Lagrange multiplier node that will be not used
+            self.unused_node_tags.append(ele_nodes[-1])
+            for rntag in rNodes:
+                cell.extend([2, self.node_index[cNode], self.node_index[rntag]])
+                self.ELE_CELLS_VTK[key].append([2, self.node_index[cNode], self.node_index[rntag]])
+                self.ELE_CELLS_TYPE_VTK[key].append(LINE_CELL_TYPE_VTK[2])
+                self.ELE_CELLS_TAGS[key].append(ele_tag)
+        self.contact_cells.append(cell)
+
     def _make_all_line_info(self, ele_tag, class_tag):
         idxs = [self.node_index[tag_] for tag_ in ops.eleNodes(ele_tag)]
         key = OPS_ELE_CLASSTAG2TYPE[class_tag]
@@ -365,8 +399,18 @@ class FEMData:
             self.unstru_cells.append([4, idxs[4], idxs[1], idxs[5], idxs[3]])
             self.unstru_cells_type.append(PLANE_CELL_TYPE_VTK[4])
 
+    def _make_ele_centers(self, ele_tag, class_tag):
+        # coords
+        ele_nodes = ops.eleNodes(ele_tag)
+        idxs = [self.node_index[tag_] for tag_ in ele_nodes]
+        coords = [self.node_coords[idx] for idx in idxs]
+        self.ele_centers.append(np.mean(coords, axis=0))
+        # ele_class_tags
+        self.ele_class_tags.append(class_tag)
+        self.ele_tags.append(ele_tag)
+
     def _make_ele_info(self):
-        for ele_tag in self.ele_tags:
+        for ele_tag in ops.getEleTags():
             class_tag = ops.getEleClassTags(ele_tag)
             if not isinstance(class_tag, int):
                 class_tag = class_tag[0]
@@ -375,26 +419,28 @@ class FEMData:
                 self._make_all_line_info(ele_tag, class_tag)
                 if class_tag in OPS_ELE_TAGS.Truss:
                     self._make_truss_info(ele_tag)
+                    self._make_ele_centers(ele_tag, class_tag)
                 elif class_tag in OPS_ELE_TAGS.Beam:
                     self._make_beam_info(ele_tag)
+                    self._make_ele_centers(ele_tag, class_tag)
                 elif class_tag in OPS_ELE_TAGS.Link:
                     self._make_link_info(ele_tag)
+                    self._make_ele_centers(ele_tag, class_tag)
             else:
                 if class_tag in OPS_ELE_TAGS.Plane:
                     self._make_plane_info(ele_tag, class_tag)
+                    self._make_ele_centers(ele_tag, class_tag)
                 elif class_tag in OPS_ELE_TAGS.Shell:
                     self._make_shell_info(ele_tag, class_tag)
+                    self._make_ele_centers(ele_tag, class_tag)
                 elif class_tag in OPS_ELE_TAGS.Solid:
                     self._make_solid_info(ele_tag, class_tag)
+                    self._make_ele_centers(ele_tag, class_tag)
                 elif class_tag in OPS_ELE_TAGS.Joint:
                     self._make_joint_info(ele_tag, class_tag)
-            # coords
-            ele_nodes = ops.eleNodes(ele_tag)
-            idxs = [self.node_index[tag_] for tag_ in ele_nodes]
-            coords = [self.node_coords[idx] for idx in idxs]
-            self.ele_centers.append(np.mean(coords, axis=0))
-            # ele_class_tags
-            self.ele_class_tags.append(class_tag)
+                    self._make_ele_centers(ele_tag, class_tag)
+            if class_tag in OPS_ELE_TAGS.Contact:
+                self._make_contact_info(ele_tag, class_tag)
 
         # reshape, ensure array alignment, starting with the element with the most nodes
         def reshape_cells(cells):

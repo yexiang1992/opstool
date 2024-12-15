@@ -27,16 +27,16 @@ class GetFEMData(FEMData):
                     "tags": self.node_tags,
                     "coords": ["x", "y", "z"],
                 },
-                dims=["tags", "coords"],
+                dims=["tags", "coords"]
             )
         else:
             node_data = xr.DataArray(
                 self.node_coords,
-                coords={
-                    "tags": [],
-                    "coords": [],
-                },
-                dims=["tags", "coords"],
+                # coords={
+                #     "tags": [],
+                #     "coords": [],
+                # },
+                # dims=["tags", "coords"],
             )
         node_data.name = "NodalData"
         node_data.attrs = {
@@ -340,6 +340,21 @@ class GetFEMData(FEMData):
         unstru.name = "UnstructuralData"
         return unstru
 
+    def get_contact_data(self):
+        if len(self.contact_cells) > 0:
+            contact = xr.DataArray(
+                self.contact_cells,
+                coords={
+                    "cells": ["numNodes", "nodeI", "nodeJ"] * (len(self.contact_cells[0]) // 3),
+                    "eleTags": self.contact_tags,
+                },
+                dims=["eleTags", "cells"],
+            )
+        else:
+            contact = xr.DataArray(self.contact_cells)
+        contact.name = "ContactData"
+        return contact
+
     def get_ele_centers_data(self):
         if len(self.ele_centers) > 0:
             return xr.DataArray(
@@ -366,6 +381,7 @@ class GetFEMData(FEMData):
         plane_data = self.get_plane_date()
         brick_data = self.get_brick_data()
         unstru_data = self.get_unstru_data()
+        contact_data = self.get_contact_data()
         ele_centers = self.get_ele_centers_data()
         # --------------------------------------------------------------
         all_eles = dict()
@@ -396,6 +412,7 @@ class GetFEMData(FEMData):
             plane_data,
             brick_data,
             unstru_data,
+            contact_data,
             ele_centers,
             all_eles,
         )
@@ -407,13 +424,17 @@ class GetFEMData(FEMData):
         ele_load_data = self.get_ele_load_data()
         mp_constraint_data = self.get_mp_constraint_data()
 
+        ele_data = self.get_ele_data()
+
+        # ----------------------------------------------------------------
+        # update and save the model info
+        nodal_data.attrs["unusedNodeTags"] = tuple(self.unused_node_tags)
         self.MODEL_INFO[nodal_data.name] = nodal_data
         self.MODEL_INFO[node_fixed_data.name] = node_fixed_data
         self.MODEL_INFO[nodal_load_data.name] = nodal_load_data
         self.MODEL_INFO[ele_load_data.name] = ele_load_data
         self.MODEL_INFO[mp_constraint_data.name] = mp_constraint_data
-        # ---------------------------------------------------
-        ele_data = self.get_ele_data()
+        # -----------------------------------------------------------------
         for edata in ele_data[:-1]:
             self.MODEL_INFO[edata.name] = edata
 

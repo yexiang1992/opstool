@@ -122,6 +122,7 @@ def set_plot_colors(
     brick: Union[str, list, tuple] = "#FF4500",
     tet: Union[str, list, tuple] = "#FFFF33",
     joint: Union[str, list, tuple] = "#7FFF00",
+    contact: Union[str, list, tuple] = "#ff9408",
     pfem: Union[str, list, tuple] = "#8080FF",
     constraint: Union[str, list, tuple] = "#FF1493",
     bc: Union[str, list, tuple] = "#15b01a",
@@ -156,6 +157,8 @@ def set_plot_colors(
         Color for tetrahedral (solid) elements.
     joint : str, list[int, int, int], optional
         Color for beam-column joint elements.
+    contact : str, list[int, int, int], optional
+        Color for contact elements.
     pfem : str, list[int, int, int], optional
         Color for PFEM elements.
     constraint : str, list[int, int, int], optional
@@ -199,6 +202,7 @@ def set_plot_colors(
     PLOT_ARGS.color_pfem = pfem
     PLOT_ARGS.color_brick = brick
     PLOT_ARGS.joint = joint
+    PLOT_ARGS.color_contact = contact
     PLOT_ARGS.color_constraint = constraint
     PLOT_ARGS.color_bc = bc
     PLOT_ARGS.color_map = cmap
@@ -235,6 +239,8 @@ def _get_ele_color(ele_types: list[str]):
                 colors[i] = PLOT_ARGS.color_pfem
             elif ele_type in OPS_ELE_TYPES.Joint:
                 colors[i] = PLOT_ARGS.color_joint
+            elif ele_type in OPS_ELE_TYPES.Contact:
+                colors[i] = PLOT_ARGS.color_contact
     return colors
 
 
