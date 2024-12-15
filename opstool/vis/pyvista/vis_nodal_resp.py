@@ -109,6 +109,7 @@ class PlotNodalResponse(PlotResponseBase):
         show_bc: bool = True,
         bc_scale: float = 1.0,
         show_mp_constraint: bool = False,
+        cpos="iso"
     ):
         step = int(round(value))
         node_nodeform_coords_da = self._get_node_data(step)
@@ -232,6 +233,7 @@ class PlotNodalResponse(PlotResponseBase):
                     self.pargs.color_constraint,
                     show_dofs=False,
                 )
+        self.update(plotter, cpos=cpos)
         return point_plot, line_plot, solid_plot, text, bc_plot, mp_plot
 
     def _update_mesh(
@@ -244,7 +246,7 @@ class PlotNodalResponse(PlotResponseBase):
         bc_plot=None,
         mp_plot=None,
         alpha=1.0,
-        bc_scale: float = 1.0,
+        bc_scale: float = 1.0
     ):
         step = int(round(value))
         po = self._get_node_data(step).to_numpy()
@@ -304,6 +306,7 @@ class PlotNodalResponse(PlotResponseBase):
         style="surface",
         show_outline=False,
         show_origin=False,
+        cpos="iso",
         **kargs,
     ):
         cmin, cmax, _ = self._get_resp_clim_peak()
@@ -325,6 +328,7 @@ class PlotNodalResponse(PlotResponseBase):
                 style=style,
                 show_outline=show_outline,
                 show_origin=show_origin,
+                cpos=cpos
             )
         else:
             point_plot, line_plot, solid_plot, text, bc_plot, mp_plot = (
@@ -339,6 +343,7 @@ class PlotNodalResponse(PlotResponseBase):
                     style=style,
                     show_outline=show_outline,
                     show_origin=show_origin,
+                    cpos=cpos
                 )
             )
             func = partial(
@@ -379,6 +384,7 @@ class PlotNodalResponse(PlotResponseBase):
         style="surface",
         show_outline=False,
         show_origin=False,
+        cpos="iso",
     ):
         cmin, cmax, max_step = self._get_resp_clim_peak()
         clim = (cmin, cmax)
@@ -398,6 +404,7 @@ class PlotNodalResponse(PlotResponseBase):
             style=style,
             show_outline=show_outline,
             show_origin=show_origin,
+            cpos=cpos
         )
 
     def plot_anim(
@@ -413,6 +420,7 @@ class PlotNodalResponse(PlotResponseBase):
         style="surface",
         show_outline=False,
         show_origin=False,
+        cpos="iso"
     ):
         if framerate is None:
             framerate = np.ceil(self.num_steps / 10)
@@ -441,6 +449,7 @@ class PlotNodalResponse(PlotResponseBase):
                     style=style,
                     show_outline=show_outline,
                     show_origin=show_origin,
+                    cpos=cpos
                 )
                 plotter.write_frame()
         else:
@@ -455,6 +464,7 @@ class PlotNodalResponse(PlotResponseBase):
                     style=style,
                     show_outline=show_outline,
                     show_origin=show_origin,
+                    cpos=cpos
                 )
             )
             plotter.write_frame()
@@ -473,6 +483,7 @@ class PlotNodalResponse(PlotResponseBase):
                 plotter.write_frame()
 
     def update(self, plotter, cpos):
+        cpos = cpos.lower()
         viewer = {
             "xy": plotter.view_xy,
             "yx": plotter.view_yx,
@@ -482,7 +493,7 @@ class PlotNodalResponse(PlotResponseBase):
             "zy": plotter.view_zy,
             "iso": plotter.view_isometric,
         }
-        if not self.show_zaxis:
+        if not self.show_zaxis and cpos not in ["xy", "yx"]:
             cpos = "xy"
         viewer[cpos]()
         return plotter
@@ -583,6 +594,7 @@ def plot_nodal_responses(
             style=style,
             show_outline=show_outline,
             show_origin=show_undeformed,
+            cpos=cpos
         )
     else:
         plotbase.plot_peak_step(
@@ -595,6 +607,7 @@ def plot_nodal_responses(
             style=style,
             show_outline=show_outline,
             show_origin=show_undeformed,
+            cpos=cpos
         )
     if PLOT_ARGS.anti_aliasing:
         plotter.enable_anti_aliasing(PLOT_ARGS.anti_aliasing)
@@ -605,6 +618,7 @@ def plot_nodal_responses_animation(
     odb_tag: Union[int, str] = 1,
     framerate: int = None,
     savefig: str = "NodalRespAnimation.gif",
+    off_screen: bool = True,
     scale: float = 1.0,
     show_defo: bool = True,
     resp_type: str = "disp",
@@ -627,6 +641,9 @@ def plot_nodal_responses_animation(
         Framerate for the display, i.e., the number of frames per second.
     savefig: str, default: NodalRespAnimation.gif
         Path to save the animation. The suffix can be ``.gif`` or ``.mp4``.
+    off_screen: bool, default: True
+        Whether to display the plotting window.
+        If True, the plotting window will not be displayed.
     scale: float, default: 1.0
         Scales the size of the deformation presentation.
     show_defo: bool, default: True
@@ -677,7 +694,7 @@ def plot_nodal_responses_animation(
         notebook=PLOT_ARGS.notebook,
         line_smoothing=PLOT_ARGS.line_smoothing,
         polygon_smoothing=PLOT_ARGS.polygon_smoothing,
-        off_screen=PLOT_ARGS.off_screen,
+        off_screen=off_screen,
     )
     plotbase = PlotNodalResponse(model_info_steps, node_resp_steps, model_update)
     plotbase.set_comp_resp_type(resp_type=resp_type, component=resp_dof)
@@ -693,7 +710,11 @@ def plot_nodal_responses_animation(
         style=style,
         show_outline=show_outline,
         show_origin=show_undeformed,
+        cpos=cpos
     )
     if PLOT_ARGS.anti_aliasing:
         plotter.enable_anti_aliasing(PLOT_ARGS.anti_aliasing)
+
+    print(f"Animation saved to {savefig}!")
+
     return plotbase.update(plotter, cpos)

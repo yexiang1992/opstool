@@ -376,6 +376,7 @@ def plot_eigen_animation(
     n_cycle: int = 5,
     framerate: int = 3,
     savefig: str = "EigenAnimation.gif",
+    off_screen: bool = True,
     cpos: str = "iso",
     solver: str = "-genBandArpack",
     **kargs,
@@ -395,6 +396,9 @@ def plot_eigen_animation(
         Framerate for the display, i.e., the number of frames per second.
     savefig: str, default: EigenAnimation.gif
         Path to save the animation. The suffix can be ``.gif`` or ``.mp4``.
+    off_screen: bool, default: True
+        Whether to display the plotting window.
+        If True, the plotting window will not be displayed.
     cpos: str, default: iso
         Model display perspective, optional: "iso", "xy", "yx", "xz", "zx", "yz", "zy".
         If 3d, defaults to "iso". If 2d, defaults to "xy".
@@ -425,7 +429,7 @@ def plot_eigen_animation(
         notebook=PLOT_ARGS.notebook,
         line_smoothing=PLOT_ARGS.line_smoothing,
         polygon_smoothing=PLOT_ARGS.polygon_smoothing,
-        off_screen=PLOT_ARGS.off_screen,
+        off_screen=off_screen,
     )
     plotbase.plot_anim(
         plotter,
@@ -437,4 +441,5 @@ def plot_eigen_animation(
     )
     if PLOT_ARGS.anti_aliasing:
         plotter.enable_anti_aliasing(PLOT_ARGS.anti_aliasing)
+    print(f"Animation saved to {savefig}!")
     return plotbase.update(plotter, cpos)

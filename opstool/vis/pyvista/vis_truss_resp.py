@@ -122,6 +122,7 @@ class PlotTrussResponse(PlotResponseBase):
         clim=None,
         alpha=1.0,
         line_width=1.5,
+        cpos="iso"
     ):
         step = int(round(value))
         truss_tags, truss_coords, truss_cells = self._make_truss_info(ele_tags, step)
@@ -215,6 +216,7 @@ class PlotTrussResponse(PlotResponseBase):
                 shape=None,
                 shape_opacity=0.0,
             )
+        self.update(plotter, cpos)
         return resp_plot
 
     def plot_slide(
@@ -224,6 +226,7 @@ class PlotTrussResponse(PlotResponseBase):
         show_values=True,
         alpha=1.0,
         line_width=1.5,
+        cpos="iso"
     ):
         plot_all_mesh = True if ele_tags is None else False
         _, clim, alpha_ = self._get_resp_peak()
@@ -236,6 +239,7 @@ class PlotTrussResponse(PlotResponseBase):
             show_values=show_values,
             alpha=alpha * alpha_,
             line_width=line_width,
+            cpos=cpos
         )
         plotter.add_slider_widget(
             func,
@@ -259,6 +263,7 @@ class PlotTrussResponse(PlotResponseBase):
         show_values=True,
         alpha=1.0,
         line_width=1.5,
+        cpos="iso"
     ):
         plot_all_mesh = True if ele_tags is None else False
         max_step, clim, alpha_ = self._get_resp_peak()
@@ -271,6 +276,7 @@ class PlotTrussResponse(PlotResponseBase):
             plot_all_mesh=plot_all_mesh,
             alpha=alpha * alpha_,
             line_width=line_width,
+            cpos=cpos
         )
 
     def plot_anim(
@@ -282,6 +288,7 @@ class PlotTrussResponse(PlotResponseBase):
         framerate: int = None,
         savefig: str = "TrussRespAnimation.gif",
         line_width=1.5,
+        cpos="iso"
     ):
         if framerate is None:
             framerate = np.ceil(self.num_steps / 10)
@@ -302,10 +309,12 @@ class PlotTrussResponse(PlotResponseBase):
                 plot_all_mesh=plot_all_mesh,
                 alpha=alpha * alpha_,
                 line_width=line_width,
+                cpos=cpos
             )
             plotter.write_frame()
 
     def update(self, plotter, cpos):
+        cpos = cpos.lower()
         viewer = {
             "xy": plotter.view_xy,
             "yx": plotter.view_yx,
@@ -315,7 +324,7 @@ class PlotTrussResponse(PlotResponseBase):
             "zy": plotter.view_zy,
             "iso": plotter.view_isometric,
         }
-        if not self.show_zaxis:
+        if not self.show_zaxis and cpos not in ["xy", "yx"]:
             cpos = "xy"
         viewer[cpos]()
         return plotter
@@ -389,6 +398,7 @@ def plot_truss_responses(
             show_values=show_values,
             alpha=alpha,
             line_width=line_width,
+            cpos=cpos
         )
     else:
         plotbase.plot_peak_step(
@@ -397,6 +407,7 @@ def plot_truss_responses(
             show_values=show_values,
             alpha=alpha,
             line_width=line_width,
+            cpos=cpos
         )
     if PLOT_ARGS.anti_aliasing:
         plotter.enable_anti_aliasing(PLOT_ARGS.anti_aliasing)
@@ -408,6 +419,7 @@ def plot_truss_responses_animation(
     ele_tags: Union[int, list] = None,
     framerate: int = None,
     savefig: str = "TrussRespAnimation.gif",
+    off_screen: bool = True,
     show_values: bool = False,
     resp_type: str = "axialForce",
     alpha: float = 1.0,
@@ -426,6 +438,9 @@ def plot_truss_responses_animation(
         Framerate for the display, i.e., the number of frames per second.
     savefig: str, default: TrussRespAnimation.gif
         Path to save the animation. The suffix can be ``.gif`` or ``.mp4``.
+    off_screen: bool, default: True
+        Whether to display the plotting window.
+        If True, the plotting window will not be displayed.
     show_values: bool, default: False
         Whether to display the response value.
     resp_type: str, default: "axialForce"
@@ -462,7 +477,7 @@ def plot_truss_responses_animation(
     plotter = pv.Plotter(
         notebook=PLOT_ARGS.notebook,
         line_smoothing=PLOT_ARGS.line_smoothing,
-        off_screen=PLOT_ARGS.off_screen
+        off_screen=off_screen
     )
     plotbase = PlotTrussResponse(model_info_steps, truss_resp_step, model_update)
     plotbase.refactor_resp_step(resp_type=resp_type, ele_tags=ele_tags)
@@ -474,7 +489,9 @@ def plot_truss_responses_animation(
         framerate=framerate,
         savefig=savefig,
         line_width=line_width,
+        cpos=cpos
     )
     if PLOT_ARGS.anti_aliasing:
         plotter.enable_anti_aliasing(PLOT_ARGS.anti_aliasing)
+    print(f"Animation saved as {savefig}!")
     return plotbase.update(plotter, cpos)

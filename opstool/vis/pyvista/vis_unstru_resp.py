@@ -103,6 +103,7 @@ class PlotUnstruResponse(PlotResponseBase):
         plot_all_mesh=True,
         clim=None,
         style="surface",
+        cpos="iso"
     ):
         step = int(round(value))
         tags, pos, cells, cell_types = self._make_unstru_info(ele_tags, step)
@@ -148,6 +149,7 @@ class PlotUnstruResponse(PlotResponseBase):
             title_font_size=self.pargs.title_font_size,
             position_x=0.875,
         )
+        self.update(plotter, cpos)
         return resp_plot
 
     def plot_slide(
@@ -155,6 +157,7 @@ class PlotUnstruResponse(PlotResponseBase):
         plotter,
         ele_tags=None,
         style="surface",
+        cpos="iso"
     ):
         plot_all_mesh = True if ele_tags is None else False
         _, clim = self._get_resp_peak()
@@ -165,6 +168,7 @@ class PlotUnstruResponse(PlotResponseBase):
             clim=clim,
             plot_all_mesh=plot_all_mesh,
             style=style,
+            cpos=cpos
         )
         plotter.add_slider_widget(
             func,
@@ -186,6 +190,7 @@ class PlotUnstruResponse(PlotResponseBase):
         plotter,
         ele_tags=None,
         style="surface",
+        cpos="iso"
     ):
         plot_all_mesh = True if ele_tags is None else False
         max_step, clim = self._get_resp_peak()
@@ -196,6 +201,7 @@ class PlotUnstruResponse(PlotResponseBase):
             clim=clim,
             plot_all_mesh=plot_all_mesh,
             style=style,
+            cpos=cpos
         )
 
     def plot_anim(
@@ -205,6 +211,7 @@ class PlotUnstruResponse(PlotResponseBase):
         framerate: int = None,
         savefig: str = "ShellRespAnimation.gif",
         style="surface",
+        cpos="iso"
     ):
         if framerate is None:
             framerate = np.ceil(self.num_steps / 11)
@@ -223,10 +230,12 @@ class PlotUnstruResponse(PlotResponseBase):
                 clim=clim,
                 plot_all_mesh=plot_all_mesh,
                 style=style,
+                cpos=cpos
             )
             plotter.write_frame()
 
     def update(self, plotter, cpos):
+        cpos= cpos.lower()
         viewer = {
             "xy": plotter.view_xy,
             "yx": plotter.view_yx,
@@ -236,7 +245,7 @@ class PlotUnstruResponse(PlotResponseBase):
             "zy": plotter.view_zy,
             "iso": plotter.view_isometric,
         }
-        if not self.show_zaxis:
+        if not self.show_zaxis and cpos not in ["xy", "yx"]:
             cpos = "xy"
         viewer[cpos]()
         return plotter
@@ -348,12 +357,14 @@ def plot_unstruct_responses(
             plotter,
             ele_tags=ele_tags,
             style=style,
+            cpos=cpos
         )
     else:
         plotbase.plot_peak_step(
             plotter,
             ele_tags=ele_tags,
             style=style,
+            cpos=cpos
         )
     if PLOT_ARGS.anti_aliasing:
         plotter.enable_anti_aliasing(PLOT_ARGS.anti_aliasing)
@@ -368,6 +379,7 @@ def plot_unstruct_responses_animation(
     resp_type: str = None,
     resp_dof: str = None,
     savefig: str = None,
+    off_screen: bool = True,
     style: str = "surface",
     cpos: str = "iso",
 ):
@@ -388,6 +400,9 @@ def plot_unstruct_responses_animation(
         Framerate for the display, i.e., the number of frames per second.
     savefig: str, default: None
         Path to save the animation. The suffix can be ``.gif`` or ``.mp4``.
+    off_screen: bool, default: True
+        Off-screen rendering, i.e., not showing the rendering window.
+        If False, the rendering window will be displayed.
     resp_type: str, default: None
         Response type, which dependents on the element type `ele_type`.
 
@@ -458,7 +473,7 @@ def plot_unstruct_responses_animation(
         notebook=PLOT_ARGS.notebook,
         line_smoothing=PLOT_ARGS.line_smoothing,
         polygon_smoothing=PLOT_ARGS.polygon_smoothing,
-        off_screen=PLOT_ARGS.off_screen,
+        off_screen=off_screen,
     )
     plotbase = PlotUnstruResponse(model_info_steps, resp_step, model_update)
     plotbase.refactor_resp_step(
@@ -470,9 +485,11 @@ def plot_unstruct_responses_animation(
         framerate=framerate,
         savefig=savefig,
         style=style,
+        cpos=cpos
     )
     if PLOT_ARGS.anti_aliasing:
         plotter.enable_anti_aliasing(PLOT_ARGS.anti_aliasing)
+    print(f"Animation saved as {savefig}!")
     return plotbase.update(plotter, cpos)
 
 

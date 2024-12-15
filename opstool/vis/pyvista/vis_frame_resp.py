@@ -305,6 +305,7 @@ class PlotFrameResponse(PlotResponseBase):
         plot_all_mesh=True,
         clim=None,
         line_width=1.0,
+        cpos="iso"
     ):
         step = int(round(value))
         resp = self.resp_step[step]
@@ -346,7 +347,7 @@ class PlotFrameResponse(PlotResponseBase):
             show_scalar_bar=False,
         )
         t_ = self.time[step]
-        title = self.resp_type + "\n"
+        title = self.resp_type + f" {self.component}\n"
         title += f"step: {step};" + f" time: {t_:.4f}\n"
         title += "min = {:.3E}\nmax = {:.3E}\n".format(np.min(scalars), np.max(scalars))
         text = plotter.add_text(
@@ -377,6 +378,7 @@ class PlotFrameResponse(PlotResponseBase):
             )
         else:
             plabel = None
+        self.update(plotter, cpos=cpos)
         return line_plot, resp_plot, text, plabel
 
     def plot_slide(
@@ -388,6 +390,7 @@ class PlotFrameResponse(PlotResponseBase):
         component=None,
         show_values=True,
         line_width=1.0,
+        cpos="iso"
     ):
         plot_all_mesh = True if ele_tags is None else False
         self.refactor_resp_data(ele_tags, resp_type, component)
@@ -401,6 +404,7 @@ class PlotFrameResponse(PlotResponseBase):
             plot_all_mesh=plot_all_mesh,
             show_values=show_values,
             line_width=line_width,
+            cpos=cpos
         )
         plotter.add_slider_widget(
             func,
@@ -426,6 +430,7 @@ class PlotFrameResponse(PlotResponseBase):
         component=None,
         show_values=True,
         line_width=1.0,
+        cpos="iso"
     ):
         plot_all_mesh = True if ele_tags is None else False
         self.refactor_resp_data(ele_tags, resp_type, component)
@@ -439,6 +444,7 @@ class PlotFrameResponse(PlotResponseBase):
             clim=clim,
             plot_all_mesh=plot_all_mesh,
             line_width=line_width,
+            cpos=cpos
         )
 
     def plot_anim(
@@ -452,6 +458,7 @@ class PlotFrameResponse(PlotResponseBase):
         framerate: int = None,
         savefig: str = "FrameForcesAnimation.gif",
         line_width=1.0,
+        cpos="iso"
     ):
         if framerate is None:
             framerate = np.ceil(self.num_steps / 10)
@@ -473,10 +480,12 @@ class PlotFrameResponse(PlotResponseBase):
                 clim=clim,
                 plot_all_mesh=plot_all_mesh,
                 line_width=line_width,
+                cpos=cpos
             )
             plotter.write_frame()
 
     def update(self, plotter, cpos):
+        cpos = cpos.lower()
         viewer = {
             "xy": plotter.view_xy,
             "yx": plotter.view_yx,
@@ -486,7 +495,7 @@ class PlotFrameResponse(PlotResponseBase):
             "zy": plotter.view_zy,
             "iso": plotter.view_isometric,
         }
-        if not self.show_zaxis:
+        if not self.show_zaxis and cpos not in ["xy", "yx"]:
             cpos = "xy"
         viewer[cpos]()
         return plotter
@@ -579,6 +588,7 @@ def plot_frame_responses(
             resp_type=resp_type,
             component=resp_dof,
             line_width=line_width,
+            cpos=cpos
         )
     else:
         plotbase.plot_peak_step(
@@ -589,6 +599,7 @@ def plot_frame_responses(
             resp_type=resp_type,
             component=resp_dof,
             line_width=line_width,
+            cpos=cpos
         )
     if PLOT_ARGS.anti_aliasing:
         plotter.enable_anti_aliasing(PLOT_ARGS.anti_aliasing)
@@ -605,6 +616,7 @@ def plot_frame_responses_animation(
     cpos: str = "iso",
     framerate: int = None,
     savefig: str = "FrameForcesAnimation.gif",
+    off_screen: bool = True,
     line_width: float = 1.5,
 ):
     """Animate the responses of frame elements.
@@ -650,6 +662,9 @@ def plot_frame_responses_animation(
     cpos: str, default: iso
         Model display perspective, optional: "iso", "xy", "yx", "xz", "zx", "yz", "zy".
         If 3d, defaults to "iso". If 2d, defaults to "xy".
+    off_screen: bool, default: True
+        Whether to display the plotting window.
+        If True, the plotting window will not be displayed.
     line_width: float, default: 1.5.
         Line width of the response graph.
 
@@ -672,7 +687,7 @@ def plot_frame_responses_animation(
     plotter = pv.Plotter(
         notebook=PLOT_ARGS.notebook,
         line_smoothing=PLOT_ARGS.line_smoothing,
-        off_screen=PLOT_ARGS.off_screen,
+        off_screen=off_screen,
     )
     plotbase = PlotFrameResponse(model_info_steps, beam_resp_steps, model_update)
     plotbase.plot_anim(
@@ -685,7 +700,9 @@ def plot_frame_responses_animation(
         framerate=framerate,
         savefig=savefig,
         line_width=line_width,
+        cpos=cpos
     )
     if PLOT_ARGS.anti_aliasing:
         plotter.enable_anti_aliasing(PLOT_ARGS.anti_aliasing)
+    print(f"Animation saved as {savefig}!")
     return plotbase.update(plotter, cpos)

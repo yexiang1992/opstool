@@ -2,6 +2,7 @@ import openseespy.opensees as ops
 import xarray as xr
 
 from ._response_base import ResponseBase
+from ...utils import suppress_ops_print
 
 
 class ContactRespStepData(ResponseBase):
@@ -26,7 +27,8 @@ class ContactRespStepData(ResponseBase):
         self.initialize()
 
     def add_data_one_step(self, ele_tags):
-        forces, defos, slips = _get_contact_resp(ele_tags)
+        with suppress_ops_print():
+            forces, defos, slips = _get_contact_resp(ele_tags)
         data_vars = {}
         if len(ele_tags) > 0:
             data_vars["localForces"] = (["eleTags", "localDOFs"], forces)
