@@ -108,10 +108,10 @@ class PlotNodalResponse(PlotResponseBase):
         show_origin=False,
         show_bc: bool = True,
         bc_scale: float = 1.0,
-        show_mp_constraint: bool = True,
+        show_mp_constraint: bool = False,
     ):
         step = int(round(value))
-        node_nodeform_coords = self._get_node_data(step)
+        node_nodeform_coords_da = self._get_node_data(step)
         bounds = self._get_node_data(step).attrs["bounds"]
         model_dims = self._get_node_data(step).attrs["ndims"]
         line_cells, _ = _get_line_cells(self._get_line_data(step))
@@ -119,23 +119,23 @@ class PlotNodalResponse(PlotResponseBase):
             self._get_unstru_data(step)
         )
         t_ = self.time[step]
-        node_disp = self._get_deformation_data(step)
-        node_resp = self._get_resp_data(step, self.resp_type, self.component)
+        node_disp_da = self._get_deformation_data(step)
+        node_resp_da = self._get_resp_data(step, self.resp_type, self.component)
         is_coord_equal = np.array_equal(
-            node_nodeform_coords.coords["tags"].values,
-            node_disp.coords["nodeTags"].values
+            node_nodeform_coords_da.coords["tags"].values,
+            node_disp_da.coords["nodeTags"].values
         )
         if not is_coord_equal:
             common_coords = np.intersect1d(
-                node_nodeform_coords.coords["tags"].values,
-                node_disp.coords["nodeTags"].values
+                node_nodeform_coords_da.coords["tags"].values,
+                node_disp_da.coords["nodeTags"].values
             )
-            node_nodeform_coords = node_nodeform_coords.sel({"tags": common_coords})
-            node_disp = node_disp.sel({"nodeTags": common_coords})
-            node_resp = node_resp.sel({"nodeTags": common_coords})
-        node_nodeform_coords = node_nodeform_coords.to_numpy()
-        node_disp = node_disp.to_numpy()
-        node_resp = node_resp.to_numpy()
+            node_nodeform_coords_da = node_nodeform_coords_da.sel({"tags": common_coords})
+            node_disp_da = node_disp_da.sel({"nodeTags": common_coords})
+            node_resp_da = node_resp_da.sel({"nodeTags": common_coords})
+        node_nodeform_coords = node_nodeform_coords_da.to_numpy()
+        node_disp = node_disp_da.to_numpy()
+        node_resp = node_resp_da.to_numpy()
         if alpha > 0.0:
             node_deform_coords = alpha * node_disp + node_nodeform_coords
         else:
@@ -199,9 +199,14 @@ class PlotNodalResponse(PlotResponseBase):
         if show_bc:
             fixed_node_data = self._get_bc_data(step)
             if len(fixed_node_data) > 0:
+                fix_tags = fixed_node_data["tags"].values
+                node_disp_fix = node_disp_da.sel({"nodeTags": fix_tags}).to_numpy()
                 fixed_data = fixed_node_data.to_numpy()
                 fixed_dofs = fixed_data[:, -6:].astype(int)
-                fixed_coords = fixed_data[:, :3]
+                if alpha > 0.0:
+                    fixed_coords = alpha * node_disp_fix + fixed_data[:, :3]
+                else:
+                    fixed_coords = fixed_data[:, :3]
                 max_bound = self._get_node_data(step).attrs["maxBoundSize"]
                 min_bound = self._get_node_data(step).attrs["minBoundSize"]
                 s = (max_bound + min_bound) / 100 * bc_scale
@@ -493,7 +498,7 @@ def plot_nodal_responses(
     cpos: str = "iso",
     show_bc: bool = True,
     bc_scale: float = 1.0,
-    show_mp_constraint: bool = True,
+    show_mp_constraint: bool = False,
     show_undeformed: bool = False,
     style: str = "surface",
     show_outline: bool = False,
@@ -532,7 +537,7 @@ def plot_nodal_responses(
         Whether to display boundary supports.
     bc_scale: float, default: 1.0
         Scale the size of boundary support display.
-    show_mp_constraint: bool, default: True
+    show_mp_constraint: bool, default: False
         Whether to show multipoint (MP) constraint.
     show_undeformed: bool, default: False
         Whether to show the undeformed shape of the model.
@@ -606,7 +611,7 @@ def plot_nodal_responses_animation(
     resp_dof: Union[list, tuple, str] = ("UX", "UY", "UZ"),
     show_bc: bool = True,
     bc_scale: float = 1.0,
-    show_mp_constraint: bool = True,
+    show_mp_constraint: bool = False,
     cpos: str = "iso",
     show_undeformed: bool = False,
     style: str = "surface",
@@ -638,7 +643,7 @@ def plot_nodal_responses_animation(
         Whether to display boundary supports.
     bc_scale: float, default: 1.0
         Scale the size of boundary support display.
-    show_mp_constraint: bool, default: True
+    show_mp_constraint: bool, default: False
         Whether to show multipoint (MP) constraint.
     cpos: str, default: iso
         Model display perspective, optional: "iso", "xy", "yx", "xz", "zx", "yz", "zy".
