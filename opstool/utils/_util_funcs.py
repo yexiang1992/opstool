@@ -1,8 +1,10 @@
+import os
 import sys
 import numpy as np
 from pathlib import Path
 from typing import Union
 from itertools import cycle
+from contextlib import contextmanager
 from .consts import CONSOLE, PKG_PREFIX
 
 
@@ -146,3 +148,21 @@ def gram_schmidt(v1, v2):
     y = y / np.linalg.norm(y)
     z = z / np.linalg.norm(z)
     return x, y, z
+
+
+# Context manager to temporarily suppress stdout and stderr
+@contextmanager
+def suppress_ops_print():
+    # Save the original stdout and stderr
+    stdout = sys.stdout
+    stderr = sys.stderr
+    try:
+        # Redirect stdout and stderr to null (discard output)
+        with open(os.devnull, 'w') as fnull:
+            sys.stdout = fnull
+            sys.stderr = fnull
+            yield
+    finally:
+        # Restore the original stdout and stderr
+        sys.stdout = stdout
+        sys.stderr = stderr
