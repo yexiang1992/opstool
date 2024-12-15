@@ -336,8 +336,9 @@ ELE_TAG_Beam = [
     9,
     10,
     11,
-    162,
-    163,
+    162,  # "MVLEM"
+    163,  # "SFI_MVLEM"
+    257,  # "E_SFI"
     28,
     29,
     30,
@@ -413,6 +414,7 @@ ELE_TAG_Shell = [
     213,  # SFI_MVLEM_3D
     259259,  # MVLEM_3D
 ]
+ELE_TAG_Wall = [212, 213, 259259, 162, 163, 257]  # 162-MVLEM2D, 163-SFI_MVLEM2D, 257-E_SFI2D
 ELE_TAG_Joint = [71, 72, 81, 8181, 82, 83]
 ELE_TAG_Tetrahedron = [179, 256, 189]  # four, ten, 189-FEMBubble
 ELE_TAG_Brick = [
@@ -453,6 +455,7 @@ OPS_ELE_TAGS = SimpleNamespace(
     Joint=ELE_TAG_Joint,
     Plane=ELE_TAG_Plane,
     Shell=ELE_TAG_Shell,
+    Wall=ELE_TAG_Wall,
     SurfaceLoad=ELE_TAG_SURFACE_LOAD,
     # solid-fluid coupled elements, solid displacement (u) and fluid pressure (p)
     UP=ELE_TAG_UP,

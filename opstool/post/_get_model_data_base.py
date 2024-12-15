@@ -348,6 +348,8 @@ class FEMData:
         ele_nodes = ops.eleNodes(ele_tag)
         idxs = [self.node_index[tag_] for tag_ in ele_nodes]
         key = OPS_ELE_CLASSTAG2TYPE[class_tag]
+        if class_tag in OPS_ELE_TAGS.Wall:
+            idxs = [idxs[0], idxs[1], idxs[3], idxs[2]]
         # ---------------------------------------------------------------------------
         self.ELE_CELLS_VTK[key].append([len(idxs)] + idxs)
         self.ELE_CELLS_TAGS[key].append(ele_tag)
