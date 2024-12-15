@@ -14,6 +14,7 @@ from ._get_response import (
     ShellRespStepData,
     PlaneRespStepData,
     BrickRespStepData,
+    ContactRespStepData
 )
 from .eigen_data import save_eigen_data
 from .model_data import save_model_data
@@ -53,6 +54,8 @@ class CreateODB:
         Whether to save plane element responses.
     save_brick_resp: bool, default: True
         Whether to save brick element responses.
+    save_contact_resp: bool, default: True
+        Whether to save contact element responses.
     node_tags: Union[list, tuple, int], default: None
         Node tags to be saved.
         If None, save all nodes' responses.
@@ -74,6 +77,8 @@ class CreateODB:
     brick_tags: Union[list, tuple, int], default: None
         Brick element tags to be saved.
         If None, save all brick elements' responses.
+    contact_tags: Union[list, tuple, int], default: None
+        Contact element tags to be saved.
 
     .. Note::
         If you enter optional node and element tags to avoid saving all data,
@@ -93,6 +98,7 @@ class CreateODB:
             save_fiber_sec_resp: bool = True,
             save_plane_resp: bool = True,
             save_brick_resp: bool = True,
+            save_contact_resp: bool = True,
             node_tags: Union[list, tuple, int] = None,
             frame_tags: Union[list, tuple, int] = None,
             truss_tags: Union[list, tuple, int] = None,
@@ -100,6 +106,7 @@ class CreateODB:
             shell_tags: Union[list, tuple, int] = None,
             plane_tags: Union[list, tuple, int] = None,
             brick_tags: Union[list, tuple, int] = None,
+            contact_tags: Union[list, tuple, int] = None
     ):
         self.odb_tag = odb_tag
         self.model_update = model_update
@@ -111,6 +118,7 @@ class CreateODB:
         self.save_fiber_sec_resp = save_fiber_sec_resp
         self.save_plane_resp = save_plane_resp
         self.save_brick_resp = save_brick_resp
+        self.save_contact_resp = save_contact_resp
 
         self.node_tags = node_tags
         self.frame_tags = frame_tags
@@ -119,6 +127,7 @@ class CreateODB:
         self.shell_tags = shell_tags
         self.plane_tags = plane_tags
         self.brick_tags = brick_tags
+        self.contact_tags = contact_tags
 
         if node_tags is not None:
             self.node_tags = [int(tag) for tag in np.atleast_1d(node_tags)]
@@ -134,6 +143,8 @@ class CreateODB:
             self.plane_tags = [int(tag) for tag in np.atleast_1d(plane_tags)]
         if brick_tags is not None:
             self.brick_tags = [int(tag) for tag in np.atleast_1d(brick_tags)]
+        if contact_tags is not None:
+            self.contact_tags = [int(tag) for tag in np.atleast_1d(contact_tags)]
 
         self.ModelInfo = None
         self.NodalResp = None
@@ -144,6 +155,7 @@ class CreateODB:
         self.FiberSecResp = None
         self.PlaneResp = None
         self.BrickResp = None
+        self.ContactResp = None
 
         self.initialize()
 
@@ -201,6 +213,13 @@ class CreateODB:
             brick_tags = self.ModelInfo.get_current_brick_tags()
         if len(brick_tags) > 0 and self.save_brick_resp:
             self.BrickResp = BrickRespStepData(brick_tags)
+        # -----------------------------------------------------------------
+        if self.contact_tags is not None:
+            contact_tags = self.contact_tags
+        else:
+            contact_tags = self.ModelInfo.get_current_contact_tags()
+        if len(contact_tags) > 0 and self.save_contact_resp:
+            self.ContactResp = ContactRespStepData(contact_tags)
 
     def reset(self):
         if self.ModelInfo is not None:
@@ -221,6 +240,8 @@ class CreateODB:
             self.PlaneResp.reset()
         if self.BrickResp is not None:
             self.BrickResp.reset()
+        if self.ContactResp is not None:
+            self.ContactResp.reset()
 
     def fetch_response_step(self, print_info: bool = False):
         """Extract response data for the current moment.
@@ -283,6 +304,13 @@ class CreateODB:
             brick_tags = self.ModelInfo.get_current_brick_tags()
         if len(brick_tags) > 0 and self.save_brick_resp:
             self.BrickResp.add_data_one_step(brick_tags)
+        # -----------------------------------------------------------------
+        if self.contact_tags is not None:
+            contact_tags = self.contact_tags
+        else:
+            contact_tags = self.ModelInfo.get_current_contact_tags()
+        if len(contact_tags) > 0 and self.save_contact_resp:
+            self.ContactResp.add_data_one_step(contact_tags)
 
         time = ops.getTime()
         if print_info:
@@ -316,6 +344,8 @@ class CreateODB:
             self.PlaneResp.save_file(dt)
         if self.BrickResp is not None:
             self.BrickResp.save_file(dt)
+        if self.ContactResp is not None:
+            self.ContactResp.save_file(dt)
 
         dt.to_netcdf(filename, mode="w", engine="netcdf4")
 
@@ -382,6 +412,8 @@ def loadODB(obd_tag, resp_type: str = "Nodal"):
         resp_step = PlaneRespStepData.read_file(dt)
     elif resp_type.lower() in ["brick", "solid"]:
         resp_step = BrickRespStepData.read_file(dt)
+    elif resp_type.lower() == "contact":
+        resp_step = ContactRespStepData.read_file(dt)
     else:
         raise ValueError(f"Unsupported response type {resp_type}!")
 
@@ -505,7 +537,7 @@ def get_element_responses(
         Tag of output databases (ODB) to be read.
     ele_type: str, default: Frame
         Type of element to be read.
-        Optional: "Frame", "Truss", "Link", "Shell", "Plane", "Solid".
+        Optional: "Frame", "Truss", "Link", "Shell", "Plane", "Solid", "Contact
     resp_type: str, default: disp
         The response type, which depends on the parameter `ele_type`.
         If None, return all responses to that `ele_type`.
@@ -535,6 +567,10 @@ def get_element_responses(
         #. For `Brick` or 'Solid':
             * "stresses": Stresses at Gauss points.
             * "strains": Strains at Gauss points.
+        #. For `Contact`:
+            * "localForces": Local forces in the element local coordinate system (normal and tangential).
+            * "localDisp": Local displacements in the element local coordinate system (normal and tangential).
+            * "slips": Slips in the element local coordinate system (tangential).
 
     ele_tags: Union[list, tuple, int], default: None
         Element tags to be read.
@@ -575,6 +611,8 @@ def get_element_responses(
         ele_resp = PlaneRespStepData.read_response(dt, resp_type=resp_type, ele_tags=ele_tags)
     elif ele_type.lower() in ["brick", "solid"]:
         ele_resp = BrickRespStepData.read_response(dt, resp_type=resp_type, ele_tags=ele_tags)
+    elif ele_type.lower() == "contact":
+        ele_resp = ContactRespStepData.read_response(dt, resp_type=resp_type, ele_tags=ele_tags)
     else:
         raise ValueError(
             f"Unsupported element type {ele_type}, "

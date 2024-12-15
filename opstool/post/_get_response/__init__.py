@@ -7,6 +7,7 @@ from ._get_fiber_sec_resp import FiberSecRespStepData
 from ._get_shell_resp import ShellRespStepData
 from ._get_plane_resp import PlaneRespStepData
 from ._get_solid_resp import BrickRespStepData
+from ._get_contact_resp import ContactRespStepData
 
 __all__ = [
     "ModelInfoStepData",
@@ -18,4 +19,5 @@ __all__ = [
     "ShellRespStepData",
     "PlaneRespStepData",
     "BrickRespStepData",
+    "ContactRespStepData",
 ]
