@@ -43,7 +43,6 @@ class ModelInfoStepData(ResponseBase):
 
     def _to_xarray(self):
         for key, data in self.model_info_steps.items():
-            print(key)
             new_data = xr.concat(data, dim="time", join="outer")
             new_data.coords["time"] = self.times
             self.model_info_steps[key] = new_data
