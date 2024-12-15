@@ -1,9 +1,10 @@
 from types import SimpleNamespace
 from typing import Union
 
-import matplotlib.pyplot as plt
 import numpy as np
 import plotly.graph_objs as go
+import matplotlib.pyplot as plt
+from matplotlib.colors import to_hex
 
 from ...utils import OPS_ELE_TYPES
 
@@ -51,13 +52,16 @@ def set_plot_props(
         ‘viridis’, ‘ylgn’, ‘ylgnbu’, ‘ylorbr’, ‘ylorrd’].
 
         Appending ‘_r’ to a named colorscale reverses it.
-    cmap_model : str, list, optional， default=None
-        Colormap used for geometry model visualization.
+    cmap_model : str, list, optional, default=None
+        Matplotlib colormap used for geometry model visualization.
         Same as ``cmap``, except that this parameter will be used
         for geometry model visualization and will be automatically mapped
         according to different element types.
         If None, If None, the color specified in the function``set_plot_colors``
         will be used.
+
+        Available color maps are shown in
+        `Colormaps in Matplotlib <https://matplotlib.org/stable/users/explain/colors/colormaps.html>`_
     theme : str, optional, default: "plotly"
         Available theme templates for plotly:
         ['ggplot2', 'seaborn', 'simple_white', 'plotly', 'plotly_white',
@@ -179,13 +183,16 @@ def set_plot_colors(
         ‘viridis’, ‘ylgn’, ‘ylgnbu’, ‘ylorbr’, ‘ylorrd’].
 
         Appending ‘_r’ to a named colorscale reverses it.
-    cmap_model : str, list, optional， default=None
-        Colormap used for geometry model visualization.
+    cmap_model : str, list, optional, default=None
+        Matplotlib colormap used for geometry model visualization.
         Same as ``cmap``, except that this parameter will be used
         for geometry model visualization and will be automatically mapped
         according to different element types.
         If None, If None, the color specified in the function``set_plot_colors``
         will be used.
+
+        Available color maps are shown in
+        `Colormaps in Matplotlib <https://matplotlib.org/stable/users/explain/colors/colormaps.html>`_
 
     Returns
     -------
@@ -218,6 +225,7 @@ def _get_ele_color(ele_types: list[str]):
     if PLOT_ARGS.cmap_model:
         cmap = plt.get_cmap(PLOT_ARGS.cmap_model)
         colors = cmap(np.linspace(0, 1, len(ele_types)))
+        colors = [to_hex(color) for color in colors]
     else:
         colors = ["#01153e"] * len(ele_types)
         for i, ele_type in enumerate(ele_types):

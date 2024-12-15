@@ -64,12 +64,15 @@ def set_plot_props(
         create a three color colormap you might specify
         ``['green', 'red', 'blue']``.
     cmap_model : str, list, optional, default=None
-        Colormap used for geometry model visualization.
+        Matplotlib colormap used for geometry model visualization.
         Same as ``cmap``, except that this parameter will be used
         for geometry model visualization and will be automatically mapped
         according to different element types.
         If None, If None, the color specified in the function``set_plot_colors``
         will be used.
+
+        Available color maps are shown in
+        `Colormaps in Matplotlib <https://matplotlib.org/stable/users/explain/colors/colormaps.html>`_
     n_colors : int, optional
         Number of colors to use when displaying scalars. Default to 256.
         The scalar bar will also have this many colors.
@@ -287,12 +290,15 @@ def set_plot_colors(
         create a three color colormap you might specify
         ``['green', 'red', 'blue']``.
     cmap_model : str, list, optional, default=None
-        Colormap used for geometry model visualization.
+        Matplotlib colormap used for geometry model visualization.
         Same as ``cmap``, except that this parameter will be used
         for geometry model visualization and will be automatically mapped
         according to different element types.
         If None, If None, the color specified in the function``set_plot_colors``
         will be used.
+
+        Available color maps are shown in
+        `Colormaps in Matplotlib <https://matplotlib.org/stable/users/explain/colors/colormaps.html>`_
 
     Returns
     -------
