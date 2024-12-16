@@ -134,10 +134,10 @@ class PlotModelBase:
             plotter.add_point_labels(
                 self.points,
                 node_labels,
-                text_color="#87ae73",
+                text_color="#048243",
                 font_size=self.pargs.font_size,
                 point_color=self.pargs.color_point,
-                bold=False,
+                bold=True,
                 render_points_as_spheres=True,
                 point_size=1e-5,
                 always_visible=True,
@@ -155,7 +155,7 @@ class PlotModelBase:
                 text_color="#650021",
                 font_size=self.pargs.font_size,
                 point_size=self.pargs.point_size+2,
-                bold=False,
+                bold=True,
                 always_visible=True,
                 shape_opacity=0.0,
             )
