@@ -28,7 +28,7 @@ class SmartAnalyze:
     ===============
     testType: str, default="EnergyIncr"
         Identical to the testType in OpenSees test command.
-        Choices see `text command <https://opensees.berkeley.edu/wiki/index.php/Test_Command>`__
+        Choices see `test command <https://opensees.berkeley.edu/wiki/index.php/Test_Command>`__
     testTol: float, default=1.0e-10
         The initial test tolerance set to the OpenSees test command.
         If tryLooseTestTol is set to True, the test tolerance can be loosened.
@@ -36,7 +36,7 @@ class SmartAnalyze:
         The initial number of test iteration times.
         If tryAddTestTimes is set to True, the number of test times can be enlarged.
     testPrintFlag: int, default=0
-        The test print flag in OpenSees Test command.
+        The test print flag in OpenSees ``test`` command.
     tryAddTestTimes: bool, default=False
         If True, the number of test times will be enlarged if the last test norm is smaller than `normTol`,
         the enlarged number is specified in `testIterTimesMore`.
@@ -76,8 +76,8 @@ class SmartAnalyze:
         algoTypes = [10, 20, 100],
         UserAlgoArgs = ["KrylovNewton", "-iterate", "initial", "-maxDim", 20]
 
-    Algorithm type flag reference
-    ===============================
+    **Algorithm type flag reference**
+
     * 0:  Linear
     * 1:  Linear -initial
     * 2:  Linear -secant
@@ -119,8 +119,8 @@ class SmartAnalyze:
     * 91:  ExpressNewton -InitialTangent
     * 100:  User-defined0
 
-    STEP RELATED:
-    ==============
+    STEP SIZE RELATED:
+    ===================
     initialStep: float, default=None
         Specifying the initial Step length to conduct analysis.
         If None, equal to `dt`.
@@ -128,8 +128,7 @@ class SmartAnalyze:
         A factor that is multiplied by each time
         the step length is shortened.
     minStep: float, default=1.e-6
-        The step tolerance when shortening
-        the step length.
+        The step tolerance when shortening the step length.
         If step length is smaller than minStep, special ways to converge the model will be used
         according to `try-` flags.
 
@@ -173,16 +172,16 @@ class SmartAnalyze:
     >>> segs = analysis.static_split(protocol, 0.01)
     >>> print(segs)
     >>> for seg in segs:
-    >>>     analysis.StaticAnalyze(1, 2, seg)  # node tag 1, dof 2
+    >>>     analysis.StaticAnalyze(node=1, dof=2, seg=seg)  # node tag 1, dof 2
 
     Example 3: change control parameters
 
     >>> analysis = opst.anlys.SmartAnalyze(
-    >>>     analysis_type="Transient",
-    >>>     algoTypes=[40, 30, 20],
-    >>>     printPer=20,
-    >>>     tryAlterAlgoTypes=True,
-    >>> )
+    >>>   analysis_type="Transient",
+    >>>   algoTypes=[40, 30, 20],
+    >>>   printPer=20,
+    >>>   tryAlterAlgoTypes=True,
+    >>>)
     """
 
     def __init__(self, analysis_type="Transient", **kargs):
@@ -196,7 +195,7 @@ class SmartAnalyze:
             "testIterTimes": 10,
             "testPrintFlag": 0,
             "tryAddTestTimes": False,
-            "normTol": 10,
+            "normTol": 1000,
             "testIterTimesMore": 50,
             "tryLooseTestTol": False,
             "looseTestTolTo": 1.0,
@@ -241,7 +240,8 @@ class SmartAnalyze:
 
     def transient_split(self, npts: int):
         """Step Segmentation for Transient Analysis.
-        It is not necessary to use this method.
+        The main purpose of this function is to tell the program the total number of analysis steps to show progress.
+        However, this is not necessary.
 
         Parameters
         ----------
@@ -316,14 +316,14 @@ class SmartAnalyze:
     def _get_time(self):
         return time.time() - self.current["startTime"]
 
-    def TransientAnalyze(self, dt: float, print_info: bool = False):
+    def TransientAnalyze(self, dt: float, print_info: bool = True):
         """Single Step Transient Analysis.
 
         Parameters
         ----------
         dt : float
             Time Step.
-        print_info: bool, default=False
+        print_info: bool, default=True
             If True, print info.
 
         Returns
@@ -353,6 +353,7 @@ class SmartAnalyze:
 
         self.current["progress"] += 1
         self.current["counter"] += 1
+        print_info = True if self.control["debugMode"] else print_info
         if print_info:
             if self.current["segs"] > 0:
                 color = get_random_color()
@@ -380,7 +381,7 @@ class SmartAnalyze:
             )
         return 0
 
-    def StaticAnalyze(self, node: int, dof: int, seg: float, print_info: bool = False):
+    def StaticAnalyze(self, node: int, dof: int, seg: float, print_info: bool = True):
         """Single step static analysis and applies to displacement control only.
 
         Parameters
@@ -391,7 +392,7 @@ class SmartAnalyze:
             The dof in the displacement control.
         seg : float
             Each load step, i.e., each element returned by static_split.
-        print_info: bool, default=False
+        print_info: bool, default=True
             If True, print info.
 
         Returns
@@ -424,6 +425,7 @@ class SmartAnalyze:
             return -1
         self.current["progress"] += 1
         self.current["counter"] += 1
+        print_info = True if self.control["debugMode"] else print_info
         if print_info:
             if self.current["segs"] > 0:
                 color = get_random_color()
@@ -485,7 +487,7 @@ class SmartAnalyze:
 
         Returns
         -------
-        int
+        flag: int
             Analysis flag, if < 0, analysis failed; elsewise = 0 success.
         """
 
