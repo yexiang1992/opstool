@@ -15,7 +15,7 @@ pyvista
 plotly
 gmsh
 matplotlib
-openseespy==3.7.0.4
+openseespy
 sectionproperties
 rich
 Sphinx
