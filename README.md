@@ -29,7 +29,8 @@ it is recommended that you use [Anaconda](https://www.anaconda.com/) to avoid li
 
 **Stable**: See [https://opstool.readthedocs.io/en/stable/](https://opstool.readthedocs.io/en/stable/)
 
-> 📌 **Note:** Since an opstool version **v1.0.1**, the API and features have undergone significant changes and upgrades. As a result, it feels more like a new library, and you should take some time to familiarize yourself with the new interface usage.
+> [!TIP]
+> Since an opstool version **v1.0.1**, the API and features have undergone significant changes and upgrades. As a result, it feels more like a new library, and you should take some time to familiarize yourself with the new interface usage.
 
 ## Key Features
 
