@@ -34,7 +34,10 @@ class PlotModelBase:
         self.max_bound_size = self.nodal_data.attrs["maxBoundSize"]
         # -------------------------------------------------------------
         self.ele_centers = model_info["eleCenters"]
-        self.ele_tags = self.ele_centers.coords["eleTags"]
+        if "eleTags" in self.ele_centers.coords:
+            self.ele_tags = self.ele_centers.coords["eleTags"]
+        else:
+            self.ele_tags = []
         # ---------------------------------------------------------------
         self.ele_data_types = cells
         self.ele_types = list(cells.keys())

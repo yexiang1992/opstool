@@ -465,8 +465,11 @@ def save_model_data(
     model_data = dict()
     for key in model_info.keys():
         model_data[f"ModelInfo/{key}"] = xr.Dataset({key: model_info[key]})
-    for key in cells.keys():
-        model_data[f"Cells/{key}"] = xr.Dataset({key: cells[key]})
+    if len(cells) > 0:
+        for key in cells.keys():
+            model_data[f"Cells/{key}"] = xr.Dataset({key: cells[key]})
+    else:
+        model_data["Cells"] = xr.Dataset()
     dt = xr.DataTree.from_dict(model_data, name="ModelData")
     dt.to_netcdf(output_filename, mode="w", engine="netcdf4")
     # /////////////////////////////////////
