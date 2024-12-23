@@ -23,7 +23,10 @@ class PlotModelBase:
     def __init__(self, model_info: dict, cells: dict):
         # --------------------------------------------------------------
         self.nodal_data = model_info["NodalData"]
-        self.nodal_tags = self.nodal_data.coords["tags"].data
+        if "tags" in self.nodal_data.coords:
+            self.nodal_tags = self.nodal_data.coords["tags"].values
+        else:
+            raise ValueError("Model have no nodal data!")
         self.points = self.nodal_data.to_numpy()
         self.ndims = self.nodal_data.attrs["ndims"]
         self.show_zaxis = False if np.max(self.ndims) <= 2 else True
