@@ -19,7 +19,7 @@ pyvista = "^0.44.1"
 plotly = "^5.24.1"
 pandas = "^2.2.3"
 xarray = "^2024.10.0"
-imageio = "^2.35.1"
+imageio = {extras = ["ffmpeg"], version = "^2.36.1"}
 sectionproperties = "^3.4.0"
 shapely = "^2.0.6"
 rich = "^13.9.2"
