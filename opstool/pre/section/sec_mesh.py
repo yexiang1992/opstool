@@ -12,7 +12,9 @@ from sectionproperties.pre.geometry import CompoundGeometry, Geometry
 from sectionproperties.pre.pre import Material, DEFAULT_MATERIAL
 from shapely.geometry import LineString, Polygon
 from rich.table import Table
-from ...utils import CONSOLE, PKG_PREFIX, get_random_color, get_random_color_rich
+from ...utils import CONSTANTS, get_random_color, get_random_color_rich
+CONSOLE = CONSTANTS.CONSOLE
+PKG_PREFIX = CONSTANTS.PKG_PREFIX
 
 
 def create_polygon_points(

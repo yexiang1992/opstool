@@ -4,13 +4,8 @@ import xarray as xr
 from typing import Union
 import openseespy.opensees as ops
 
-from ..utils import RESULTS_DIR, get_random_color, CONSOLE, PKG_PREFIX
+from ..utils import CONSTANTS, get_random_color
 from .model_data import GetFEMData
-
-
-if not os.path.exists(RESULTS_DIR):
-    os.mkdir(RESULTS_DIR)
-
 
 def _get_modal_properties(mode_tag: int = 1, solver: str = "-genBandArpack"):
     """Get modal properties' data.
@@ -137,6 +132,10 @@ def save_eigen_data(
        See `eigen Command <https://opensees.github.io/OpenSeesDocumentation/user/manual/analysis/eigen.html>`_
     """
     # ----------------------------------------------------------------------
+    RESULTS_DIR = CONSTANTS.get_output_dir()
+    CONSOLE = CONSTANTS.get_console()
+    PKG_PREFIX = CONSTANTS.get_pkg_prefix()
+
     output_filename = RESULTS_DIR + "/" + f"EigenData-{odb_tag}.nc"
     # -----------------------------------------------------------------
     model_info, _ = GetFEMData().get_model_info()
@@ -162,6 +161,10 @@ def load_eigen_data(
     resave: bool = True,
 ):
     """Get the eigenvalue data from the saved file."""
+    RESULTS_DIR = CONSTANTS.get_output_dir()
+    CONSOLE = CONSTANTS.get_console()
+    PKG_PREFIX = CONSTANTS.get_pkg_prefix()
+
     filename = f"{RESULTS_DIR}/" + f"EigenData-{odb_tag}.nc"
     if not os.path.exists(filename):
         resave = True

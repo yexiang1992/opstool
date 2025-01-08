@@ -18,7 +18,7 @@ from ._get_response import (
 )
 from .eigen_data import save_eigen_data
 from .model_data import save_model_data
-from ..utils import RESULTS_DIR, get_random_color, CONSOLE, PKG_PREFIX
+from ..utils import get_random_color, CONSTANTS
 
 
 class CreateODB:
@@ -313,6 +313,8 @@ class CreateODB:
             self.ContactResp.add_data_one_step(contact_tags)
 
         time = ops.getTime()
+        CONSOLE = CONSTANTS.get_console()
+        PKG_PREFIX = CONSTANTS.get_pkg_prefix()
         if print_info:
             color = get_random_color()
             CONSOLE.print(
@@ -323,6 +325,10 @@ class CreateODB:
         """
         Save all response data to a file name ``RespStepData-{odb_tag}.nc``.
         """
+        RESULTS_DIR = CONSTANTS.get_output_dir()
+        CONSOLE = CONSTANTS.get_console()
+        PKG_PREFIX = CONSTANTS.get_pkg_prefix()
+
         filename = f"{RESULTS_DIR}/" + f"RespStepData-{self.odb_tag}.nc"
         dt = xr.DataTree(name="RespStepData")
 
@@ -388,6 +394,10 @@ def loadODB(obd_tag, resp_type: str = "Nodal"):
     --------
     Relevant to a response type.
     """
+    RESULTS_DIR = CONSTANTS.get_output_dir()
+    CONSOLE = CONSTANTS.get_console()
+    PKG_PREFIX = CONSTANTS.get_pkg_prefix()
+
     filename = f"{RESULTS_DIR}/" + f"RespStepData-{obd_tag}.nc"
     dt = xr.open_datatree(filename, engine="netcdf4").load()
 
@@ -443,6 +453,10 @@ def get_model_data(
     ---------
     ModelData: xarray.Dataset if model_update is True, otherwise xarray.DataArray
     """
+    RESULTS_DIR = CONSTANTS.get_output_dir()
+    CONSOLE = CONSTANTS.get_console()
+    PKG_PREFIX = CONSTANTS.get_pkg_prefix()
+
     if data_type.lower() == "nodal":
         data_type = "NodalData"
     else:
@@ -511,6 +525,10 @@ def get_nodal_responses(
         You can further index or process the data.
 
     """
+    RESULTS_DIR = CONSTANTS.get_output_dir()
+    CONSOLE = CONSTANTS.get_console()
+    PKG_PREFIX = CONSTANTS.get_pkg_prefix()
+
     filename = f"{RESULTS_DIR}/" + f"RespStepData-{odb_tag}.nc"
     dt = xr.open_datatree(filename, engine="netcdf4")
 
@@ -591,6 +609,10 @@ def get_element_responses(
         dimension names and coordinates.
         You can further index or process the data.
     """
+    RESULTS_DIR = CONSTANTS.get_output_dir()
+    CONSOLE = CONSTANTS.get_console()
+    PKG_PREFIX = CONSTANTS.get_pkg_prefix()
+    
     filename = f"{RESULTS_DIR}/" + f"RespStepData-{odb_tag}.nc"
     dt = xr.open_datatree(filename, engine="netcdf4")
 

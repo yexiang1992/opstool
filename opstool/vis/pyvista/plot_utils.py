@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pyvista as pv
 
-from ...utils import OPS_ELE_TYPES, PKG_NAME
-
+from ...utils import OPS_ELE_TYPES, CONSTANTS
+PKG_NAME = CONSTANTS.get_pkg_name()
 pv.global_theme.title = PKG_NAME
 
 PLOT_ARGS = SimpleNamespace()

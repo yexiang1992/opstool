@@ -5,7 +5,10 @@ from pathlib import Path
 from typing import Union
 from itertools import cycle
 from contextlib import contextmanager
-from .consts import CONSOLE, PKG_PREFIX
+from .consts import CONSTANTS
+
+CONSOLE = CONSTANTS.get_console()
+PKG_PREFIX = CONSTANTS.get_pkg_prefix()
 
 
 def check_file_type(file_name: str, file_type: Union[str, list, tuple]):

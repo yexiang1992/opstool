@@ -12,7 +12,9 @@ from .plot_utils import (
 )
 from .vis_model import PlotModelBase
 from ...post import load_eigen_data
-from ...utils import SHAPE_MAP
+from ...utils import CONSTANTS
+PKG_NAME = CONSTANTS.get_pkg_name()
+SHAPE_MAP = CONSTANTS.get_shape_map()
 
 
 class PlotEigenBase:

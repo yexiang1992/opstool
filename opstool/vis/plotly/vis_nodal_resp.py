@@ -15,7 +15,8 @@ from .plot_utils import (
 )
 from .vis_model import _plot_bc, _plot_mp_constraint
 from ...post import loadODB
-from ...utils import PKG_NAME
+from ...utils import CONSTANTS
+PKG_NAME = CONSTANTS.get_pkg_name()
 
 
 class PlotNodalResponse(PlotResponseBase):

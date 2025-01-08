@@ -7,9 +7,8 @@ import numpy as np
 import xarray as xr
 from typing import Union
 
-from ..utils import RESULTS_DIR, get_random_color, CONSOLE, PKG_PREFIX
+from ..utils import CONSTANTS, get_random_color
 from ._get_model_data_base import FEMData
-
 
 
 class GetFEMData(FEMData):
@@ -459,6 +458,10 @@ def save_model_data(
         Output database tag, the data will be saved in ``ModelData-{odb_tag}.nc``.
     """
     # ---------------------------------------------------------------------------------------------
+    RESULTS_DIR = CONSTANTS.get_output_dir()
+    CONSOLE = CONSTANTS.get_console()
+    PKG_PREFIX = CONSTANTS.get_pkg_prefix()
+
     output_filename = RESULTS_DIR + "/" + f"ModelData-{odb_tag}.nc"
     model_data = GetFEMData()
     model_info, cells = model_data.get_model_info()
@@ -497,6 +500,10 @@ def load_model_data(
     model_info: dict[xarray.DataArray]
     cells: dict[xarray.DataArray]
     """
+    RESULTS_DIR = CONSTANTS.get_output_dir()
+    CONSOLE = CONSTANTS.get_console()
+    PKG_PREFIX = CONSTANTS.get_pkg_prefix()
+
     filename = f"{RESULTS_DIR}/" + f"ModelData-{odb_tag}.nc"
     if not os.path.exists(filename):
         resave = True

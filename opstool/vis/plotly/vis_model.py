@@ -18,7 +18,8 @@ from .plot_utils import (
     _get_unstru_cells,
 )
 from ...post import load_model_data
-from ...utils import gram_schmidt, PKG_NAME
+from ...utils import gram_schmidt, CONSTANTS
+PKG_NAME = CONSTANTS.get_pkg_name()
 
 
 class PlotModelBase:

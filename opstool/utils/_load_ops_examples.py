@@ -1,5 +1,8 @@
-from .consts import CONSOLE, PKG_PREFIX
+from .consts import CONSTANTS
 from ._util_funcs import get_random_color_rich
+
+CONSOLE = CONSTANTS.get_console()
+PKG_PREFIX = CONSTANTS.get_pkg_prefix()
 
 
 def run_model(filepath: str):
@@ -115,7 +118,7 @@ def load_ops_examples(name: str):
     else:
         txt = get_random_color_rich(name, style="bold")
         CONSOLE.print(f"{PKG_PREFIX}Not supported example {txt}!")
-        CONSOLE.print(
+        CONSTANTS.CONSOLE.print(
             f"{PKG_PREFIX}Now try treating {txt} as your own model file and run it!"
         )
         run_model(name)

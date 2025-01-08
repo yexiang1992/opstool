@@ -14,7 +14,8 @@ from .plot_utils import (
     _get_unstru_cells,
 )
 from ...post import loadODB
-from ...utils import gram_schmidt, PKG_NAME
+from ...utils import gram_schmidt, CONSTANTS
+PKG_NAME = CONSTANTS.get_pkg_name()
 
 
 class PlotTrussResponse(PlotResponseBase):
