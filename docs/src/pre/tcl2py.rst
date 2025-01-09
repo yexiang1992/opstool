@@ -7,7 +7,7 @@ For details of the parameters see :func:`opstool.pre.tcl2py`.
 
     import opstool as opst
 
-    opst.tcl2py(input_file='mycode.tcl',
+    opst.pre.tcl2py(input_file='mycode.tcl',
                 output_file='mycode.py',
                 prefix="ops")
 

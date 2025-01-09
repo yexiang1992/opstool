@@ -612,7 +612,7 @@ def get_element_responses(
     RESULTS_DIR = CONSTANTS.get_output_dir()
     CONSOLE = CONSTANTS.get_console()
     PKG_PREFIX = CONSTANTS.get_pkg_prefix()
-    
+
     filename = f"{RESULTS_DIR}/" + f"RespStepData-{odb_tag}.nc"
     dt = xr.open_datatree(filename, engine="netcdf4")
 
