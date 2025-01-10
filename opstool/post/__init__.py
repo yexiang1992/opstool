@@ -12,11 +12,12 @@ if not os.path.exists(RESULTS_DIR):
 
 def set_odb_path(path: str):
     CONSTANTS.set_output_dir(path)
-    for item in os.listdir(RESULTS_DIR):
-        source_path = os.path.join(RESULTS_DIR, item)
-        target_path = os.path.join(path, item)
-        shutil.move(source_path, target_path)
-    shutil.rmtree(RESULTS_DIR)
+    if os.path.exists(RESULTS_DIR):
+        for item in os.listdir(RESULTS_DIR):
+            source_path = os.path.join(RESULTS_DIR, item)
+            target_path = os.path.join(path, item)
+            shutil.move(source_path, target_path)
+        shutil.rmtree(RESULTS_DIR)
 
 
 __all__ = [
