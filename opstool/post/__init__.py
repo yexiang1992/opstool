@@ -11,6 +11,13 @@ if not os.path.exists(RESULTS_DIR):
     os.mkdir(RESULTS_DIR)
 
 def set_odb_path(path: str):
+    """Set the output directory for the results.
+
+    Parameters:
+    ------------
+    path: str
+        The path to the output directory.
+    """
     CONSTANTS.set_output_dir(path)
     if os.path.exists(RESULTS_DIR):
         for item in os.listdir(RESULTS_DIR):
