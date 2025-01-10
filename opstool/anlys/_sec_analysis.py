@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import openseespy.opensees as ops
 from typing import Union
+from warnings import warn
 
 from ._smart_analyze import SmartAnalyze
 
@@ -89,8 +90,7 @@ class MomentCurvature:
         plt.gcf().subplots_adjust(bottom=0.15)
 
     def plot_fiber_responses(self, return_ax: bool = False):
-        """Plot the stress-strain histories of fiber by loc and matTag.
-        Plot the fiber response of the material Tag ``mat`` closest to the ``loc``.
+        """Plot the fiber responses.
 
         Parameters
         -----------
@@ -196,6 +196,7 @@ class MomentCurvature:
             The OpenSeesPy material Tag used to determine the limit state., by default 1
         threshold : float, optional
             The ``strain threshold`` used to determine the limit state by material `matTag`, by default 0
+            The positive and negative signs are meaningful for tension and compression.
         peak_drop : Union[float, bool], optional, by default False.
             If True, A default 20% drop from the peak value of the moment will be used as the limit state;
             If float in [0, 1], this means that the ratio of ultimate strength to peak value is
@@ -209,6 +210,14 @@ class MomentCurvature:
         -------
         (float, float)
             (Limit Curvature, Limit Moment)
+
+        Examples
+        ---------
+        >>> sec = MomentCurvature(sec_tag=1)
+        >>> sec.analyze(axis="y", max_phi=1.0, incr_phi=1e-4, limit_peak_ratio=0.8)
+        >>> # Get the limit state by material Tag 1 and strain threshold 0.002
+        >>> sec.get_limit_state(matTag=1, threshold=0.002)
+        >>> sec.get_limit_state(peak_drop=0.20)
         """
         phi = self.phi
         M = self.M
@@ -221,9 +230,11 @@ class MomentCurvature:
             idx = np.argmax(M)
             au = np.argwhere(M[idx:] <= np.max(M) * ratio_)
             if au.size == 0:
-                raise RuntimeError(
-                    f"Peak strength does not drop {1 - ratio_}, please increase target ductility ratio!"
+                warn(
+                    f"Peak strength does not drop {1 - ratio_}, please increase target ductility ratio! "
+                    f"The last value is used as the limit state."
                 )
+                bu = -1
             else:
                 bu = np.min(au) + idx - 1
         else:
@@ -236,9 +247,11 @@ class MomentCurvature:
                 strain = np.array([np.min(data[idxu, -1]) for data in fiber_data])
                 au = np.argwhere(strain < eu)
             if len(au) == 0:
-                raise RuntimeError(
-                    "The ultimate strain is not reached, please increase target ductility ratio!"
+                warn(
+                    "The ultimate strain is not reached, please increase target ductility ratio! "
+                    f"The last value is used as the limit state."
                 )
+                bu = -1
             else:
                 bu = np.min(au)
         Phi_u = phi[bu]
@@ -350,7 +363,7 @@ def _create_axial_resp(p):
     ops.pattern("Plain", 1, 1)
     ops.load(2, p, 0, 0, 0, 0, 0)  # nd  FX,  FY, Fz, MX, MY, MZ
     ops.wipeAnalysis()
-    ops.system("BandSPD")
+    ops.system("BandGeneral")
     ops.constraints("Plain")
     ops.numberer("Plain")
     ops.test("NormDispIncr", 1.0e-10, 10, 3)
