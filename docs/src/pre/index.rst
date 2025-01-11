@@ -12,3 +12,4 @@ The following is a guide to the preprocessing features provided by `opstool`.
    tcl2py.rst
    unit_system.rst
    loads.ipynb
+   model_mass.ipynb
