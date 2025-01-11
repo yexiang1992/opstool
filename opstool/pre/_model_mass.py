@@ -18,7 +18,7 @@ class ModelMass:
 
     def _add_node_mass(self, node_mass: dict):
         for ntag, mass in node_mass.items():
-            self.node_mass[ntag] += mass
+            self.node_mass[ntag] += float(mass)
 
     def add_node_mass(self, node_tag: int, mass: float):
         """
@@ -112,6 +112,18 @@ class ModelMass:
             self._add_node_mass(node_mass)
 
     def add_mass_from_brick(self, ele_tags: Union[list, int], rho: Union[list, float]):
+        """Add mass from tetrahedral or hexahedral elements.
+
+        Parameters
+        ----------
+        ele_tags: Union[list, int]
+            Element tag or list.
+        rho: Union[list, float]
+            Mass density or list, if list length shoud same as ele_tags.
+        """
+        self.add_mass_from_solid(ele_tags, rho)
+
+    def add_mass_from_solid(self, ele_tags: Union[list, int], rho: Union[list, float]):
         """Add mass from tetrahedral or hexahedral elements.
 
         Parameters
@@ -290,7 +302,7 @@ class ModelMass:
             A dict obj whose keys are node tags and whose values are masses.
         """
         if node_tags is None:
-            return self.node_mass
+            return dict(self.node_mass)
         else:
             node_mass = dict()
             for ntag in node_tags:
