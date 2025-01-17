@@ -19,6 +19,7 @@ from .plot_utils import (
 )
 from ...post import load_model_data
 from ...utils import gram_schmidt, CONSTANTS
+
 PKG_NAME = CONSTANTS.get_pkg_name()
 
 
@@ -184,9 +185,7 @@ class PlotModelBase:
                     for etag, cell_ in zip(ele_tags, cell):
                         ntags = self.nodal_tags[cell_[1:]]
                         ele_centers.append(np.mean(self.points[cell_[1:]], axis=0))
-                        labels.append(
-                            f"eleTag: {etag}<br>connectedNodes:<br> {ntags}"
-                        )
+                        labels.append(f"eleTag: {etag}<br>connectedNodes:<br> {ntags}")
                     size = 2 if self.pargs.point_size < 2 else self.pargs.point_size
                     _plot_points(
                         plotter,

@@ -3,6 +3,136 @@ from collections import defaultdict
 
 import numpy as np
 import openseespy.opensees as ops
+import matplotlib.pyplot as plt
+
+
+def apply_load_distribution(
+    node_tags: Union[list, tuple, int] = None,
+    coord_axis: str = "z",
+    load_axis: str = "x",
+    dist_type: str = "triangle",
+    sum_normalized: bool = True,
+    plot: bool = False,
+):
+    """
+    Apply load distribution along specified coordinate axis.
+
+    .. Note::
+        The load is applied to the ``OpenSeesPy`` domain.
+        If sum_normalized=True, The sum of the loads for all nodes is 1.0.
+        If sum_normalized=False, The maximum load is set to 1.0.
+
+    Parameters:
+    -----------
+    node_tags : list, tuple, int, optional
+        The node tags where the load will be applied.
+        If None, the function will apply the load to all nodes.
+    coord_axis : str, default='z'
+        The coordinate axis along which the load is distributed ('x', 'y', or 'z').
+    load_axis : str, default='x'
+        The load direction ('x', 'y', or 'z').
+    dist_type : str, default='triangle'
+        Type of distribution ('triangle', "parabola", 'half_parabola_concave', 'half_parabola_convex', 'uniform').
+    sum_normalized : bool, default=True
+        If True, the loads are normalized to ensure their sum is 1.0.
+        If False, the maximum load is set to 1.0.
+    plot : bool, optional
+        If True, plots the load distribution graph.
+
+    Returns:
+    --------
+    node_loads : dict
+        A dictionary containing the node tags and the corresponding normalized loads.
+    """
+    if node_tags is None:
+        node_tags = ops.getNodeTags()
+    else:
+        if isinstance(node_tags, int):
+            node_tags = [node_tags]
+    # Retrieve the coordinates of all nodes
+    axis_index = {"x": 0, "y": 1, "z": 2}[coord_axis.lower()]
+    node_coords = {node: ops.nodeCoord(node)[axis_index] for node in node_tags}
+    node_coords = dict(sorted(node_coords.items(), key=lambda item: item[1]))
+    min_coord = min(coords for coords in node_coords.values())
+    node_coords = {node: coord - min_coord for node, coord in node_coords.items()}
+    max_coord = max(coords for coords in node_coords.values())
+
+    # Calculate the load for each node based on the specified distribution type
+    coord_list = []
+    load_list = []
+    for node, coord in node_coords.items():
+        if dist_type.lower() == "triangle":
+            load = coord / max_coord
+        elif dist_type.lower() == "parabola":
+            load = (coord / max_coord) * (1 - coord / max_coord)
+        elif dist_type.lower() == "half_parabola_concave":
+            load = 4 * (coord / max_coord) ** 2
+        elif dist_type.lower() == "half_parabola_convex":
+            a = -1 / (max_coord**2)
+            load = a * (coord - max_coord) ** 2 + 1
+        elif dist_type.lower() == "uniform":
+            load = 1
+        else:
+            raise ValueError(f"Invalid distribution type {dist_type}.")
+
+        coord_list.append(coord + min_coord)
+        load_list.append(load)
+
+    # Normalize loads to ensure their sum is 1.0
+    if sum_normalized:
+        sum_loads = sum(load_list)
+        normalized_load_list = [load / sum_loads for load in load_list]
+    else:
+        max_load = max(load_list)
+        normalized_load_list = [load / max_load for load in load_list]
+    normalized_load_dict = dict(zip(node_coords.keys(), normalized_load_list))
+
+    # Apply normalized loads to the nodes
+    for node, load in zip(node_coords, normalized_load_list):
+        ndf = ops.getNDF(node)[0]
+        if load_axis.lower() == "x":
+            if ndf == 3:
+                ops.load(node, load, 0, 0)
+            elif ndf == 6:
+                ops.load(node, load, 0, 0, 0, 0, 0)
+        elif load_axis.lower() == "y":
+            if ndf == 3:
+                ops.load(node, 0, load, 0)
+            elif ndf == 6:
+                ops.load(node, 0, load, 0, 0, 0, 0)
+        elif load_axis.lower() == "z":
+            if ndf == 3:
+                ops.load(node, 0, 0, load)
+            elif ndf == 6:
+                ops.load(node, 0, 0, load, 0, 0, 0)
+
+    if plot:
+        coord_color = "#2c6fbb"
+        load_color = "#c0737a"
+        plt.figure(figsize=(8, 5))
+        max_load = max(normalized_load_list)
+        aspect_ratio = max_load / max_coord
+        plt.scatter(
+            normalized_load_list,
+            coord_list,
+            color=load_color,
+            zorder=100,
+            label="Loads",
+        )
+        plt.plot(normalized_load_list, coord_list, load_color, zorder=10)
+        plt.plot([0] * len(coord_list), coord_list, color=coord_color, zorder=10)
+        plt.scatter([0] * len(coord_list), coord_list, color=coord_color, zorder=100)
+        for coord, load in zip(coord_list, normalized_load_list):
+            plt.plot([0, load], [coord, coord], load_color, zorder=10)
+        plt.plot()
+        plt.xlabel("p")
+        plt.ylabel(f"{coord_axis}")
+        # plt.title(f"Load Distribution: {distribution_type.capitalize()}")
+        # plt.legend()
+        plt.grid(True, zorder=-100)
+        plt.gca().set_aspect(aspect_ratio * 5)
+
+    return normalized_load_dict
 
 
 def create_gravity_load(
