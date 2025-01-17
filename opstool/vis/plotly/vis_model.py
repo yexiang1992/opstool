@@ -524,7 +524,7 @@ class PlotModelBase:
             eletags.append(int(num2))
         patterntags, eletags = np.array(patterntags), np.array(eletags)
         patterntags2 = np.unique(patterntags)
-        load_info = self.ele_load_data
+        load_info = self.ele_load_data.to_numpy()
         new_points = []
         new_locals = []
         new_ptags = []
