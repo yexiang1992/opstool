@@ -285,7 +285,7 @@ class MomentCurvature:
         phi = self.phi
         M = self.M
         bu = np.argmin(np.abs(phiu - phi))
-        Q = np.trapz(M[: bu + 1], phi[: bu + 1])
+        Q = np.trapezoid(M[: bu + 1], phi[: bu + 1])
         k = My / phiy
         Phi_eq = (k * phiu - np.sqrt((k * phiu) ** 2 - 2 * k * Q)) / k
         M_eq = k * Phi_eq
@@ -415,10 +415,7 @@ def _analyze(
         }
         analysis = SmartAnalyze(analysis_type="Static", **userControl)
         segs = analysis.static_split(protocol, maxStep=incr_phi)
-        ii = 0
-        while True:
-            seg = segs[ii]
-            ii += 1
+        for seg in segs:
             ok = analysis.StaticAnalyze(2, dof, seg, print_info=False)
             curr_M = ops.getLoadFactor(2)
             curr_Phi = ops.nodeDisp(2, dof)
