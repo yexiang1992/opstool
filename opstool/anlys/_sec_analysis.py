@@ -22,6 +22,8 @@ class MomentCurvature:
         self.P = axial_force
         self.sec_tag = sec_tag
         self.phi, self.M, self.FiberData = None, None, None
+        self.cycle_path = None
+        # self.phi_cycle, self.M_cycle, self.FiberDataCycle = None, None, None
 
     def analyze(
         self,
@@ -29,6 +31,7 @@ class MomentCurvature:
         max_phi: float = 0.5,
         incr_phi: float = 1e-4,
         limit_peak_ratio: float = 0.8,
+        cycle_analyze: bool = False,
         smart_analyze: bool = True,
         debug: bool = False,
     ):
@@ -45,6 +48,8 @@ class MomentCurvature:
         limit_peak_ratio : float, optional
             A ratio of the moment intensity after the peak used to stop the analysis., by default 0.8,
             i.e., a 20% drop after peak.
+        cycle_analyze : bool, optional
+            Whether to perform cyclic analysis, by default False.
         smart_analyze : bool, optional
             Whether to use smart analysis options, by default True.
         debug: bool, optional
@@ -61,9 +66,50 @@ class MomentCurvature:
             max_phi=max_phi,
             incr_phi=incr_phi,
             stop_ratio=limit_peak_ratio,
+            cycle=cycle_analyze,
+            cycle_path=self.cycle_path,
             smart_analyze=smart_analyze,
             debug=debug,
         )
+
+    def set_cycle_path(self, max_phi: float, n_cycle: int = 20, n_hold: int = 1):
+        """set a deformation cycle path.
+
+        Parameters
+        ----------
+        max_phi : float
+            Peak of the path.
+        n_cycle : int, optional
+            Number of cycles, by default 20
+        n_hold : int, optional
+            The number of repetitions for each cycle., by default 1
+
+        .. Note::
+            The total number of cycles is n_cycle * n_hold.
+
+        Returns
+        -------
+        1D Arraylike.
+            Displacement path sequence
+        """
+        max_phi = abs(max_phi)
+        upper_envelope = np.linspace(0, max_phi, n_cycle)[1:]
+        below_envelope = np.linspace(0, -max_phi, n_cycle)[1:]
+        pattern = [0.0]
+        for upper, below in zip(upper_envelope, below_envelope):
+            upper, below = float(upper), float(below)
+            for _ in range(n_hold):
+                pattern.extend([upper, below])
+        pattern.append(0.0)
+        # # mesh by step size
+        # data = [0.0]
+        # for i in range(len(pattern) - 1):
+        #     a, b = pattern[i], pattern[i + 1]
+        #     n = int(np.abs(b - a) / step_size)
+        #     n = 2 if n < 2 else n
+        #     data.extend(np.linspace(a, b, n)[1:])
+        self.cycle_path = pattern
+        return pattern
 
     def plot_M_phi(self, ax=None):
         """Plot the moment-curvature relationship.
@@ -382,6 +428,8 @@ def _analyze(
     incr_phi=1e-5,
     stop_ratio=0.8,
     smart_analyze=True,
+    cycle=False,
+    cycle_path=None,
     debug: bool = False,
 ):
     _create_model(sec_tag=sec_tag)
@@ -397,11 +445,16 @@ def _analyze(
         ops.load(2, 0, 0, 0, 0, 0, 1)
     else:
         raise ValueError("Only supported axis = y or z!")
+    if cycle:
+        max_phi = np.max(np.abs(cycle_path))
     M = [0]
     PHI = [0]
     FIBER_RESPONSES = [0]
     if smart_analyze:
-        protocol = [max_phi]
+        if cycle:
+            protocol = cycle_path
+        else:
+            protocol = [max_phi]
         userControl = {
             "analysis": "Static",
             "testType": "NormDispIncr",
@@ -419,9 +472,12 @@ def _analyze(
             ok = analysis.StaticAnalyze(2, dof, seg, print_info=False)
             curr_M = ops.getLoadFactor(2)
             curr_Phi = ops.nodeDisp(2, dof)
-            cond1 = np.abs(curr_M) < np.max(np.abs(M)) * (stop_ratio - 0.02)
+            cond1 = False
+            if (curr_M - M[-1]) * (curr_Phi - PHI[-1]) < 0:
+                if np.abs(curr_M) < np.max(np.abs(M)) * (stop_ratio - 0.02):
+                    cond1 = True
             cond2 = np.abs(curr_Phi) >= max_phi
-            PHI.append(ops.nodeDisp(2, dof))
+            PHI.append(curr_Phi)
             M.append(curr_M)
             FIBER_RESPONSES.append(_get_fiber_sec_data(ele_tag=1))
             if cond1 or cond2:
@@ -429,14 +485,29 @@ def _analyze(
             if ok < 0:
                 raise RuntimeError("Analysis failed!")
     else:
-        ops.integrator("DisplacementControl", 2, dof, incr_phi)
-        while True:
+        if cycle:
+            protocol = []
+            for i in range(1, len(cycle_path)-1):
+                diff = cycle_path[i + 1] - cycle_path[i]
+                n = int(abs(diff / incr_phi))
+                path = [diff / n for _ in range(n)]
+                protocol.extend(path)
+        else:
+            n = int(abs(max_phi / incr_phi))
+            step = max_phi / n
+            protocol = [step for _ in range(n)]
+
+        for step_size in protocol:
+            ops.integrator("DisplacementControl", 2, dof, step_size)
             ok = ops.analyze(1)
             curr_M = ops.getLoadFactor(2)
             curr_Phi = ops.nodeDisp(2, dof)
-            cond1 = np.abs(curr_M) < np.max(np.abs(M)) * (stop_ratio - 0.02)
+            cond1 = False
+            if (curr_M - M[-1]) * (curr_Phi - PHI[-1]) < 0:
+                if np.abs(curr_M) < np.max(np.abs(M)) * (stop_ratio - 0.02):
+                    cond1 = True
             cond2 = np.abs(curr_Phi) > max_phi
-            PHI.append(ops.nodeDisp(2, dof))
+            PHI.append(curr_Phi)
             M.append(curr_M)
             FIBER_RESPONSES.append(_get_fiber_sec_data(ele_tag=1))
             if cond1 or cond2:
@@ -444,7 +515,7 @@ def _analyze(
             if ok < 0:
                 raise RuntimeError("Analysis failed!")
     FIBER_RESPONSES[0] = FIBER_RESPONSES[1] * 0
-    return np.abs(PHI), np.abs(M), np.array(FIBER_RESPONSES)
+    return np.array(PHI), np.array(M), np.array(FIBER_RESPONSES)
 
 
 def _get_fiber_sec_data(ele_tag: int):
