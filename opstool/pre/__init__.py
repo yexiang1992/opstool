@@ -6,6 +6,7 @@ from ._load import transform_beam_uniform_load, transform_beam_point_load, trans
 from .tcl2py import tcl2py
 from ._unit_system import UnitSystem
 from . import section
+from ._model_data import get_node_coord, get_node_mass
 
 __all__ = [
     "Gmsh2OPS",
@@ -19,5 +20,8 @@ __all__ = [
     "transform_beam_point_load",
     "transform_surface_uniform_load",
     "tcl2py",
-    "UnitSystem"
+    "UnitSystem",
+    # ------------------------
+    "get_node_coord",
+    "get_node_mass",
 ]

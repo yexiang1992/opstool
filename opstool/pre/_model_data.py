@@ -1,16 +1,20 @@
-
-import numpy as np
 import xarray as xr
 import openseespy.opensees as ops
 
 
-def get_node_data() -> xr.DataArray:
+def get_node_coord() -> xr.DataArray:
     """Get nodal data from the OpenSees model.
 
     Returns:
     ---------
     node_data : xarray.DataArray
         Nodal data array with coordinates and tags.
+
+    Examples:
+    ---------
+    >>> node_coord = get_node_coord()
+    >>> print(node_coord.coords)
+    {'nodeTags': array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]), 'coords': ['Xloc', 'Yloc', 'Zloc']}
     """
     node_ndims, node_ndofs, node_coords = [], [], []
     node_tags = ops.getNodeTags()
@@ -52,6 +56,12 @@ def get_node_mass() -> xr.DataArray:
     ---------
     node_mass : xarray.DataArray
         Nodal mass data array with mass values and tags.
+
+    Examples:
+    ---------
+    >>> node_mass = get_node_mass()
+    >>> print(node_mass.coords)
+    {'nodeTags': array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]), 'mass': ['UX', 'UY', 'UZ', 'RX', 'RY', 'RZ']}
     """
     node_mass = []
     node_tags = ops.getNodeTags()

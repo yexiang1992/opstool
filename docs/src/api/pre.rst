@@ -56,3 +56,10 @@ Unit System
 .. autoclass:: opstool.pre.UnitSystem
    :members:
    :inherited-members:
+
+Model Data
+----------------
+
+.. autofunction:: opstool.pre.get_node_coord
+
+.. autofunction:: opstool.pre.get_node_mass
