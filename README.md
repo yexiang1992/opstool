@@ -36,6 +36,7 @@ it is recommended that you use [Anaconda](https://www.anaconda.com/) to avoid li
 
 1. **Preprocessing Tools**:
    - *Fiber Section Meshing*: Generate detailed fiber meshes for various geometries.
+      | ![image.png](https://s2.loli.net/2025/02/09/lXGLVFKmIcSsvgN.png) | ![image.png](https://s2.loli.net/2025/02/09/nIxAhN8rLBEQi2t.png) |
    - *GMSH Integration*: Import and convert [Gmsh](https://gmsh.info/) models, including geometry, mesh, and physical groups.
    - *Unit System Management*: Ensure consistency with automatic unit conversions.
    - *Mass Generation*: Automate lumped mass calculations.
