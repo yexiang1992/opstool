@@ -36,20 +36,29 @@ it is recommended that you use [Anaconda](https://www.anaconda.com/) to avoid li
 
 1. **Preprocessing Tools**:
    - *Fiber Section Meshing*: Generate detailed fiber meshes for various geometries.
-      <a href="https://sm.ms/image/lXGLVFKmIcSsvgN" target="_blank"><img src="https://s2.loli.net/2025/02/09/lXGLVFKmIcSsvgN.png" width="200"></a> 
-      <a href="https://sm.ms/image/nIxAhN8rLBEQi2t" target="_blank"><img src="https://s2.loli.net/2025/02/09/nIxAhN8rLBEQi2t.png" width="200"></a>
+      - <a href="https://sm.ms/image/lXGLVFKmIcSsvgN" target="_blank"><img src="https://s2.loli.net/2025/02/09/lXGLVFKmIcSsvgN.png" width="200"></a> 
+        <a href="https://sm.ms/image/nIxAhN8rLBEQi2t" target="_blank"><img src="https://s2.loli.net/2025/02/09/nIxAhN8rLBEQi2t.png" width="200"></a>
    - *GMSH Integration*: Import and convert [Gmsh](https://gmsh.info/) models, including geometry, mesh, and physical groups.
+      - <a href="https://sm.ms/image/MjoviYLrtqNHKCO" target="_blank"><img src="https://s2.loli.net/2025/02/09/MjoviYLrtqNHKCO.png" width="200"></a>
+        <a href="https://sm.ms/image/XBVvRcGnePsJK8A" target="_blank"><img src="https://s2.loli.net/2025/02/09/XBVvRcGnePsJK8A.png" width="200"></a>
    - *Unit System Management*: Ensure consistency with automatic unit conversions.
    - *Mass Generation*: Automate lumped mass calculations.
 2. **Postprocessing Capabilities**:
    - Easy retrieval and interpretation of analysis results using [xarray](https://docs.xarray.dev/en/stable/index.html#).
+     - <a href="https://sm.ms/image/HzkTF7xdav6eLOt" target="_blank"><img src="https://s2.loli.net/2025/02/09/HzkTF7xdav6eLOt.gif" width="200"></a>
 3. **Visualization**:
    - Powered by [Pyvista](https://docs.pyvista.org/) (VTK-based) and [Plotly](https://plotly.com/python/) (web-based).
    - Nearly identical APIs for flexible visualization of model geometry, modal analysis, and simulation results.
    - Supports most common OpenSees elements.
+   - <a href="https://sm.ms/image/HrzPk1cqSJyxTlY" target="_blank"><img src="https://s2.loli.net/2025/02/09/HrzPk1cqSJyxTlY.png" width="200"></a>
+     <a href="https://sm.ms/image/gxy8LZPkAwa3QEI" target="_blank"><img src="https://s2.loli.net/2025/02/09/gxy8LZPkAwa3QEI.png" width="200"></a>
+     <a href="https://sm.ms/image/LCqVG9Df7RmHou6" target="_blank"><img src="https://s2.loli.net/2025/02/09/LCqVG9Df7RmHou6.png" width="200"></a>
+     <a href="https://sm.ms/image/el21xbpcChVaXNB" target="_blank"><img src="https://s2.loli.net/2025/02/09/el21xbpcChVaXNB.png" width="200"></a>
 4. **Intelligent Analysis**:
    - Features like automatic step size adjustment and algorithm switching to optimize simulation workflows.
    - Moment-Curvature Analysis: Generate moment-curvature curves for various sections.
+     - <a href="https://sm.ms/image/mlNHEbfuoIzehri" target="_blank"><img src="https://s2.loli.net/2025/02/09/mlNHEbfuoIzehri.png" width="200"></a>
+       <a href="https://sm.ms/image/9MFf4JQrZVpv6bi" target="_blank"><img src="https://s2.loli.net/2025/02/09/9MFf4JQrZVpv6bi.png" width="200"></a>
 
 ## Why Choose opstool?
 
