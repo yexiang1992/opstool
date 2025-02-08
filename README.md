@@ -54,6 +54,8 @@ it is recommended that you use [Anaconda](https://www.anaconda.com/) to avoid li
      <a href="https://sm.ms/image/gxy8LZPkAwa3QEI" target="_blank"><img src="https://s2.loli.net/2025/02/09/gxy8LZPkAwa3QEI.png" width="200"></a>
      <a href="https://sm.ms/image/LCqVG9Df7RmHou6" target="_blank"><img src="https://s2.loli.net/2025/02/09/LCqVG9Df7RmHou6.png" width="200"></a>
      <a href="https://sm.ms/image/el21xbpcChVaXNB" target="_blank"><img src="https://s2.loli.net/2025/02/09/el21xbpcChVaXNB.png" width="200"></a>
+     <a href="https://sm.ms/image/lcw5rXuaAKHCB3g" target="_blank"><img src="https://s2.loli.net/2025/02/09/lcw5rXuaAKHCB3g.png" width="200"></a>
+     <a href="https://sm.ms/image/Rp2icyNbFgZOa6Y" target="_blank"><img src="https://s2.loli.net/2025/02/09/Rp2icyNbFgZOa6Y.png" width="200"></a>
 4. **Intelligent Analysis**:
    - Features like automatic step size adjustment and algorithm switching to optimize simulation workflows.
    - Moment-Curvature Analysis: Generate moment-curvature curves for various sections.
