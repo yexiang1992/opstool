@@ -45,15 +45,15 @@ it is recommended that you use [Anaconda](https://www.anaconda.com/) to avoid li
    - *Mass Generation*: Automate lumped mass calculations.
 2. **Postprocessing Capabilities**:
    - Easy retrieval and interpretation of analysis results using [xarray](https://docs.xarray.dev/en/stable/index.html#).
-     - <a href="https://sm.ms/image/HzkTF7xdav6eLOt" target="_blank"><img src="https://s2.loli.net/2025/02/09/HzkTF7xdav6eLOt.gif" height="200"></a>
-       <a href="https://sm.ms/image/Q3OV9FLR5oGPMdn" target="_blank"><img src="https://s2.loli.net/2025/02/09/Q3OV9FLR5oGPMdn.png" height="200"></a>
+     - <a href="https://sm.ms/image/Q3OV9FLR5oGPMdn" target="_blank"><img src="https://s2.loli.net/2025/02/09/Q3OV9FLR5oGPMdn.png" height="160"></a>
+       <a href="https://sm.ms/image/HzkTF7xdav6eLOt" target="_blank"><img src="https://s2.loli.net/2025/02/09/HzkTF7xdav6eLOt.gif" height="200"></a>
 3. **Visualization**:
    - Powered by [Pyvista](https://docs.pyvista.org/) (VTK-based) and [Plotly](https://plotly.com/python/) (web-based).
    - Nearly identical APIs for flexible visualization of model geometry, modal analysis, and simulation results.
    - Supports most common OpenSees elements.
-   - <a href="https://sm.ms/image/HrzPk1cqSJyxTlY" target="_blank"><img src="https://s2.loli.net/2025/02/09/HrzPk1cqSJyxTlY.png" height="200"></a>
-     <a href="https://sm.ms/image/gxy8LZPkAwa3QEI" target="_blank"><img src="https://s2.loli.net/2025/02/09/gxy8LZPkAwa3QEI.png" height="200"></a>
-     <a href="https://sm.ms/image/LCqVG9Df7RmHou6" target="_blank"><img src="https://s2.loli.net/2025/02/09/LCqVG9Df7RmHou6.png" height="200"></a>
+   - <a href="https://sm.ms/image/HrzPk1cqSJyxTlY" target="_blank"><img src="https://s2.loli.net/2025/02/09/HrzPk1cqSJyxTlY.png" height="160"></a>
+     <a href="https://sm.ms/image/gxy8LZPkAwa3QEI" target="_blank"><img src="https://s2.loli.net/2025/02/09/gxy8LZPkAwa3QEI.png" height="160"></a>
+     <a href="https://sm.ms/image/LCqVG9Df7RmHou6" target="_blank"><img src="https://s2.loli.net/2025/02/09/LCqVG9Df7RmHou6.png" height="160"></a>
      <a href="https://sm.ms/image/el21xbpcChVaXNB" target="_blank"><img src="https://s2.loli.net/2025/02/09/el21xbpcChVaXNB.png" height="200"></a>
      <a href="https://sm.ms/image/lcw5rXuaAKHCB3g" target="_blank"><img src="https://s2.loli.net/2025/02/09/lcw5rXuaAKHCB3g.png" height="200"></a>
      <a href="https://sm.ms/image/Rp2icyNbFgZOa6Y" target="_blank"><img src="https://s2.loli.net/2025/02/09/Rp2icyNbFgZOa6Y.png" height="200"></a>
