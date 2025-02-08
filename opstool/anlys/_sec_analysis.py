@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import xarray as xr
 import openseespy.opensees as ops
 from typing import Union
 from warnings import warn
@@ -217,32 +218,49 @@ class MomentCurvature:
         """
         return self.phi, self.M
 
-    def get_fiber_data(self):
+    def get_fiber_data(self) -> xr.DataArray:
         """All fiber data.
 
         Returns
         -------
-        Shape-(n, m, 6) Array.
-            N is the length of analysis steps, m is the fiber number,
-            6 contain ("yCoord", "zCoord", "area", 'mat', "stress", "strain")
+        FiberData: xr.DataArray
+            All fiber data.
+            "Steps" is the number of steps in the analysis.
+            "Fibers" is the number of fibers in the section.
+            "Properties" is the properties of the fibers, including "yloc", "zloc", "area", "mat", "stress", "strain".
         """
-        return self.FiberData
+        data = xr.DataArray(
+            self.FiberData,
+            coords={
+                "Steps": np.arange(len(self.FiberData)),
+                "Fibers": np.arange(len(self.FiberData[0])),
+                "Properties": ["yloc", "zloc", "area", "mat", "stress", "strain"],
+            },
+            dims=("Steps", "Fibers", "Properties"),
+            name="FiberData",
+        )
+        return data
 
     def get_limit_state(
         self,
-        matTag: int = 1,
-        threshold: float = 0,
+        matTag: Union[list[int], int] = 1,
+        threshold: Union[list[float], float] = 0.0,
         peak_drop: Union[float, bool] = False,
     ):
         """Get the curvature and moment corresponding to a certain limit state.
 
         Parameters
         ----------
-        matTag : int, optional
+        matTag : Union[list[int], int]
             The OpenSeesPy material Tag used to determine the limit state., by default 1
-        threshold : float, optional
-            The ``strain threshold`` used to determine the limit state by material `matTag`, by default 0
+        threshold : Union[list[float], float]
+            The ``strain threshold`` used to determine the limit state by material `matTag`, by default 0.
             The positive and negative signs are meaningful for tension and compression.
+
+        .. Note::
+            If ``matTag`` is a list, the length of `matTag` and `threshold` should be the same.
+            As long as any material reaches its corresponding threshold, it will be set to the limit state.
+
         peak_drop : Union[float, bool], optional, by default False.
             If True, A default 20% drop from the peak value of the moment will be used as the limit state;
             If float in [0, 1], this means that the ratio of ultimate strength to peak value is
@@ -284,22 +302,33 @@ class MomentCurvature:
             else:
                 bu = np.min(au) + idx - 1
         else:
-            idxu = np.argwhere(np.abs(fiber_data[-1][:, 3] - matTag) < 1e-6)
-            eu = threshold
-            if eu >= 0:
-                strain = np.array([np.max(data[idxu, -1]) for data in fiber_data])
-                au = np.argwhere(strain >= eu)
-            else:
-                strain = np.array([np.min(data[idxu, -1]) for data in fiber_data])
-                au = np.argwhere(strain < eu)
-            if len(au) == 0:
-                warn(
-                    "The ultimate strain is not reached, please increase target ductility ratio! "
-                    f"The last value is used as the limit state."
+            mat_tags = np.atleast_1d(matTag)
+            thresholds = np.atleast_1d(threshold)
+            if len(mat_tags) != len(thresholds):
+                raise ValueError(
+                    "The length of matTag and threshold should be the same!"
                 )
-                bu = -1
-            else:
-                bu = np.min(au)
+            bus = []
+            for matTag, threshold in zip(mat_tags, thresholds):
+                matTag = int(matTag)
+                idxu = np.argwhere(np.abs(fiber_data[-1][:, 3] - matTag) < 1e-6)
+                eu = threshold
+                if eu >= 0:
+                    strain = np.array([np.max(data[idxu, -1]) for data in fiber_data])
+                    au = np.argwhere(strain >= eu)
+                else:
+                    strain = np.array([np.min(data[idxu, -1]) for data in fiber_data])
+                    au = np.argwhere(strain < eu)
+                if len(au) == 0:
+                    warn(
+                        "The ultimate strain is not reached, please increase target ductility ratio! "
+                        f"The last value is used as the limit state."
+                    )
+                    bu = len(phi) - 1
+                else:
+                    bu = np.min(au)
+                bus.append(bu)
+            bu = int(np.min(bus))
         Phi_u = phi[bu]
         M_u = M[bu]
         return Phi_u, M_u
