@@ -1,5 +1,7 @@
 import re
 import rich
+from typing import Literal, TypeAlias, get_args
+import difflib
 
 ratio_length = dict(
     inch2m=0.0254,
@@ -70,11 +72,11 @@ ratio_update(ratio_length)
 ratio_update(ratio_force)
 ratio_update(ratio_time)
 
-unit_length = ["inch", "ft", "mm", "cm", "m"]
-unit_force = ["lb", "lbf", "kip", "n", "kn", "mn", "kgf", "tonf"]
-unit_time = ["sec", "msec"]
-unit_mass = ["mg", "g", "kg", "ton", "t", "slug"]
-unit_stress = ["pa", "kpa", "mpa", "gpa", "bar", "psi", "ksi", "psf", "ksf"]
+unit_length: TypeAlias = Literal["inch", "ft", "mm", "cm", "m", "km"]
+unit_force: TypeAlias = Literal["lb", "lbf", "kip", "N", "kN", "MN", "kgf", "tonf"]
+unit_time: TypeAlias = Literal["sec", "msec"]
+unit_mass: TypeAlias = Literal["mg", "g", "kg", "ton", "t", "slug"]
+unit_stress: TypeAlias = Literal["Pa", "kPa", "MPa", "GPa", "bar", "psi", "ksi", "psf", "ksf"]
 
 
 class UnitSystem:
@@ -83,7 +85,7 @@ class UnitSystem:
     Parameters
     -----------
     length: str, default="m"
-        Length unit base. Optional ["inch", "ft", "mm", "cm", "m"].
+        Length unit base. Optional ["inch", "ft", "mm", "cm", "m", "km"].
     force: str, default="kN"
         Force unit base. Optional ["lb"("lbf"), "kip", "n", "kn", "mn", "kgf", "tonf"].
     time: str, default="sec"
@@ -100,15 +102,23 @@ class UnitSystem:
         * You can add a number after the unit to indicate a power, such as ``m3`` for ``m*m*m``.
     """
 
-    def __init__(self, length: str = "m", force: str = "kN", time: str = "sec") -> None:
-        for unit in unit_length:
-            setattr(self, unit, ratio_length[unit + "2" + length.lower()])
-        for unit in unit_force:
-            setattr(self, unit, ratio_force[unit + "2" + force.lower()])
-        for unit in unit_time:
-            setattr(self, unit, ratio_time[unit + "2" + time.lower()])
+    def __init__(
+        self, 
+        length: unit_length = "m",
+        force: unit_force = "kn",
+        time: unit_time = "sec"
+    ) -> None:
+        self._length = length.lower()
+        self._force = force.lower()
+        self._time = time.lower()
+        for unit in get_args(unit_length):
+            setattr(self, unit, ratio_length[unit.lower() + "2" + self._length])
+        for unit in get_args(unit_force):
+            setattr(self, unit, ratio_force[unit.lower() + "2" + self._force])
+        for unit in get_args(unit_time):
+            setattr(self, unit, ratio_time[unit.lower() + "2" + self._time])
         # mass
-        self.kg = self.n * self.sec**2 / self.m
+        self.kg = self.N * self.sec**2 / self.m
         self.mg, self.g, self.ton = 1e-6 * self.kg, 1e-3 * self.kg, 1e3 * self.kg
         self.t, self.slug, self.slinch = (
             1e3 * self.kg,
@@ -116,11 +126,23 @@ class UnitSystem:
             175.126836 * self.kg,
         )
         # stress
-        self.pa = self.n / (self.m * self.m)
+        self.pa = self.N / (self.m * self.m)
         self.kpa, self.mpa, self.gpa = 1000 * self.pa, 1e6 * self.pa, 1e9 * self.pa
         self.bar = 1e5 * self.pa
         self.psi, self.ksi = 6894.7572932 * self.pa, 6894757.2932 * self.pa
         self.psf, self.ksf = 47.880208 * self.pa, 47880.2468616010 * self.pa
+
+    @property
+    def length(self):
+        return self._length
+
+    @property
+    def force(self):
+        return self._force
+
+    @property
+    def time(self):
+        return self._time
 
     def __getattr__(self, item):
         v = re.findall(r"-?\d+\.?\d*e?E?-?\d*?", item)
@@ -132,31 +154,92 @@ class UnitSystem:
         base = getattr(self, s)
         return base**v
 
-    def __repr__(self):
+    def __getattr__(self, name: str):
+        # Uniformly convert to lowercase (preserve the numeric part)
+        base_name = ''.join([c for c in name if not c.isdigit()]).lower()
+        valid_units = (
+            get_args(unit_length)
+            + get_args(unit_force)
+            + get_args(unit_time)
+            + get_args(unit_mass)
+            + get_args(unit_stress)
+        )
+        if base_name in [u.lower() for u in valid_units]:
+            return self.get_unit_ratio(name)
+        raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
+
+    def get_unit_ratio(self, name: str) -> float:
+        # Normalize the input name
+        clean_name = re.sub(r'[^a-zA-Z0-9]', '', name).lower()
+        
+        # Separate the unit base name and exponent
+        match = re.fullmatch(r"([a-z]+)(\d*)", clean_name)
+        if not match:
+            raise AttributeError(f"Invalid unit format: '{name}'")
+        base_part, exponent_part = match.groups()
+        
+        # Build a dictionary for attribute lookup (lowercase keys)
+        attr_map = {k.lower(): v for k, v in self.__dict__.items() if isinstance(v, (int, float))}
+        
+        # Find the closest match
+        candidates = [k for k in attr_map if k.startswith(base_part)]
+        if not candidates:
+            suggestions = difflib.get_close_matches(base_part, attr_map.keys(), n=3)
+            err_msg = f"'{self.__class__.__name__}' has no attribute '{name}'"
+            if suggestions:
+                err_msg += f". Did you mean: {', '.join(suggestions)}?"
+            raise AttributeError(err_msg)
+        
+        # Take the longest match (e.g., prioritize 'mm' over 'm')
+        best_match = max(candidates, key=len)
+        base_value = attr_map[best_match]
+        
+        # Handle the exponent
+        exponent = int(exponent_part) if exponent_part else 1
+        return base_value ** exponent
+
+    def __repr__(self) -> str:
+        return (
+            f"<UnitSystem: "
+            f"length={self.length!r}, "
+            f"force={self.force!r}, "
+            f"time={self.time!r} "
+            f"({hash(self)})>"
+        )
+
+    def print(self):
+        """Show all unit conversion coefficients with colorful output"""
+        from rich import print as rprint
         txt = "\n[bold #d20962]Length unit:[/bold #d20962]\n"
-        for i, unit in enumerate(unit_length):
-            txt += f"{unit}={getattr(self, unit)}; "
-            if i > 1 and (i + 1) % 5 == 0:
-                txt += "\n"
+        for i, unit in enumerate(get_args(unit_length)):
+            txt += f"{unit}={getattr(self, unit):.3g}; "
         txt += "\n\n[bold #f47721]Force unit:[/bold #f47721]\n"
-        for i, unit in enumerate(unit_force):
-            txt += f"{unit}={getattr(self, unit)}; "
-            if i > 1 and (i + 1) % 5 == 0:
-                txt += "\n"
+        for i, unit in enumerate(get_args(unit_force)):
+            txt += f"{unit}={getattr(self, unit):.3g}; "
         txt += "\n\n[bold #7ac143]Time unit:[/bold #7ac143]\n"
-        for i, unit in enumerate(unit_time):
-            txt += f"{unit}={getattr(self, unit)}; "
-            if i > 1 and (i + 1) % 5 == 0:
-                txt += "\n"
+        for i, unit in enumerate(get_args(unit_time)):
+            txt += f"{unit}={getattr(self, unit):.3g}; "
         txt += "\n\n[bold #00bce4]Mass unit:[/bold #00bce4]\n"
-        for i, unit in enumerate(unit_mass):
-            txt += f"{unit}={getattr(self, unit)}; "
-            if i > 1 and (i + 1) % 5 == 0:
-                txt += "\n"
+        for i, unit in enumerate(get_args(unit_mass)):
+            txt += f"{unit}={getattr(self, unit):.3g}; "
         txt += "\n\n[bold #7d3f98]Pressure unit:[/bold #7d3f98]\n"
-        for i, unit in enumerate(unit_stress):
-            txt += f"{unit}={getattr(self, unit)}; "
-            if i > 1 and (i + 1) % 5 == 0:
-                txt += "\n"
+        for i, unit in enumerate(get_args(unit_stress)):
+            txt += f"{unit}={getattr(self, unit):.3g}; "
         rich.print(txt)
-        return ""
+
+
+if __name__ == "__main__":
+    UNIT = UnitSystem(length="m", force="kN")
+    # Call the __repr__ method, print the UnitSystem object information
+    print(UNIT)
+    # Call the print method, print all common units
+    UNIT.print()
+
+    # Show some unit conversion effects
+    print("Length:", UNIT.mm, UNIT.mm2, UNIT.cm, UNIT.m, UNIT.inch, UNIT.ft)
+    print("Force", UNIT.n, UNIT.kN, UNIT.lbf, UNIT.kip)
+    print("Stress", UNIT.mpa, UNIT.kpa, UNIT.pa, UNIT.psi, UNIT.ksi)
+    print("Mass", UNIT.g, UNIT.kg, UNIT.ton, UNIT.slug)
+
+    # When inputting invalid unit, it will give smart suggestions
+    print(UNIT.mmm)
