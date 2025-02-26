@@ -3,7 +3,7 @@ sphinx-autobuild==2024.10.3
 sphinx-autodoc-typehints==2.5.0
 sphinx-copybutton==0.5.2
 jupyter-sphinx==0.5.3
-nbsphinx==0.9.5
+nbsphinx==0.9.6
 sphinx_design==0.6.1
 furo==2024.8.6
 notebook
