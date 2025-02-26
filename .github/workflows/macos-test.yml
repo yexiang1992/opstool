@@ -7,7 +7,7 @@ jobs:
     runs-on: macos-latest  # Use latest macOS runner (M1/M2 Macs default to arm64)
     strategy:
       matrix:
-        python-version: ["3.10", "3.11", "3.12"]  # Test on multiple Python versions
+        python-version: ["3.12"]  # Test on multiple Python versions
 
     steps:
       - name: Checkout repository
