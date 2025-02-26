@@ -734,10 +734,10 @@ def _get_bc_points_cells(fixed_coords, fixed_dofs, s, show_zaxis):
             idx = len(points)
             points.extend(
                 [
-                    [x, y - s / 2, z],
-                    [x, y + s / 2, z],
-                    [x, y + s / 2, z - s],
-                    [x, y - s / 2, z - s],
+                    [x, y - s / 2, z - s / 2],
+                    [x, y + s / 2, z - s / 2],
+                    [x, y + s / 2, z + s / 2],
+                    [x, y - s / 2, z + s / 2],
                 ]
             )
             cells.extend(
@@ -760,10 +760,10 @@ def _get_bc_points_cells(fixed_coords, fixed_dofs, s, show_zaxis):
             idx = len(points)
             points.extend(
                 [
-                    [x - s / 2, y, z],
-                    [x + s / 2, y, z],
-                    [x + s / 2, y, z - s],
-                    [x - s / 2, y, z - s],
+                    [x - s / 2, y, z - s / 2],
+                    [x + s / 2, y, z - s / 2],
+                    [x + s / 2, y, z + s / 2],
+                    [x - s / 2, y, z + s / 2],
                 ]
             )
             cells.extend(
@@ -786,10 +786,10 @@ def _get_bc_points_cells(fixed_coords, fixed_dofs, s, show_zaxis):
             idx = len(points)
             points.extend(
                 [
-                    [x - s / 2, y - s / 2, z - s / 2],
-                    [x + s / 2, y - s / 2, z - s / 2],
-                    [x + s / 2, y + s / 2, z - s / 2],
-                    [x - s / 2, y + s / 2, z - s / 2],
+                    [x - s / 2, y - s / 2, z],
+                    [x + s / 2, y - s / 2, z],
+                    [x + s / 2, y + s / 2, z],
+                    [x - s / 2, y + s / 2, z],
                 ]
             )
             cells.extend(
