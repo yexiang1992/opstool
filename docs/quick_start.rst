@@ -62,11 +62,13 @@ Whether you are building models, visualizing results, or interpreting data,
 ``opstool`` is your go-to solution for OpenSeesPy workflows.
 
 
-Quick Visualization Guide
+Quick Guide
 ---------------------------
+
+Below is a quick guide to getting started with opstool:
+
+`A simple but complete example: Two-Dimensional Moment Frame Analysis <src/examples/post/Frame2D/test_model.ipynb>`_.
 
 Below is a quick guide to getting started with visualization in opstool:
 
 `Quick Model and Eigen Visualization <src/quick_start/plot_model.ipynb>`_.
-
-`A simple but complete example: Two-Dimensional Moment Frame Analysis <src/examples/post/Frame2D/test_model.ipynb>`_.
