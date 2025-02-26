@@ -3,5 +3,5 @@
   <component name="Black">
     <option name="sdkName" value="Poetry (opstool)" />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="opstool-dev" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="Poetry (opstool)" project-jdk-type="Python SDK" />
 </project>
