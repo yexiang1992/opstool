@@ -787,33 +787,33 @@ def _get_bc_points(fixed_coords, fixed_dofs, s, show_zaxis):
         if dof[0] == "1":
             points.extend(
                 [
-                    [x, y - s / 2, z],
-                    [x, y + s / 2, z],
-                    [x, y + s / 2, z - s],
-                    [x, y - s / 2, z - s],
-                    [x, y - s / 2, z],
+                    [x, y - s / 2, z - s / 2],
+                    [x, y + s / 2, z - s / 2],
+                    [x, y + s / 2, z + s / 2],
+                    [x, y - s / 2, z + s / 2],
+                    [x, y - s / 2, z - s / 2],
                     [np.nan, np.nan, np.nan],
                 ]
             )
         if dof[1] == "1":
             points.extend(
                 [
-                    [x - s / 2, y, z],
-                    [x + s / 2, y, z],
-                    [x + s / 2, y, z - s],
-                    [x - s / 2, y, z - s],
-                    [x - s / 2, y, z],
+                    [x - s / 2, y, z - s / 2],
+                    [x + s / 2, y, z - s / 2],
+                    [x + s / 2, y, z + s / 2],
+                    [x - s / 2, y, z + s / 2],
+                    [x - s / 2, y, z - s / 2],
                     [np.nan, np.nan, np.nan],
                 ]
             )
         if dof[2] == "1":
             points.extend(
                 [
-                    [x - s / 2, y - s / 2, z - s / 2],
-                    [x + s / 2, y - s / 2, z - s / 2],
-                    [x + s / 2, y + s / 2, z - s / 2],
-                    [x - s / 2, y + s / 2, z - s / 2],
-                    [x - s / 2, y - s / 2, z - s / 2],
+                    [x - s / 2, y - s / 2, z],
+                    [x + s / 2, y - s / 2, z],
+                    [x + s / 2, y + s / 2, z],
+                    [x - s / 2, y + s / 2, z],
+                    [x - s / 2, y - s / 2, z],
                     [np.nan, np.nan, np.nan],
                 ]
             )
