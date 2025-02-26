@@ -4,21 +4,53 @@ on: [push, pull_request]
 
 jobs:
   test-macos:
-    runs-on: macos-latest
+    runs-on: macos-latest  # Use latest macOS runner (M1/M2 Macs default to arm64)
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]  # Test on multiple Python versions
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Check system architecture
+        run: uname -m  # This should output arm64 or x86_64
+
+      - name: Install Rosetta (if needed)
+        if: runner.arch == 'ARM64'
+        run: |
+          sudo softwareupdate --install-rosetta --agree-to-license || echo "Rosetta already installed"
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.12'  # Change based on opstool requirements
+          python-version: ${{ matrix.python-version }}
 
-      - name: Install opstool
+      - name: Check Python architecture
+        run: python -c "import platform; print('Python architecture:', platform.machine())"
+
+      - name: Install dependencies
         run: |
-          pip install openseespy
+          python -m pip install --upgrade pip
+          brew install hdf5  # Ensure HDF5 support if needed
+
+      - name: Install OpenSeesPyMac (ARM64 first, fallback to x86_64 if needed)
+        run: |
           pip install opstool
+          ARCH=$(uname -m)
+          if [ "$ARCH" = "arm64" ]; then
+            echo "Installing OpenSeesPyMac for ARM64"
+            pip install --no-cache-dir openseespy openseespymac
+          else
+            echo "Installing OpenSeesPyMac for x86_64 using Rosetta"
+            arch -x86_64 pip install --no-cache-dir openseespy openseespymac
+          fi
 
       - name: Verify installation
         run: |
           python -c "import opstool; print(opstool.__version__)"
+          python -c "import openseespy; print('OpenSeesPyMac imported successfully')"
+
+      - name: Run basic OpenSeesPy test
+        run: |
+          python -c "from openseespy.opensees import *; wipe(); model('basic', '-ndm', 2, '-ndf', 3); print('Basic model created')"
