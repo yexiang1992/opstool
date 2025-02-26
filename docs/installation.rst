@@ -34,7 +34,7 @@ Some Tips
 
 2. **OpenSeesPy Version Compatibility**: ``opstool`` does not impose a strict ``OpenSeesPy`` version requirement, but it utilizes some functionalities introduced in newer OpenSeesPy releases. Therefore, **for Windows and Linux users, we recommend using the latest OpenSeesPy version to ensure full compatibility**.
 
-3. **Python Version Dependency**: OpenSeesPy is strongly dependent on the Python version because it is compiled using specific Python headers. **Users should select their Python version based on OpenSeesPy’s requirements**. For example, the latest OpenSeesPy 3.7.0+ requires Python 3.12.
+3. **Python Version Dependency on Windows**: *OpenSeesPy has a strong dependency on the Python version on Windows*, as it is compiled using specific Python headers. Users should ensure their Python version aligns with OpenSeesPy’s requirements to maintain compatibility. For instance, the latest OpenSeesPy 3.7.0 requires Python 3.12 on Windows.
 
 4. **Python Version Requirement for opstool**: Since opstool uses Python 3.10+ syntax features, installation requires **Python 3.10 or later** to ensure compatibility.
 
