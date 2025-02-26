@@ -4,53 +4,42 @@ on: [push, pull_request]
 
 jobs:
   test-macos:
-    runs-on: macos-latest  # Use latest macOS runner (M1/M2 Macs default to arm64)
-    strategy:
-      matrix:
-        python-version: ["3.12"]  # Test on multiple Python versions
+    runs-on: macos-latest  # Uses macOS runner (M1/M2 are arm64 by default)
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Check system architecture
-        run: uname -m  # This should output arm64 or x86_64
+        run: uname -m  # Outputs either arm64 or x86_64
 
-      - name: Install Rosetta (if needed)
-        if: runner.arch == 'ARM64'
+      - name: Install Rosetta (for x86_64 compatibility)
         run: |
           sudo softwareupdate --install-rosetta --agree-to-license || echo "Rosetta already installed"
 
+      - name: Install Homebrew in x86_64 mode (if not installed)
+        run: |
+          arch -x86_64 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" || echo "Homebrew already installed"
+
+      - name: Install Python in x86_64 mode
+        run: |
+          arch -x86_64 brew install python@3.12  # Install Python 3.12 (or compatible version)
+
       - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Check Python architecture
-        run: python -c "import platform; print('Python architecture:', platform.machine())"
-
-      - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          brew install hdf5  # Ensure HDF5 support if needed
+          echo "Using x86_64 Python"
+          arch -x86_64 /usr/local/bin/python3 -m pip install --upgrade pip
 
-      - name: Install OpenSeesPyMac (ARM64 first, fallback to x86_64 if needed)
+      - name: Install opstool and OpenSeesPyMac in x86_64 mode
         run: |
-          pip install opstool
-          ARCH=$(uname -m)
-          if [ "$ARCH" = "arm64" ]; then
-            echo "Installing OpenSeesPyMac for ARM64"
-            pip install --no-cache-dir openseespy openseespymac
-          else
-            echo "Installing OpenSeesPyMac for x86_64 using Rosetta"
-            arch -x86_64 pip install --no-cache-dir openseespy openseespymac
-          fi
+          arch -x86_64 /usr/local/bin/python3 -m pip install opstool
+          arch -x86_64 /usr/local/bin/python3 -m pip install --no-cache-dir openseespy openseespymac
 
       - name: Verify installation
         run: |
-          python -c "import opstool; print(opstool.__version__)"
-          python -c "import openseespy; print('OpenSeesPyMac imported successfully')"
+          arch -x86_64 /usr/local/bin/python3 -c "import opstool; print(opstool.__version__)"
+          arch -x86_64 /usr/local/bin/python3 -c "import openseespy; print('OpenSeesPyMac imported successfully')"
 
       - name: Run basic OpenSeesPy test
         run: |
-          python -c "from openseespy.opensees import *; wipe(); model('basic', '-ndm', 2, '-ndf', 3); print('Basic model created')"
+          arch -x86_64 /usr/local/bin/python3 -c "from openseespy.opensees import *; wipe(); model('basic', '-ndm', 2, '-ndf', 3); print('Basic model created')"
