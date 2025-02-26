@@ -1,0 +1,24 @@
+name: MacOS Installation Test
+
+on: [push, pull_request]
+
+jobs:
+  test-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'  # Change based on opstool requirements
+
+      - name: Install opstool
+        run: |
+          pip install openseespy
+          pip install opstool
+
+      - name: Verify installation
+        run: |
+          python -c "import opstool; print(opstool.__version__)"
