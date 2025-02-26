@@ -67,7 +67,7 @@ Quick Guide
 
 Below is a quick guide to getting started with opstool:
 
-`A simple but complete example: Two-Dimensional Moment Frame Analysis <src/examples/post/Frame2D/test_model.ipynb>`_.
+`A simple but complete example: Two-Dimensional Moment Frame Analysis <https://opstool.readthedocs.io/en/latest/examples/post/Frame2D/test_model.html>`_.
 
 Below is a quick guide to getting started with visualization in opstool:
 
