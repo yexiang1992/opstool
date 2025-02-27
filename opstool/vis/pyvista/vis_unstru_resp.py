@@ -500,11 +500,14 @@ def _check_input(ele_type, resp_type, resp_dof):
         if resp_type.lower() in ["sectionforces", "forces", "sectionforce", "force"]:
             resp_type = "sectionForces"
         elif resp_type.lower() in [
-            "sectionDeformations",
-            "sectionDeformation",
+            "sectiondeformations",
+            "sectiondeformation",
+            "secdeformations",
+            "secdeformation",
             "deformations",
             "deformation",
             "defo",
+            "secdefo",
         ]:
             resp_type = "sectionDeformations"
         else:
