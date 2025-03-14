@@ -95,7 +95,7 @@ def offset(points: list, d: float):
     coords: list[[float, float]], new offset points.
 
     Examples
-    ----------
+    --------
     >>> import opstool as opst
     >>> outlines1 = [[0, 0], [0, 1], [1, 1]]
     >>> outlines2 = opst.pre.section.offset(outlines1, d=0.1)
@@ -112,7 +112,7 @@ def poly_offset(points: list, d: float):
 
     Parameters
     ----------
-    points  : list[list[float, float]]
+    points : list[list[float, float]]
         A list containing the coordinate points, [(x1, y1),(x2, y2),...,(xn.yn)].
     d : float
         Offsets closed polygons, positive values offset inwards, negative values outwards.
@@ -129,7 +129,7 @@ def line_offset(points: list, d: float):
 
     Parameters
     ----------
-    points  : list[list[float, float]]
+    points : list[list[float, float]]
         A list containing the coordinate points, [(x1, y1),(x2, y2),...,(xn.yn)].
     d : float
         Offsets non-closed line ring, negative for left side offset, positive for right side offset.
@@ -352,6 +352,9 @@ class FiberSecMesh:
         # * mesh obj
         self.mesh_obj = None
         self.section = None
+        self.section_geom = None
+        self.section_mesh_sizes = None
+        # ------------------------
         self.fibrt_points = None
         self.fiber_cells_map = dict()
         self.fiber_centers_map = dict()
@@ -387,9 +390,8 @@ class FiberSecMesh:
 
         Parameters
         ------------
-        patches : dict|patch|List[patch]
-            A dict of name as a key,
-            `Geometry <https://sectionproperties.readthedocs.io/en/stable/user_guide/geometry.html>`_ as value.
+        patches : dict[str, patch]|patch|List[patch]
+            patch: `Geometry <https://sectionproperties.readthedocs.io/en/stable/user_guide/geometry.html>`_ as value.
 
         Returns
         ----------
@@ -414,6 +416,30 @@ class FiberSecMesh:
         group : dict[str, any]
         """
         return self.geom_group_map
+
+    def rotate_section_geometry(self, angle: float, rot_point: tuple[float, float] | str = 'center'):
+        """Rotate the patch group.
+        Rotates the patch and specified angle about a point.
+        If the rotation point is not provided,
+        rotates the section about the center.
+
+        Parameters
+        ----------
+        angle : float
+            Angle (degrees by default) by which to rotate the section.
+            A positive angle leads to a clockwise rotation.
+        rot_point : tuple[float, float]
+            Point (x, y) about which to rotate the section.
+            If not provided, will rotate about the center of the bounding box.
+            Defaults to "center".
+        """
+        if rot_point == 'center':
+            if self.section_geom is None:
+                self._to_geometry()
+            cx, cy = self.section_geom.calculate_centroid()
+        else:
+            cx, cy = rot_point
+        self.section_geom = self.section_geom.rotate_section(angle=-angle, rot_point=(cx, cy), use_radians=False)
 
     def set_mesh_size(
         self, mesh_size: Union[dict[str, float], list[float], tuple[float], float]
@@ -509,6 +535,49 @@ class FiberSecMesh:
                 self.color_map[name] = colors
         return self
 
+    def _to_geometry(self):
+        geoms, mesh_sizes = [], []
+        for name, geom in self.geom_group_map.items():
+            if isinstance(geom, CompoundGeometry):
+                for geomi in geom.geoms:
+                    geoms.append(geomi)
+                    self.geom_names.append(name)
+            elif isinstance(geom, Geometry):
+                geoms.append(geom)
+                self.geom_names.append(name)
+        for i in range(len(geoms)):
+            geom = geoms[i]
+            name = self.geom_names[i]
+            if geom.material is None:
+                geom.material = DEFAULT_MATERIAL
+            elif geom.material != DEFAULT_MATERIAL:
+                geom.material = create_material(
+                    name=name,
+                    elastic_modulus=geom.material.elastic_modulus,
+                    poissons_ratio=geom.material.poissons_ratio,
+                    yield_strength=geom.material.yield_strength,
+                    density=geom.material.density,
+                    color=geom.material.color,
+                )
+            geoms[i] = geom
+            mesh_sizes.append(0.5 * self.mesh_size_map[name] ** 2)
+
+        if len(geoms) == 1:
+            geom_obj = geoms[0]
+            mesh_sizes = mesh_sizes[0]
+        else:
+            geom_obj = CompoundGeometry(geoms)
+        self.section_geom = geom_obj
+        self.section_mesh_sizes = mesh_sizes
+
+    def _to_mesh_section(self):
+        if self.section_geom is None:
+            self._to_geometry()
+        mesh_obj = self.section_geom.create_mesh(mesh_sizes=self.section_mesh_sizes)
+        self.mesh_obj = mesh_obj.mesh
+        self.section = Section(self.section_geom, time_info=False)
+        self._get_mesh_data()
+
     def mesh(self):
         """Mesh the section.
 
@@ -523,31 +592,7 @@ class FiberSecMesh:
             for name, geom in self.geom_group_map.items():
                 area = geom.calculate_area()
                 self.mesh_size_map[name] = np.sqrt(2 * area / 100)
-        geoms, mesh_sizes = [], []
-        for name, geom in self.geom_group_map.items():
-            if geom.material is None:
-                geom.material = DEFAULT_MATERIAL
-            elif geom.material != DEFAULT_MATERIAL:
-                geom.material = create_material(
-                    name=name,
-                    elastic_modulus=geom.material.elastic_modulus,
-                    poissons_ratio=geom.material.poissons_ratio,
-                    yield_strength=geom.material.yield_strength,
-                    density=geom.material.density,
-                    color=self.color_map[name],
-                )
-            geoms.append(geom)
-            mesh_sizes.append(0.5 * self.mesh_size_map[name] ** 2)
-            self.geom_names.append(name)
-        if len(geoms) == 1:
-            geom_obj = geoms[0]
-            mesh_sizes = mesh_sizes[0]
-        else:
-            geom_obj = CompoundGeometry(geoms)
-        mesh_obj = geom_obj.create_mesh(mesh_sizes=mesh_sizes)
-        self.section = Section(geom_obj, time_info=False)
-        self.mesh_obj = mesh_obj.mesh
-        self._get_mesh_data()
+        self._to_mesh_section()
         txt = get_random_color_rich(self.sec_name)
         CONSOLE.print(f"{PKG_PREFIX}The section {txt} has been successfully meshed!")
 
@@ -558,13 +603,14 @@ class FiberSecMesh:
         triangles = self.mesh_obj["triangles"][:, :3]
         triangle_attributes = self.mesh_obj["triangle_attributes"]
         attributes = np.unique(triangle_attributes)
-        if len(self.geom_group_map) == 1:
-            for name in self.geom_group_map.keys():
-                self.fiber_cells_map[name] = triangles
-        else:
-            for name, attri in zip(self.geom_group_map.keys(), attributes):
-                idx = triangle_attributes == attri
-                self.fiber_cells_map[name] = triangles[idx[:, 0]]
+        attributes = np.atleast_1d(attributes)
+        for name in self.geom_group_map.keys():
+            self.fiber_cells_map[name] = []
+        for name, attri in zip(self.geom_names, attributes):
+            idx = triangle_attributes == attri
+            self.fiber_cells_map[name].append(triangles[idx[:, 0]])
+        for name in self.geom_group_map.keys():
+            self.fiber_cells_map[name] = np.vstack(self.fiber_cells_map[name])
         # * fiber data
         iys, izs = [], []
         for name, faces in self.fiber_cells_map.items():
@@ -607,6 +653,16 @@ class FiberSecMesh:
             fiber center dict, fiber area dict
         """
         return self.fiber_centers_map, self.fiber_areas_map
+
+    # def set_section(self, section: Section):
+    #     """set the section.
+    #
+    #     Parameters
+    #     ------------
+    #         section: `Section <https://sectionproperties.readthedocs.io/en/stable/user_guide/section.html>`_
+    #     """
+    #     self.section = section
+    #     self._get_mesh_data()
 
     def get_section(self):
         """Return the section object.
@@ -1108,6 +1164,7 @@ class FiberSecMesh:
         cx, cy = (0.0, 0.0) if self.is_centring else self.section.get_c()
         # self.section.section_props.calculate_centroidal_properties(self.points)
         if self.section.is_composite():
+            self.section.calculate_geometric_properties()
             zxx_plus, zxx_minus, zyy_plus, zyy_minus = self.section.get_ez(Eref)
             Eeff = self.section.get_e_eff()
             self.area = area * Eeff / Eref
@@ -1182,7 +1239,7 @@ class FiberSecMesh:
                     )
             CONSOLE.print(table)
         self.frame_sec_props = sec_props
-        return sec_props
+        return self.frame_sec_props
 
     def display_all_results(self, Eref: float = 1.0, fmt: str = "8.6e"):
         """Prints all results that have been calculated by ``sectionproperties`` to the terminal.
@@ -1467,41 +1524,64 @@ class FiberSecMesh:
         self.is_centring = True
         self.centroid = np.array([0.0, 0.0])
 
-    def rotate(self, theta: float = 0):
+    def rotate(
+            self,
+            theta: float = 0,
+            rot_point: tuple[float, float] | str = 'center',
+            remesh: bool = False,
+    ):
         """Rotate the section clockwise.
 
         Parameters
         ------------
         theta : float, default=0
              Rotation angle, unit: degree.
+        rot_point : tuple[float, float], default=('center', 'center')
+            Point (x, y) about which to rotate the section.
+            If not provided, will rotate about the center.
+            Defaults to "center".
+        remesh : bool, default=False
+            If True, will remesh the section.
+            So the cross-section properties will be updated.
+            If False, Only the existing mesh will be rotated,
+            and the cross-section properties will not be updated
 
         Returns
         ---------
         None
         """
-        theta = theta / 180 * np.pi
+        if rot_point == 'center':
+            xo, yo = self.centroid
+        else:
+            xo, yo = rot_point
 
-        if not self.is_centring:
-            self.centring()
+        if not remesh:
+            theta = theta / 180 * np.pi
+            x_rot, y_rot = sec_rotation(self.points[:, 0], self.points[:, 1], theta, xo=xo, yo=yo)
+            self.points[:, 0], self.points[:, 1] = x_rot, y_rot
 
-        x_rot, y_rot = sec_rotation(self.points[:, 0], self.points[:, 1], theta)
-        self.points[:, 0], self.points[:, 1] = x_rot, y_rot
-
-        names = self.fiber_centers_map.keys()
-        for name in names:
-            x_rot, y_rot = sec_rotation(
-                self.fiber_centers_map[name][:, 0],
-                self.fiber_centers_map[name][:, 1],
-                theta,
-            )
-            self.fiber_centers_map[name][:, 0], self.fiber_centers_map[name][:, 1] = (
-                x_rot,
-                y_rot,
-            )
+            names = self.fiber_centers_map.keys()
+            for name in names:
+                x_rot, y_rot = sec_rotation(
+                    self.fiber_centers_map[name][:, 0],
+                    self.fiber_centers_map[name][:, 1],
+                    theta,
+                    xo=xo,
+                    yo=yo,
+                )
+                self.fiber_centers_map[name][:, 0], self.fiber_centers_map[name][:, 1] = (
+                    x_rot,
+                    y_rot,
+                )
+        else:
+            self.rotate_section_geometry(angle=theta, rot_point=(xo, yo))
+            self._to_mesh_section()
+            txt = get_random_color_rich(self.sec_name)
+            CONSOLE.print(f"{PKG_PREFIX}The section {txt} has been successfully remeshed!")
         # rebar
         for i, data in enumerate(self.rebar_data):
             rebar_xy = self.rebar_data[i]["rebar_xy"]
-            x_rot, y_rot = sec_rotation(rebar_xy[:, 0], rebar_xy[:, 1], theta)
+            x_rot, y_rot = sec_rotation(rebar_xy[:, 0], rebar_xy[:, 1], theta, xo=xo, yo=yo)
             (
                 self.rebar_data[i]["rebar_xy"][:, 0],
                 self.rebar_data[i]["rebar_xy"][:, 1],
@@ -1772,12 +1852,12 @@ class FiberSecMesh:
         # plt.show()
 
 
-def sec_rotation(x, y, theta):
+def sec_rotation(x, y, theta, xo=0, yo=0):
     """
     Rotate the section coordinates counterclockwise by theta
     """
-    x_new = x * np.cos(theta) + y * np.sin(theta)
-    y_new = -x * np.sin(theta) + y * np.cos(theta)
+    x_new = xo + (x-xo) * np.cos(theta) + (y-yo) * np.sin(theta)
+    y_new = yo - (x-xo) * np.sin(theta) + (y-yo) * np.cos(theta)
     return x_new, y_new
 
 
