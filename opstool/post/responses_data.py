@@ -1,4 +1,5 @@
 from typing import Union
+from types import SimpleNamespace
 
 import numpy as np
 import openseespy.opensees as ops
@@ -19,6 +20,11 @@ from ._get_response import (
 from .eigen_data import save_eigen_data
 from .model_data import save_model_data
 from ..utils import get_random_color, CONSTANTS
+
+
+POST_ARGS = SimpleNamespace(
+    elastic_frame_sec_points=7,
+)
 
 
 class CreateODB:
@@ -84,6 +90,11 @@ class CreateODB:
         If you enter optional node and element tags to avoid saving all data,
         make sure these tags are not deleted during the analysis.
         Otherwise, unexpected behavior may occur.
+
+    kwargs: Other post-processing parameters, optional:
+        * elastic_frame_sec_points: int, default: 7
+            The number of elastic frame elements section points.
+            A larger number may result in a larger file size.
     """
 
     def __init__(
@@ -106,7 +117,8 @@ class CreateODB:
             shell_tags: Union[list, tuple, int] = None,
             plane_tags: Union[list, tuple, int] = None,
             brick_tags: Union[list, tuple, int] = None,
-            contact_tags: Union[list, tuple, int] = None
+            contact_tags: Union[list, tuple, int] = None,
+            **kwargs
     ):
         self.odb_tag = odb_tag
         self.model_update = model_update
@@ -157,6 +169,9 @@ class CreateODB:
         self.BrickResp = None
         self.ContactResp = None
 
+        for key, value in kwargs.items():
+            setattr(POST_ARGS, key, value)
+
         self.initialize()
 
     def _get_resp(self):
@@ -182,7 +197,11 @@ class CreateODB:
             frame_tags = self.ModelInfo.get_current_frame_tags()
         frame_load_data = self.ModelInfo.get_current_frame_load_data()
         if len(frame_tags) > 0 and self.save_frame_resp:
-            self.FrameResp = FrameRespStepData(frame_tags, frame_load_data)
+            self.FrameResp = FrameRespStepData(
+                frame_tags,
+                frame_load_data,
+                elastic_frame_sec_points=POST_ARGS.elastic_frame_sec_points
+            )
         # -----------------------------------------------------------------
         if self.truss_tags is not None:
             truss_tags = self.truss_tags

@@ -5,11 +5,11 @@ import xarray as xr
 from ._response_base import ResponseBase, _expand_to_uniform_array
 
 ELASTIC_BEAM_CLASSES = [3, 5, 5001, 145, 146, 63, 631]
-N_SECS_ELASTIC_BEAM = 7
+
 
 class FrameRespStepData(ResponseBase):
 
-    def __init__(self, ele_tags=None, ele_load_data=None):
+    def __init__(self, ele_tags=None, ele_load_data=None, elastic_frame_sec_points: int = 7):
         self.resp_names = [
             "localForces",
             "basicForces",
@@ -24,6 +24,7 @@ class FrameRespStepData(ResponseBase):
         self.ele_tags = ele_tags
         self.ele_load_data = ele_load_data
         self.times = []
+        self.elastic_frame_sec_points = elastic_frame_sec_points
         self.initialize()
 
     def initialize(self):
@@ -51,7 +52,7 @@ class FrameRespStepData(ResponseBase):
         plastic_defos = _get_beam_basic_resp(
             ele_tags, ("plasticRotation", "plasticDeformation")
         )
-        sec_f, sec_d, sec_locs = _get_beam_sec_resp(ele_tags, ele_load_data, local_forces)
+        sec_f, sec_d, sec_locs = _get_beam_sec_resp(ele_tags, ele_load_data, local_forces, self.elastic_frame_sec_points)
         data_vars = dict()
         data_vars["localForces"] = (["eleTags", "localDofs"], local_forces)
         data_vars["basicForces"] = (["eleTags", "basicDofs"], basic_forces)
@@ -190,7 +191,7 @@ def _get_beam_basic_resp(beam_tags, resp_types):
     return np.array(basic_resps)
 
 
-def _get_beam_sec_resp(beam_tags, ele_load_data, local_forces):
+def _get_beam_sec_resp(beam_tags, ele_load_data, local_forces, n_secs_elastic_beam):
     pattern_tags, load_eletags = [], []
     if len(ele_load_data) > 0:
         petags = ele_load_data.coords["PatternEleTags"].values
@@ -206,7 +207,7 @@ def _get_beam_sec_resp(beam_tags, ele_load_data, local_forces):
     for eletag, length, local_f in zip(beam_tags, beam_lengths, local_forces):
         eletag = int(eletag)
         if ops.getEleClassTags(eletag)[0] in ELASTIC_BEAM_CLASSES:  # elastic beam
-            xlocs = np.linspace(0, 1.0, N_SECS_ELASTIC_BEAM)
+            xlocs = np.linspace(0, 1.0, n_secs_elastic_beam)
             sec_f = _get_sec_forces(eletag, length, ele_load_data, pattern_tags, load_eletags, local_f, xlocs)
             sec_d = np.zeros_like(sec_f)
         else:
