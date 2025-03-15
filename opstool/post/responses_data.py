@@ -159,6 +159,14 @@ class CreateODB:
 
         self.initialize()
 
+    def _get_resp(self):
+        output = [
+            self.ModelInfo, self.NodalResp, self.FrameResp, self.TrussResp,
+            self.LinkResp, self.ShellResp, self.FiberSecResp,
+            self.PlaneResp, self.BrickResp, self.ContactResp,
+        ]
+        return output
+
     def initialize(self):
         self.ModelInfo = ModelInfoStepData(model_update=self.model_update)
         if self.node_tags is not None:
@@ -222,26 +230,9 @@ class CreateODB:
             self.ContactResp = ContactRespStepData(contact_tags)
 
     def reset(self):
-        if self.ModelInfo is not None:
-            self.ModelInfo.reset()
-        if self.NodalResp is not None:
-            self.NodalResp.reset()
-        if self.FrameResp is not None:
-            self.FrameResp.reset()
-        if self.TrussResp is not None:
-            self.TrussResp.reset()
-        if self.LinkResp is not None:
-            self.LinkResp.reset()
-        if self.ShellResp is not None:
-            self.ShellResp.reset()
-        if self.FiberSecResp is not None:
-            self.FiberSecResp.reset()
-        if self.PlaneResp is not None:
-            self.PlaneResp.reset()
-        if self.BrickResp is not None:
-            self.BrickResp.reset()
-        if self.ContactResp is not None:
-            self.ContactResp.reset()
+        for resp in self._get_resp():
+            if resp is not None:
+                resp.reset()
 
     def fetch_response_step(self, print_info: bool = False):
         """Extract response data for the current moment.
@@ -312,18 +303,25 @@ class CreateODB:
         if len(contact_tags) > 0 and self.save_contact_resp:
             self.ContactResp.add_data_one_step(contact_tags)
 
-        time = ops.getTime()
-        CONSOLE = CONSTANTS.get_console()
-        PKG_PREFIX = CONSTANTS.get_pkg_prefix()
         if print_info:
+            time = ops.getTime()
+            CONSOLE = CONSTANTS.get_console()
+            PKG_PREFIX = CONSTANTS.get_pkg_prefix()
             color = get_random_color()
             CONSOLE.print(
                 f"{PKG_PREFIX} The responses data at time [bold {color}]{time:.4f}[/] has been fetched!"
             )
 
-    def save_response(self):
+    def save_response(self, zlib: bool = False):
         """
         Save all response data to a file name ``RespStepData-{odb_tag}.nc``.
+
+        Parameters
+        -----------
+        zlib: bool, optional, default: False
+            If True, the data is saved compressed,
+            which is useful when your result files are expected to be large,
+            especially if model updating is turned on.
         """
         RESULTS_DIR = CONSTANTS.get_output_dir()
         CONSOLE = CONSTANTS.get_console()
@@ -332,28 +330,37 @@ class CreateODB:
         filename = f"{RESULTS_DIR}/" + f"RespStepData-{self.odb_tag}.nc"
         dt = xr.DataTree(name="RespStepData")
 
-        if self.ModelInfo is not None:
-            self.ModelInfo.save_file(dt)
-        if self.NodalResp is not None:
-            self.NodalResp.save_file(dt)
-        if self.FrameResp is not None:
-            self.FrameResp.save_file(dt)
-        if self.TrussResp is not None:
-            self.TrussResp.save_file(dt)
-        if self.LinkResp is not None:
-            self.LinkResp.save_file(dt)
-        if self.ShellResp is not None:
-            self.ShellResp.save_file(dt)
-        if self.FiberSecResp is not None:
-            self.FiberSecResp.save_file(dt)
-        if self.PlaneResp is not None:
-            self.PlaneResp.save_file(dt)
-        if self.BrickResp is not None:
-            self.BrickResp.save_file(dt)
-        if self.ContactResp is not None:
-            self.ContactResp.save_file(dt)
+        for resp in self._get_resp():
+            if resp is not None:
+                resp.save_file(dt)
 
-        dt.to_netcdf(filename, mode="w", engine="netcdf4")
+        if zlib:
+            encoding = {}
+            for path, node in dt.items():
+                if path == "ModelInfo":
+                    for key, value in node.items():
+                        encoding[f"/{path}/{key}"] = {
+                            key: {
+                                "_FillValue": -9999,
+                                "zlib": True,
+                                "complevel": 5,
+                                "dtype": "float32"
+                            }
+                        }
+                else:
+                    for key, value in node.items():
+                        encoding[f"/{path}"] = {
+                            key: {
+                                "_FillValue": -9999,
+                                "zlib": True,
+                                "complevel": 5,
+                                "dtype": "float32"
+                            }
+                        }
+        else:
+            encoding = None
+
+        dt.to_netcdf(filename, mode="w", engine="netcdf4", encoding=encoding)
 
         color = get_random_color()
         CONSOLE.print(
