@@ -328,39 +328,38 @@ class CreateODB:
         PKG_PREFIX = CONSTANTS.get_pkg_prefix()
 
         filename = f"{RESULTS_DIR}/" + f"RespStepData-{self.odb_tag}.nc"
-        dt = xr.DataTree(name="RespStepData")
+        with xr.DataTree(name="RespStepData") as dt:
+            for resp in self._get_resp():
+                if resp is not None:
+                    resp.save_file(dt)
 
-        for resp in self._get_resp():
-            if resp is not None:
-                resp.save_file(dt)
-
-        if zlib:
-            encoding = {}
-            for path, node in dt.items():
-                if path == "ModelInfo":
-                    for key, value in node.items():
-                        encoding[f"/{path}/{key}"] = {
-                            key: {
-                                "_FillValue": -9999,
-                                "zlib": True,
-                                "complevel": 5,
-                                "dtype": "float32"
+            if zlib:
+                encoding = {}
+                for path, node in dt.items():
+                    if path == "ModelInfo":
+                        for key, value in node.items():
+                            encoding[f"/{path}/{key}"] = {
+                                key: {
+                                    "_FillValue": -9999,
+                                    "zlib": True,
+                                    "complevel": 5,
+                                    "dtype": "float32"
+                                }
                             }
-                        }
-                else:
-                    for key, value in node.items():
-                        encoding[f"/{path}"] = {
-                            key: {
-                                "_FillValue": -9999,
-                                "zlib": True,
-                                "complevel": 5,
-                                "dtype": "float32"
+                    else:
+                        for key, value in node.items():
+                            encoding[f"/{path}"] = {
+                                key: {
+                                    "_FillValue": -9999,
+                                    "zlib": True,
+                                    "complevel": 5,
+                                    "dtype": "float32"
+                                }
                             }
-                        }
-        else:
-            encoding = None
+            else:
+                encoding = None
 
-        dt.to_netcdf(filename, mode="w", engine="netcdf4", encoding=encoding)
+            dt.to_netcdf(filename, mode="w", engine="netcdf4", encoding=encoding)
 
         color = get_random_color()
         CONSOLE.print(
@@ -406,33 +405,32 @@ def loadODB(obd_tag, resp_type: str = "Nodal"):
     PKG_PREFIX = CONSTANTS.get_pkg_prefix()
 
     filename = f"{RESULTS_DIR}/" + f"RespStepData-{obd_tag}.nc"
-    dt = xr.open_datatree(filename, engine="netcdf4").load()
-
-    color = get_random_color()
-    CONSOLE.print(
-        f"{PKG_PREFIX} Loading response data from [bold {color}]{filename}[/] ..."
-    )
-    model_info_steps, model_update = ModelInfoStepData.read_file(dt)
-    if resp_type.lower() == "nodal":
-        resp_step = NodalRespStepData.read_file(dt)
-    elif resp_type.lower() == "frame":
-        resp_step = FrameRespStepData.read_file(dt)
-    elif resp_type.lower() == "fibersec":
-        resp_step = FiberSecRespStepData.read_file(dt)
-    elif resp_type.lower() == "truss":
-        resp_step = TrussRespStepData.read_file(dt)
-    elif resp_type.lower() == "link":
-        resp_step = LinkRespStepData.read_file(dt)
-    elif resp_type.lower() == "shell":
-        resp_step = ShellRespStepData.read_file(dt)
-    elif resp_type.lower() == "plane":
-        resp_step = PlaneRespStepData.read_file(dt)
-    elif resp_type.lower() in ["brick", "solid"]:
-        resp_step = BrickRespStepData.read_file(dt)
-    elif resp_type.lower() == "contact":
-        resp_step = ContactRespStepData.read_file(dt)
-    else:
-        raise ValueError(f"Unsupported response type {resp_type}!")
+    with xr.open_datatree(filename, engine="netcdf4").load() as dt:
+        color = get_random_color()
+        CONSOLE.print(
+            f"{PKG_PREFIX} Loading response data from [bold {color}]{filename}[/] ..."
+        )
+        model_info_steps, model_update = ModelInfoStepData.read_file(dt)
+        if resp_type.lower() == "nodal":
+            resp_step = NodalRespStepData.read_file(dt)
+        elif resp_type.lower() == "frame":
+            resp_step = FrameRespStepData.read_file(dt)
+        elif resp_type.lower() == "fibersec":
+            resp_step = FiberSecRespStepData.read_file(dt)
+        elif resp_type.lower() == "truss":
+            resp_step = TrussRespStepData.read_file(dt)
+        elif resp_type.lower() == "link":
+            resp_step = LinkRespStepData.read_file(dt)
+        elif resp_type.lower() == "shell":
+            resp_step = ShellRespStepData.read_file(dt)
+        elif resp_type.lower() == "plane":
+            resp_step = PlaneRespStepData.read_file(dt)
+        elif resp_type.lower() in ["brick", "solid"]:
+            resp_step = BrickRespStepData.read_file(dt)
+        elif resp_type.lower() == "contact":
+            resp_step = ContactRespStepData.read_file(dt)
+        else:
+            raise ValueError(f"Unsupported response type {resp_type}!")
 
     return model_info_steps, model_update, resp_step
 
@@ -470,12 +468,12 @@ def get_model_data(
         raise ValueError(f"Data type {data_type} not found.")
     if from_responses:
         filename = f"{RESULTS_DIR}/" + f"RespStepData-{odb_tag}.nc"
-        dt = xr.open_datatree(filename, engine="netcdf4")
-        data = ModelInfoStepData.read_data(dt, data_type)
+        with xr.open_datatree(filename, engine="netcdf4").load() as dt:
+            data = ModelInfoStepData.read_data(dt, data_type)
     else:
         filename = f"{RESULTS_DIR}/" + f"ModelData-{odb_tag}.nc"
-        dt = xr.open_datatree(filename, engine="netcdf4")
-        data = dt["ModelInfo"][data_type][data_type]
+        with xr.open_datatree(filename, engine="netcdf4").load() as dt:
+            data = dt["ModelInfo"][data_type][data_type]
     color = get_random_color()
     CONSOLE.print(
         f"{PKG_PREFIX} Loading {data_type} data from [bold {color}]{filename}[/] ..."
@@ -537,14 +535,13 @@ def get_nodal_responses(
     PKG_PREFIX = CONSTANTS.get_pkg_prefix()
 
     filename = f"{RESULTS_DIR}/" + f"RespStepData-{odb_tag}.nc"
-    dt = xr.open_datatree(filename, engine="netcdf4")
+    with xr.open_datatree(filename, engine="netcdf4").load() as dt:
+        color = get_random_color()
+        CONSOLE.print(
+            f"{PKG_PREFIX} Loading {resp_type} response data from [bold {color}]{filename}[/] ..."
+        )
 
-    color = get_random_color()
-    CONSOLE.print(
-        f"{PKG_PREFIX} Loading {resp_type} response data from [bold {color}]{filename}[/] ..."
-    )
-
-    nodal_resp = NodalRespStepData.read_response(dt, resp_type=resp_type, node_tags=node_tags)
+        nodal_resp = NodalRespStepData.read_response(dt, resp_type=resp_type, node_tags=node_tags)
     return nodal_resp
 
 
@@ -621,31 +618,30 @@ def get_element_responses(
     PKG_PREFIX = CONSTANTS.get_pkg_prefix()
 
     filename = f"{RESULTS_DIR}/" + f"RespStepData-{odb_tag}.nc"
-    dt = xr.open_datatree(filename, engine="netcdf4")
-
-    color = get_random_color()
-    CONSOLE.print(
-        f"{PKG_PREFIX} Loading {ele_type} {resp_type} response data from [bold {color}]{filename}[/] ..."
-    )
-
-    if ele_type.lower() == "frame":
-        ele_resp = FrameRespStepData.read_response(dt, resp_type=resp_type, ele_tags=ele_tags)
-    elif ele_type.lower() == "truss":
-        ele_resp = TrussRespStepData.read_response(dt, resp_type=resp_type, ele_tags=ele_tags)
-    elif ele_type.lower() == "link":
-        ele_resp = LinkRespStepData.read_response(dt, resp_type=resp_type, ele_tags=ele_tags)
-    elif ele_type.lower() == "shell":
-        ele_resp = ShellRespStepData.read_response(dt, resp_type=resp_type, ele_tags=ele_tags)
-    elif ele_type.lower() == "plane":
-        ele_resp = PlaneRespStepData.read_response(dt, resp_type=resp_type, ele_tags=ele_tags)
-    elif ele_type.lower() in ["brick", "solid"]:
-        ele_resp = BrickRespStepData.read_response(dt, resp_type=resp_type, ele_tags=ele_tags)
-    elif ele_type.lower() == "contact":
-        ele_resp = ContactRespStepData.read_response(dt, resp_type=resp_type, ele_tags=ele_tags)
-    else:
-        raise ValueError(
-            f"Unsupported element type {ele_type}, "
-            "must in [Frame, Truss, Link, Shell, Plane, Solid]!"
+    with xr.open_datatree(filename, engine="netcdf4").load() as dt:
+        color = get_random_color()
+        CONSOLE.print(
+            f"{PKG_PREFIX} Loading {ele_type} {resp_type} response data from [bold {color}]{filename}[/] ..."
         )
+
+        if ele_type.lower() == "frame":
+            ele_resp = FrameRespStepData.read_response(dt, resp_type=resp_type, ele_tags=ele_tags)
+        elif ele_type.lower() == "truss":
+            ele_resp = TrussRespStepData.read_response(dt, resp_type=resp_type, ele_tags=ele_tags)
+        elif ele_type.lower() == "link":
+            ele_resp = LinkRespStepData.read_response(dt, resp_type=resp_type, ele_tags=ele_tags)
+        elif ele_type.lower() == "shell":
+            ele_resp = ShellRespStepData.read_response(dt, resp_type=resp_type, ele_tags=ele_tags)
+        elif ele_type.lower() == "plane":
+            ele_resp = PlaneRespStepData.read_response(dt, resp_type=resp_type, ele_tags=ele_tags)
+        elif ele_type.lower() in ["brick", "solid"]:
+            ele_resp = BrickRespStepData.read_response(dt, resp_type=resp_type, ele_tags=ele_tags)
+        elif ele_type.lower() == "contact":
+            ele_resp = ContactRespStepData.read_response(dt, resp_type=resp_type, ele_tags=ele_tags)
+        else:
+            raise ValueError(
+                f"Unsupported element type {ele_type}, "
+                "must in [Frame, Truss, Link, Shell, Plane, Solid]!"
+            )
 
     return ele_resp

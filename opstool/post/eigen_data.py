@@ -175,12 +175,12 @@ def load_eigen_data(
         CONSOLE.print(
             f"{PKG_PREFIX} Loading eigen data from [bold {color}]{filename}[/] ..."
         )
-    dt = xr.open_datatree(filename, engine="netcdf4").load()
-    model_info = dict()
-    for key, value in dt["ModelInfo"].items():
-        model_info[key] = value[key]
-    model_props = dt["Eigen/ModalProps"]["ModalProps"]
-    eigen_vectors = dt["Eigen/EigenVectors"]["EigenVectors"]
+    with xr.open_datatree(filename, engine="netcdf4").load() as dt:
+        model_info = dict()
+        for key, value in dt["ModelInfo"].items():
+            model_info[key] = value[key]
+        model_props = dt["Eigen/ModalProps"]["ModalProps"]
+        eigen_vectors = dt["Eigen/EigenVectors"]["EigenVectors"]
     return model_props, eigen_vectors, model_info
 
 

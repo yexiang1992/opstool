@@ -515,11 +515,11 @@ def load_model_data(
             f"{PKG_PREFIX} Loading model data from [bold {color}]{filename}[/] ..."
         )
     model_info, cells = dict(), dict()
-    dt = xr.open_datatree(filename, engine="netcdf4").load()
-    for key, value in dt["ModelInfo"].items():
-        model_info[key] = value[key]
-    for key, value in dt["Cells"].items():
-        cells[key] = value[key]
+    with xr.open_datatree(filename, engine="netcdf4").load() as dt:
+        for key, value in dt["ModelInfo"].items():
+            model_info[key] = value[key]
+        for key, value in dt["Cells"].items():
+            cells[key] = value[key]
     return model_info, cells
 
 #
