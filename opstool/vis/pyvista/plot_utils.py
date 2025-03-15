@@ -9,322 +9,294 @@ from ...utils import OPS_ELE_TYPES, CONSTANTS
 PKG_NAME = CONSTANTS.get_pkg_name()
 pv.global_theme.title = PKG_NAME
 
-PLOT_ARGS = SimpleNamespace()
+PLOT_ARGS = SimpleNamespace(
+    point_size=1.0,
+    line_width=2.0,
+    theme="default",
+    window_size=(1024, 768),
+    render_points_as_spheres=True,
+    render_lines_as_tubes=True,
+    anti_aliasing="msaa",
+    msaa_multi_samples=16,
+    smooth_shading=None,
+    lighting=None,
+    line_smoothing=True,
+    polygon_smoothing=True,
+    notebook=False,
+    jupyter_backend="trame",
+    font_family=None,
+    scale_factor=1 / 20,
+    show_mesh_edges=True,
+    mesh_edge_color="black",
+    mesh_edge_width=1.0,
+    mesh_opacity=1.0,
+    font_size=15,
+    title_font_size=18,
+    off_screen=False,
+    # --------------------------
+    color_point="#FF0055",
+    color_frame="#0652ff",
+    color_truss="#FF8C00",
+    color_link="#39FF14",
+    color_shell="#769958",
+    color_plane="#00FFFF",
+    color_brick="#FF4500",
+    color_tet="#FFFF33",
+    color_joint="#7FFF00",
+    color_contact="#ff9408",
+    color_pfem="#8080FF",
+    color_constraint="#FF1493",
+    color_bc="#15b01a",
+    cmap="jet",
+    cmap_model=None,
+    n_colors=256,
+    color_map = "jet",
+)
 
 
 def set_plot_props(
-    *,
-    point_size: float = 1.0,
-    line_width: float = 2.0,
-    cmap: Union[list, str] = "jet",
-    cmap_model: Union[list, str] = None,
-    n_colors: int = 256,
-    theme: str = "default",
-    window_size: Union[list, tuple] = (1024, 768),
-    render_points_as_spheres: bool = True,
-    render_lines_as_tubes: bool = True,
-    anti_aliasing: str = "msaa",
-    msaa_multi_samples: int = 16,
-    smooth_shading: bool = None,
-    lighting: bool = None,
-    line_smoothing: bool = True,
-    polygon_smoothing: bool = True,
-    notebook: bool = False,
-    jupyter_backend: str = "trame",
-    font_family: str = None,
-    scale_factor: float = 1 / 20,
-    show_mesh_edges: bool = True,
-    mesh_edge_color: str = "black",
-    mesh_edge_width: float = 1.0,
-    mesh_opacity: float = 1.0,
-    font_size: int = 15,
-    title_font_size: int = 18,
-    off_screen: bool = False,
+    **kwargs
 ):
     """
     Set ploting properties.
 
     Parameters
     ----------
-    point_size : float, optional
-        Point size of any nodes. Default ``5.0``
-    line_width : float, optional
-        Thickness of line elements.  Only valid for wireframe and surface
-        representations.  Default ``3.0``.
-    cmap : str, list, optional
-        Name of the Matplotlib colormap to us when mapping the
-        scalars.  See available Matplotlib colormaps.  Only
-        applicable for when displaying ``scalars``. Requires Matplotlib
-        to be installed.  ``colormap`` is also an accepted alias for
-        this. If ``colorcet`` or ``cmocean`` are installed, their
-        colormaps can be specified by name.
+    kwargs: optional keyword arguments, including:
+        - point_size : float, optional
+            Point size of any nodes. Default ``5.0``
+        - line_width : float, optional
+            Thickness of line elements.  Only valid for wireframe and surface
+            representations.  Default ``3.0``.
+        - cmap : str, list, optional
+            Name of the Matplotlib colormap to us when mapping the
+            scalars.  See available Matplotlib colormaps.  Only
+            applicable for when displaying ``scalars``. Requires Matplotlib
+            to be installed.  ``colormap`` is also an accepted alias for
+            this. If ``colorcet`` or ``cmocean`` are installed, their
+            colormaps can be specified by name.
 
-        You can also specify a list of colors to override an
-        existing colormap with a custom one.  For example, to
-        create a three color colormap you might specify
-        ``['green', 'red', 'blue']``.
-    cmap_model : str, list, optional, default=None
-        Matplotlib colormap used for geometry model visualization.
-        Same as ``cmap``, except that this parameter will be used
-        for geometry model visualization and will be automatically mapped
-        according to different element types.
-        If None, If None, the color specified in the function``set_plot_colors``
-        will be used.
+            You can also specify a list of colors to override an
+            existing colormap with a custom one.  For example, to
+            create a three color colormap you might specify
+            ``['green', 'red', 'blue']``.
+        - cmap_model : str, list, optional, default=None
+            Matplotlib colormap used for geometry model visualization.
+            Same as ``cmap``, except that this parameter will be used
+            for geometry model visualization and will be automatically mapped
+            according to different element types.
+            If None, If None, the color specified in the function``set_plot_colors``
+            will be used.
 
-        Available color maps are shown in
-        `Colormaps in Matplotlib <https://matplotlib.org/stable/users/explain/colors/colormaps.html>`_
-    n_colors : int, optional
-        Number of colors to use when displaying scalars. Default to 256.
-        The scalar bar will also have this many colors.
-    theme : str, optional,
-        Theme name. Either 'default', 'document', 'dark', or 'paraview'.
-        Defaults to "default" theme.
-    window_size : list, optional
-        Window size in pixels.  Defaults to ``[1024, 768]``
-    render_points_as_spheres : bool, optional
-        Render points as spheres.
-    render_lines_as_tubes : bool, optional
-        Renders lines as tubes.
-    anti_aliasing: str, optional, default="msaa"
-        Enable or disable antialiasing.
-        * ``"ssaa"`` - Super-Sample Anti-Aliasing
-        * ``"msaa"`` - Multi-Sample Anti-Aliasing
-        * ``"fxaa"`` - Fast Approximate Anti-Aliasing
+            Available color maps are shown in
+            `Colormaps in Matplotlib <https://matplotlib.org/stable/users/explain/colors/colormaps.html>`_
+        - n_colors : int, optional
+            Number of colors to use when displaying scalars. Default to 256.
+            The scalar bar will also have this many colors.
+        - theme : str, optional,
+            Theme name. Either 'default', 'document', 'dark', or 'paraview'.
+            Defaults to "default" theme.
+        - window_size : list, optional
+            Window size in pixels.  Defaults to ``[1024, 768]``
+        - render_points_as_spheres : bool, optional
+            Render points as spheres.
+        - render_lines_as_tubes : bool, optional
+            Renders lines as tubes.
+        - anti_aliasing: str, optional, default="msaa"
+            Enable or disable antialiasing.
+            * ``"ssaa"`` - Super-Sample Anti-Aliasing
+            * ``"msaa"`` - Multi-Sample Anti-Aliasing
+            * ``"fxaa"`` - Fast Approximate Anti-Aliasing
 
-        .. Note::
+            .. Note::
 
-            SSAA, or Super-Sample Anti-Aliasing is a brute force method of
-            antialiasing. It results in the best image quality but comes at a
-            tremendous resource cost. SSAA works by rendering the scene at a higher
-            resolution. The final image is produced by downsampling the
-            massive source image using an averaging filter. This acts as a low pass
-            filter which removes the high frequency components that would cause
-            jaggedness.
+                SSAA, or Super-Sample Anti-Aliasing is a brute force method of
+                antialiasing. It results in the best image quality but comes at a
+                tremendous resource cost. SSAA works by rendering the scene at a higher
+                resolution. The final image is produced by downsampling the
+                massive source image using an averaging filter. This acts as a low pass
+                filter which removes the high frequency components that would cause
+                jaggedness.
 
-            MSAA, or Multi-Sample Anti-Aliasing is an optimization of SSAA that
-            reduces the number of pixel shader evaluations that need to be computed
-            by focusing on overlapping regions of the scene. The result is
-            antialiasing along edges that are on par with SSAA and less
-            antialiasing along surfaces as these make up the bulk of SSAA
-            computations. MSAA is substantially less computationally expensive than
-            SSAA and results in comparable image quality.
+                MSAA, or Multi-Sample Anti-Aliasing is an optimization of SSAA that
+                reduces the number of pixel shader evaluations that need to be computed
+                by focusing on overlapping regions of the scene. The result is
+                antialiasing along edges that are on par with SSAA and less
+                antialiasing along surfaces as these make up the bulk of SSAA
+                computations. MSAA is substantially less computationally expensive than
+                SSAA and results in comparable image quality.
 
-            FXAA, or Fast Approximate Anti-Aliasing is an Anti-Aliasing technique
-            performed entirely in post-processing. FXAA operates on the
-            rasterized image rather than the scene geometry. As a consequence,
-            forcing FXAA or using FXAA incorrectly can result in the FXAA filter
-            smoothing out parts of the visual overlay that are usually kept sharp
-            for reasons of clarity as well as smoothing out textures. FXAA is
-            inferior to MSAA but is almost free computationally and is thus
-            desirable on high-end platforms.
+                FXAA, or Fast Approximate Anti-Aliasing is an Anti-Aliasing technique
+                performed entirely in post-processing. FXAA operates on the
+                rasterized image rather than the scene geometry. As a consequence,
+                forcing FXAA or using FXAA incorrectly can result in the FXAA filter
+                smoothing out parts of the visual overlay that are usually kept sharp
+                for reasons of clarity as well as smoothing out textures. FXAA is
+                inferior to MSAA but is almost free computationally and is thus
+                desirable on high-end platforms.
 
-    msaa_multi_samples : int, optional, default=16
-        The number of multi-samples when ``anti_aliasing`` is ``"msaa"``. Note
-        that using this setting automatically enables this for all
-        renderers.
-    smooth_shading : bool, optional,
-        Smoothly render curved surfaces when plotting.  Not helpful
-        for all meshes.
-    line_smoothing : bool, default:  True
-        If ``True``, enable line smoothing.
-    polygon_smoothing : bool, default: True
-        If ``True``, enable polygon smoothing.
-    lighting : bool, optional
-        Enable or disable view direction lighting. Default False.
-    notebook : bool, optional
-        When True, the resulting plot is placed inline a jupyter
-        notebook.  Assumes a jupyter console is active.  Automatically
-        enables off_screen.
-    jupyter_backend : str, optional, default: "trame"
-        Jupyter backend to use when plotting.  Must be one of the following:
+        - msaa_multi_samples : int, optional, default=16
+            The number of multi-samples when ``anti_aliasing`` is ``"msaa"``. Note
+            that using this setting automatically enables this for all
+            renderers.
+        - smooth_shading : bool, optional,
+            Smoothly render curved surfaces when plotting.  Not helpful
+            for all meshes.
+        - line_smoothing : bool, default:  True
+            If ``True``, enable line smoothing.
+        - polygon_smoothing : bool, default: True
+            If ``True``, enable polygon smoothing.
+        - lighting : bool, optional
+            Enable or disable view direction lighting. Default False.
+        - notebook : bool, optional
+            When True, the resulting plot is placed inline a jupyter
+            notebook.  Assumes a jupyter console is active.  Automatically
+            enables off_screen.
+        - jupyter_backend : str, optional, default: "trame"
+            Jupyter backend to use when plotting.  Must be one of the following:
 
-        * ``'static'``: Display a single static image within the
-          Jupyterlab environment.  It Still requires that a virtual
-          framebuffer be set up when displaying on a headless server,
-          but does not require any additional modules to be installed.
+            * ``'static'``: Display a single static image within the
+              Jupyterlab environment.  It Still requires that a virtual
+              framebuffer be set up when displaying on a headless server,
+              but does not require any additional modules to be installed.
 
-        * ``'client'``: Export/serialize the scene graph to be rendered
-          with VTK.js client-side through ``trame``. Requires ``trame``
-          and ``jupyter-server-proxy`` to be installed.
+            * ``'client'``: Export/serialize the scene graph to be rendered
+              with VTK.js client-side through ``trame``. Requires ``trame``
+              and ``jupyter-server-proxy`` to be installed.
 
-        * ``'server'``: Render remotely and stream the resulting VTK
-          images back to the client using ``trame``. This replaces the
-          ``'ipyvtklink'`` backend with better performance.
-          Supports the most VTK features, but suffers from minor lag due
-          to remote rendering. Requires that a virtual framebuffer be set
-          up when displaying on a headless server. Must have at least ``trame``
-          and ``jupyter-server-proxy`` installed for cloud/remote Jupyter
-          instances. This mode is also aliased by ``'trame'``.
+            * ``'server'``: Render remotely and stream the resulting VTK
+              images back to the client using ``trame``. This replaces the
+              ``'ipyvtklink'`` backend with better performance.
+              Supports the most VTK features, but suffers from minor lag due
+              to remote rendering. Requires that a virtual framebuffer be set
+              up when displaying on a headless server. Must have at least ``trame``
+              and ``jupyter-server-proxy`` installed for cloud/remote Jupyter
+              instances. This mode is also aliased by ``'trame'``.
 
-        * ``'trame'``: The full Trame-based backend that combines both
-          ``'server'`` and ``'client'`` into one backend. This requires a
-          virtual frame buffer.
+            * ``'trame'``: The full Trame-based backend that combines both
+              ``'server'`` and ``'client'`` into one backend. This requires a
+              virtual frame buffer.
 
-        * ``'html'``: Export/serialize the scene graph to be rendered
-          with the Trame client backend but in a static HTML file.
+            * ``'html'``: Export/serialize the scene graph to be rendered
+              with the Trame client backend but in a static HTML file.
 
-        * ``'none'``: Do not display any plots within jupyterlab,
-          instead display using dedicated VTK render windows.  This
-          will generate nothing on headless servers even with a
-          virtual framebuffer.
+            * ``'none'``: Do not display any plots within jupyterlab,
+              instead display using dedicated VTK render windows.  This
+              will generate nothing on headless servers even with a
+              virtual framebuffer.
 
-    font_family : str, optional
-        Font family.  Must be either ``'courier'``, ``'times'``,
-        or ``arial``.
-    scale_factor : float, optional
-        Scale factor between the maximum deformation of the model and the maximum boundary size.
-        Default ``1 / 20``.
-    show_mesh_edges: bool, default: True
-        Whether to display the mesh edges of ``planes``, ``plates``, ``shells``, and ``solid`` elements.
-    mesh_edge_color: str, default: black
-        Color of the mesh edges for ``planes``, ``plates``, ``shells``, and ``solid`` elements.
-    mesh_edge_width: float, default: 1.0
-        Width of the mesh edges for ``planes``, ``plates``, ``shells``, and ``solid`` elements.
-    mesh_opacity: float, default: 1.0
-        Display opacity of ``surface`` and ``solid`` elements.
-    font_size: int, default: 15
-        Font size of labels.
-    title_font_size: int, default: 18
-        Font size of title.
-    off_screen: bool, optional
-        Renders off-screen when True. Useful for automated screenshots.
+        - font_family : str, optional
+            Font family.  Must be either ``'courier'``, ``'times'``,
+            or ``arial``.
+        - scale_factor : float, optional
+            Scale factor between the maximum deformation of the model and the maximum boundary size.
+            Default ``1 / 20``.
+        - show_mesh_edges: bool, default: True
+            Whether to display the mesh edges of ``planes``, ``plates``, ``shells``, and ``solid`` elements.
+        - mesh_edge_color: str, default: black
+            Color of the mesh edges for ``planes``, ``plates``, ``shells``, and ``solid`` elements.
+        - mesh_edge_width: float, default: 1.0
+            Width of the mesh edges for ``planes``, ``plates``, ``shells``, and ``solid`` elements.
+        - mesh_opacity: float, default: 1.0
+            Display opacity of ``surface`` and ``solid`` elements.
+        - font_size: int, default: 15
+            Font size of labels.
+        - title_font_size: int, default: 18
+            Font size of title.
+        - off_screen: bool, optional
+            Renders off-screen when True. Useful for automated screenshots.
 
     Returns
     -------
     None
     """
-    if abs(point_size) < 1e-5:
-        point_size = 1e-5
-    PLOT_ARGS.point_size = point_size
-    PLOT_ARGS.line_width = line_width
-    PLOT_ARGS.cmap = cmap
-    PLOT_ARGS.color_map = cmap
-    PLOT_ARGS.cmap_model = cmap_model
-    PLOT_ARGS.theme = theme
-    PLOT_ARGS.notebook = notebook
-    if notebook:
-        pv.set_jupyter_backend(jupyter_backend)
-    PLOT_ARGS.scale_factor = scale_factor
-    PLOT_ARGS.window_size = window_size
-    pv.global_theme.window_size = window_size
-    PLOT_ARGS.render_lines_as_tubes = render_lines_as_tubes
-    PLOT_ARGS.render_points_as_spheres = render_points_as_spheres
-    PLOT_ARGS.anti_aliasing = anti_aliasing
-    PLOT_ARGS.msaa_multi_samples = msaa_multi_samples
-    PLOT_ARGS.n_colors = n_colors
-    PLOT_ARGS.smooth_shading = smooth_shading
-    PLOT_ARGS.font_family = font_family
-    PLOT_ARGS.lighting = lighting
-    PLOT_ARGS.line_smoothing = line_smoothing
-    PLOT_ARGS.polygon_smoothing = polygon_smoothing
-    PLOT_ARGS.show_mesh_edges = show_mesh_edges
-    PLOT_ARGS.mesh_edge_color = mesh_edge_color
-    PLOT_ARGS.mesh_edge_width = mesh_edge_width
-    PLOT_ARGS.mesh_opacity = mesh_opacity
-    PLOT_ARGS.font_size = font_size
-    PLOT_ARGS.title_font_size = title_font_size
-    PLOT_ARGS.off_screen = off_screen
+    if "point_size" in kwargs.keys():
+        if abs(kwargs["point_size"]) < 1e-3:
+            kwargs["point_size"] = 1e-5
+    if "notebook" in kwargs.keys():
+        if kwargs["notebook"]:
+            if "jupyter_backend" in kwargs.keys():
+                pv.set_jupyter_backend(kwargs["jupyter_backend"])
+            else:
+                pv.set_jupyter_backend("trame")
+    for key, value in kwargs.items():
+        setattr(PLOT_ARGS, key, value)
 
 
 def set_plot_colors(
-    point: Union[str, list, tuple] = "#FF0055",
-    frame: Union[str, list, tuple] = "#0652ff",
-    truss: Union[str, list, tuple] = "#FF8C00",
-    link: Union[str, list, tuple] = "#39FF14",
-    shell: Union[str, list, tuple] = "#769958",
-    plane: Union[str, list, tuple] = "#00FFFF",
-    brick: Union[str, list, tuple] = "#FF4500",
-    tet: Union[str, list, tuple] = "#FFFF33",
-    joint: Union[str, list, tuple] = "#7FFF00",
-    contact: Union[str, list, tuple] = "#ff9408",
-    pfem: Union[str, list, tuple] = "#8080FF",
-    constraint: Union[str, list, tuple] = "#FF1493",
-    bc: Union[str, list, tuple] = "#15b01a",
-    cmap: Union[list, str] = "jet",
-    cmap_model: Union[list, str] = None,
+    **kwargs,
 ):
     """
     Set the display color of various element types.
 
     Parameters
     ----------
-    point : str, list[int, int, int], optional
-        Color for nodal points.
-        Either a string, RGB list, or hex color string.  For example,
-        ``point='white'``, ``point='w'``, ``point=[1, 1, 1]``, or
-        ``point='#FFFFFF'``.
-    frame : str, list[int, int, int], optional
-        Color for frame elements.
-    truss : str, list[int, int, int], optional
-        Color for truss elements.
-    link : str, list[int, int, int], optional
-        Color for link elements.
-    shell : str, list[int, int, int], optional
-        Color for shell elements.
-    plane : str, list[int, int, int], optional
-        Color for plane elements.
-    brick : str, list[int, int, int], optional
-        Color for brick (solid) elements.
-    tet : str, list[int, int, int], optional
-        Color for tetrahedral (solid) elements.
-    joint : str, list[int, int, int], optional
-        Color for beam-column joint elements.
-    contact : str, list[int, int, int], optional
-        Color for contact elements.
-    pfem : str, list[int, int, int], optional
-        Color for PFEM elements.
-    constraint : str, list[int, int, int], optional
-        Color for constraint.
-    bc : str, list[int, int, int], optional
-        Color for boundary conditions.
-    cmap : str, list, optional
-        Name of the Matplotlib colormap to us when mapping the
-        scalars.  See available Matplotlib colormaps.  Only
-        applicable for when displaying ``scalars``. Requires Matplotlib
-        to be installed.  ``colormap`` is also an accepted alias for
-        this. If ``colorcet`` or ``cmocean`` are installed, their
-        colormaps can be specified by name.
+    kwargs: optional keyword arguments, including:
+        - point : str, list[int, int, int], optional
+            Color for nodal points.
+            Either a string, RGB list, or hex color string.  For example,
+            ``point='white'``, ``point='w'``, ``point=[1, 1, 1]``, or
+            ``point='#FFFFFF'``.
+        - frame : str, list[int, int, int], optional
+            Color for frame elements.
+        - truss : str, list[int, int, int], optional
+            Color for truss elements.
+        - link : str, list[int, int, int], optional
+            Color for link elements.
+        - shell : str, list[int, int, int], optional
+            Color for shell elements.
+        - plane : str, list[int, int, int], optional
+            Color for plane elements.
+        - brick : str, list[int, int, int], optional
+            Color for brick (solid) elements.
+        - tet : str, list[int, int, int], optional
+            Color for tetrahedral (solid) elements.
+        - joint : str, list[int, int, int], optional
+            Color for beam-column joint elements.
+        - contact : str, list[int, int, int], optional
+            Color for contact elements.
+        - pfem : str, list[int, int, int], optional
+            Color for PFEM elements.
+        - constraint : str, list[int, int, int], optional
+            Color for constraint.
+        - bc : str, list[int, int, int], optional
+            Color for boundary conditions.
+        cmap : str, list, optional
+            Name of the Matplotlib colormap to us when mapping the
+            scalars.  See available Matplotlib colormaps.  Only
+            applicable for when displaying ``scalars``. Requires Matplotlib
+            to be installed.  ``colormap`` is also an accepted alias for
+            this. If ``colorcet`` or ``cmocean`` are installed, their
+            colormaps can be specified by name.
 
-        You can also specify a list of colors to override an
-        existing colormap with a custom one.  For example, to
-        create a three color colormap you might specify
-        ``['green', 'red', 'blue']``.
-    cmap_model : str, list, optional, default=None
-        Matplotlib colormap used for geometry model visualization.
-        Same as ``cmap``, except that this parameter will be used
-        for geometry model visualization and will be automatically mapped
-        according to different element types.
-        If None, If None, the color specified in the function``set_plot_colors``
-        will be used.
+            You can also specify a list of colors to override an
+            existing colormap with a custom one.  For example, to
+            create a three color colormap you might specify
+            ``['green', 'red', 'blue']``.
+        cmap_model : str, list, optional, default=None
+            Matplotlib colormap used for geometry model visualization.
+            Same as ``cmap``, except that this parameter will be used
+            for geometry model visualization and will be automatically mapped
+            according to different element types.
+            If None, If None, the color specified in the function``set_plot_colors``
+            will be used.
 
-        Available color maps are shown in
-        `Colormaps in Matplotlib <https://matplotlib.org/stable/users/explain/colors/colormaps.html>`_
+            Available color maps are shown in
+            `Colormaps in Matplotlib <https://matplotlib.org/stable/users/explain/colors/colormaps.html>`_
 
     Returns
     -------
     None
-
     """
-    PLOT_ARGS.color_point = point
-    PLOT_ARGS.color_beam = frame
-    PLOT_ARGS.color_truss = truss
-    PLOT_ARGS.color_link = link
-    PLOT_ARGS.color_plane = plane
-    PLOT_ARGS.color_shell = shell
-    PLOT_ARGS.color_tet = tet
-    PLOT_ARGS.color_pfem = pfem
-    PLOT_ARGS.color_brick = brick
-    PLOT_ARGS.joint = joint
-    PLOT_ARGS.color_contact = contact
-    PLOT_ARGS.color_constraint = constraint
-    PLOT_ARGS.color_bc = bc
-    PLOT_ARGS.cmap = cmap
-    PLOT_ARGS.color_map = cmap
-    PLOT_ARGS.cmap_model = cmap_model
-
-
-set_plot_props()
-set_plot_colors()
+    for key, value in kwargs.items():
+        if key in ["cmap", "cmap_model"]:
+            setattr(PLOT_ARGS, key, value)
+        else:
+            setattr(PLOT_ARGS, "color_" + key, value)
+    if "cmap" in kwargs.keys():
+        setattr(PLOT_ARGS, "color_map", kwargs["cmap"])
+    if "frame" in kwargs.keys():
+        setattr(PLOT_ARGS, "color_beam", kwargs["frame"])
 
 
 def _get_ele_color(ele_types: list[str]):
@@ -335,7 +307,7 @@ def _get_ele_color(ele_types: list[str]):
         colors = ["#01153e"] * len(ele_types)
         for i, ele_type in enumerate(ele_types):
             if ele_type in OPS_ELE_TYPES.Beam:
-                colors[i] = PLOT_ARGS.color_beam
+                colors[i] = PLOT_ARGS.color_frame
             elif ele_type in OPS_ELE_TYPES.Truss:
                 colors[i] = PLOT_ARGS.color_truss
             elif ele_type in OPS_ELE_TYPES.Link:

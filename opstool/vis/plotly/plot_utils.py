@@ -8,217 +8,194 @@ from matplotlib.colors import to_hex
 
 from ...utils import OPS_ELE_TYPES
 
-PLOT_ARGS = SimpleNamespace()
+PLOT_ARGS = SimpleNamespace(
+    point_size=3.0,
+    line_width=5.0,
+    theme="plotly",
+    scale_factor= 1 / 20,
+    show_mesh_edges=True,
+    mesh_edge_color="black",
+    mesh_edge_width=1.0,
+    mesh_opacity=1.0,
+    font_size=15,
+    title_font_size=18,
+    font_family="Arial, sans-serif",
+    window_size=(None, None),
+    # ------------------------------
+    color_point="#580f41",
+    color_frame="#0652ff",
+    color_truss="#FF8C00",
+    color_link="#39FF14",
+    color_shell="#76b852",
+    color_plane="#00FFFF",
+    color_brick="#FF4500",
+    color_tet="#FFFF33",
+    color_joint="#7FFF00",
+    color_contact="#ff9408",
+    color_pfem="#8080FF",
+    color_constraint="#FF1493",
+    color_bc="#15b01a",
+    cmap=None,  # "plasma",
+    cmap_model=None,
+)
 
 
 def set_plot_props(
-    *,
-    point_size: float = 3.0,
-    line_width: float = 5.0,
-    cmap: Union[list, str] = None,  # "plasma",
-    cmap_model: Union[list, str] = None,
-    theme: str = "plotly",
-    scale_factor: float = 1 / 20,
-    show_mesh_edges: bool = True,
-    mesh_edge_color: str = "black",
-    mesh_edge_width: float = 1.0,
-    mesh_opacity: float = 1.0,
-    font_size: int = 15,
-    title_font_size: int = 18,
-    font_family: str = "Arial, sans-serif",
-    window_size: list = (None, None),
+    **kwargs,
 ):
     """
     Set ploting properties.
 
     Parameters
     ----------
-    point_size : float, optional
-        Point size of any nodes. Default ``5.0``
-    line_width : float, optional
-        Thickness of line elements.  Only valid for wireframe and surface
-        representations.  Default ``3.0``.
-    cmap : str, list, optional, default: "plasma"
-        One of the following named colorscales: [‘aggrnyl’, ‘agsunset’, ‘algae’, ‘amp’, ‘armyrose’,
-        ‘balance’, ‘blackbody’, ‘bluered’, ‘blues’, ‘blugrn’, ‘bluyl’, ‘brbg’, ‘brwnyl’, ‘bugn’,
-        ‘bupu’, ‘burg’, ‘burgyl’, ‘cividis’, ‘curl’, ‘darkmint’, ‘deep’, ‘delta’, ‘dense’,
-        ‘earth’, ‘edge’, ‘electric’, ‘emrld’, ‘fall’, ‘geyser’, ‘gnbu’, ‘gray’, ‘greens’, ‘greys’,
-        ‘haline’, ‘hot’, ‘hsv’, ‘ice’, ‘icefire’, ‘inferno’, ‘jet’, ‘magenta’, ‘magma’, ‘matter’,
-        ‘mint’, ‘mrybm’, ‘mygbm’, ‘oranges’, ‘orrd’, ‘oryel’, ‘oxy’, ‘peach’, ‘phase’, ‘picnic’,
-        ‘pinkyl’, ‘piyg’, ‘plasma’, ‘plotly3’, ‘portland’, ‘prgn’, ‘pubu’, ‘pubugn’, ‘puor’, ‘purd’,
-        ‘purp’, ‘purples’, ‘purpor’, ‘rainbow’, ‘rdbu’, ‘rdgy’, ‘rdpu’, ‘rdylbu’, ‘rdylgn’, ‘redor’,
-        ‘reds’, ‘solar’, ‘spectral’, ‘speed’, ‘sunset’, ‘sunsetdark’, ‘teal’, ‘tealgrn’, ‘tealrose’, ‘tempo’,
-        ‘temps’, ‘thermal’, ‘tropic’, ‘turbid’, ‘turbo’, ‘twilight’,
-        ‘viridis’, ‘ylgn’, ‘ylgnbu’, ‘ylorbr’, ‘ylorrd’].
+    kwargs: optional keyword arguments, including:
+        * point_size : float, optional
+            Point size of any nodes. Default ``5.0``
+        * line_width : float, optional
+            Thickness of line elements.  Only valid for wireframe and surface
+            representations.  Default ``3.0``.
+        * cmap : str, list, optional, default: "plasma"
+            One of the following named colorscales: [‘aggrnyl’, ‘agsunset’, ‘algae’, ‘amp’, ‘armyrose’,
+            ‘balance’, ‘blackbody’, ‘bluered’, ‘blues’, ‘blugrn’, ‘bluyl’, ‘brbg’, ‘brwnyl’, ‘bugn’,
+            ‘bupu’, ‘burg’, ‘burgyl’, ‘cividis’, ‘curl’, ‘darkmint’, ‘deep’, ‘delta’, ‘dense’,
+            ‘earth’, ‘edge’, ‘electric’, ‘emrld’, ‘fall’, ‘geyser’, ‘gnbu’, ‘gray’, ‘greens’, ‘greys’,
+            ‘haline’, ‘hot’, ‘hsv’, ‘ice’, ‘icefire’, ‘inferno’, ‘jet’, ‘magenta’, ‘magma’, ‘matter’,
+            ‘mint’, ‘mrybm’, ‘mygbm’, ‘oranges’, ‘orrd’, ‘oryel’, ‘oxy’, ‘peach’, ‘phase’, ‘picnic’,
+            ‘pinkyl’, ‘piyg’, ‘plasma’, ‘plotly3’, ‘portland’, ‘prgn’, ‘pubu’, ‘pubugn’, ‘puor’, ‘purd’,
+            ‘purp’, ‘purples’, ‘purpor’, ‘rainbow’, ‘rdbu’, ‘rdgy’, ‘rdpu’, ‘rdylbu’, ‘rdylgn’, ‘redor’,
+            ‘reds’, ‘solar’, ‘spectral’, ‘speed’, ‘sunset’, ‘sunsetdark’, ‘teal’, ‘tealgrn’, ‘tealrose’, ‘tempo’,
+            ‘temps’, ‘thermal’, ‘tropic’, ‘turbid’, ‘turbo’, ‘twilight’,
+            ‘viridis’, ‘ylgn’, ‘ylgnbu’, ‘ylorbr’, ‘ylorrd’].
 
-        Appending ‘_r’ to a named colorscale reverses it.
-    cmap_model : str, list, optional, default=None
-        Matplotlib colormap used for geometry model visualization.
-        Same as ``cmap``, except that this parameter will be used
-        for geometry model visualization and will be automatically mapped
-        according to different element types.
-        If None, If None, the color specified in the function``set_plot_colors``
-        will be used.
+            Appending ‘_r’ to a named colorscale reverses it.
+        * cmap_model : str, list, optional, default=None
+            Matplotlib colormap used for geometry model visualization.
+            Same as ``cmap``, except that this parameter will be used
+            for geometry model visualization and will be automatically mapped
+            according to different element types.
+            If None, If None, the color specified in the function``set_plot_colors``
+            will be used.
 
-        Available color maps are shown in
-        `Colormaps in Matplotlib <https://matplotlib.org/stable/users/explain/colors/colormaps.html>`_
-    theme : str, optional, default: "plotly"
-        Available theme templates for plotly:
-        ['ggplot2', 'seaborn', 'simple_white', 'plotly', 'plotly_white',
-        'plotly_dark', 'presentation', 'xgridoff', 'ygridoff', 'gridon', 'none']
-    window_size : list, optional
-        Window size in pixels. Default to ``(None, None)``
-    show_mesh_edges: bool, default: True
-        Whether to display the mesh edges of ``planes``, ``plates``, ``shells``, and ``solid`` elements.
-    mesh_edge_color: str, default: black
-        Color of the mesh edges for ``planes``, ``plates``, ``shells``, and ``solid`` elements.
-    mesh_edge_width: float, default: 1.0
-        Width of the mesh edges for ``planes``, ``plates``, ``shells``, and ``solid`` elements.
-    mesh_opacity: float, default: 1.0
-        Display opacity for ``planes``, ``plates``, ``shells``, and ``solid`` elements.
-    font_family : str, optional, default: "Arial, sans-serif"
-        HTML font family - the typeface that will be applied by the web browser.
-        The web browser will only be able to apply a font if it is available on the system which it operates.
-        Provide multiple font families, separated by commas, to indicate the preference in which to apply fonts
-        if they aren’t available on the system.
-        The Chart Studio Cloud (at https://chart-studio.plotly.com or on-premise) generates images on a server,
-        where only a select number of fonts are installed and supported.
-        These include “Arial”, “Balto”, “Courier New”, “Droid Sans”, “Droid Serif”, “Droid Sans Mono”, “Gravitas One”,
-        “Old Standard TT”, “Open Sans”, “Overpass”, “PT Sans Narrow”, “Raleway”, “Times New Roman”.
-    scale_factor : float, optional
-        Scale factor between the maximum deformation of the model and the maximum boundary size.
-        Default ``1 / 20``.
-    font_size: int, default: 15
-        Font size of labels.
-    title_font_size: int, default: 18
-        Font size of title.
+            Available color maps are shown in
+            `Colormaps in Matplotlib <https://matplotlib.org/stable/users/explain/colors/colormaps.html>`_
+        * theme : str, optional, default: "plotly"
+            Available theme templates for plotly:
+            ['ggplot2', 'seaborn', 'simple_white', 'plotly', 'plotly_white',
+            'plotly_dark', 'presentation', 'xgridoff', 'ygridoff', 'gridon', 'none']
+        * window_size : list, optional
+            Window size in pixels. Default to ``(None, None)``
+        * show_mesh_edges: bool, default: True
+            Whether to display the mesh edges of ``planes``, ``plates``, ``shells``, and ``solid`` elements.
+        * mesh_edge_color: str, default: black
+            Color of the mesh edges for ``planes``, ``plates``, ``shells``, and ``solid`` elements.
+        * mesh_edge_width: float, default: 1.0
+            Width of the mesh edges for ``planes``, ``plates``, ``shells``, and ``solid`` elements.
+        * mesh_opacity: float, default: 1.0
+            Display opacity for ``planes``, ``plates``, ``shells``, and ``solid`` elements.
+        * font_family : str, optional, default: "Arial, sans-serif"
+            HTML font family - the typeface that will be applied by the web browser.
+            The web browser will only be able to apply a font if it is available on the system which it operates.
+            Provide multiple font families, separated by commas, to indicate the preference in which to apply fonts
+            if they aren’t available on the system.
+            The Chart Studio Cloud (at https://chart-studio.plotly.com or on-premise) generates images on a server,
+            where only a select number of fonts are installed and supported.
+            These include “Arial”, “Balto”, “Courier New”, “Droid Sans”, “Droid Serif”, “Droid Sans Mono”, “Gravitas One”,
+            “Old Standard TT”, “Open Sans”, “Overpass”, “PT Sans Narrow”, “Raleway”, “Times New Roman”.
+        * scale_factor : float, optional
+            Scale factor between the maximum deformation of the model and the maximum boundary size.
+            Default ``1 / 20``.
+        * font_size: int, default: 15
+            Font size of labels.
+        * title_font_size: int, default: 18
+            Font size of title.
 
     Returns
     -------
     None
     """
-    if abs(point_size) < 1e-3:
-        point_size = 1e-5
-    PLOT_ARGS.point_size = point_size
-    PLOT_ARGS.line_width = line_width
-    PLOT_ARGS.cmap = cmap
-    PLOT_ARGS.color_map = cmap
-    PLOT_ARGS.cmap_model = cmap_model
-    PLOT_ARGS.theme = theme
-    PLOT_ARGS.scale_factor = scale_factor
-    PLOT_ARGS.show_mesh_edges = show_mesh_edges
-    PLOT_ARGS.mesh_edge_color = mesh_edge_color
-    PLOT_ARGS.mesh_edge_width = mesh_edge_width
-    PLOT_ARGS.mesh_opacity = mesh_opacity
-    PLOT_ARGS.font_size = font_size
-    PLOT_ARGS.title_font_size = title_font_size
-    PLOT_ARGS.window_size = window_size
-    PLOT_ARGS.font_family = font_family
-
+    if "point_size" in kwargs.keys():
+        if abs(kwargs["point_size"]) < 1e-3:
+            kwargs["point_size"] = 1e-5
+    for key, value in kwargs.items():
+        setattr(PLOT_ARGS, key, value)
 
 def set_plot_colors(
-    point: Union[str, list, tuple] = "#580f41",
-    frame: Union[str, list, tuple] = "#0652ff",
-    truss: Union[str, list, tuple] = "#FF8C00",
-    link: Union[str, list, tuple] = "#39FF14",
-    shell: Union[str, list, tuple] = "#76b852",
-    plane: Union[str, list, tuple] = "#00FFFF",
-    brick: Union[str, list, tuple] = "#FF4500",
-    tet: Union[str, list, tuple] = "#FFFF33",
-    joint: Union[str, list, tuple] = "#7FFF00",
-    contact: Union[str, list, tuple] = "#ff9408",
-    pfem: Union[str, list, tuple] = "#8080FF",
-    constraint: Union[str, list, tuple] = "#FF1493",
-    bc: Union[str, list, tuple] = "#15b01a",
-    cmap: Union[list, str] = None,  # "plasma",
-    cmap_model: Union[list, str] = None,
+    **kwargs
 ):
     """
     Set the display color of various element types.
 
     Parameters
     ----------
-    point : str, list[int, int, int], optional
-        Color for nodal points.
-        Either a string, RGB list, or hex color string.  For example,
-        ``point='white'``, ``point='w'``, ``point=[1, 1, 1]``, or
-        ``point='#FFFFFF'``.
-        frame : str, list[int, int, int], optional
-        Color for frame elements.
-    frame : str, list[int, int, int], optional
-        Color for frame elements.
-    truss : str, list[int, int, int], optional
-        Color for truss elements.
-    link : str, list[int, int, int], optional
-        Color for link elements.
-    shell : str, list[int, int, int], optional
-        Color for shell elements.
-    plane : str, list[int, int, int], optional
-        Color for plane elements.
-    brick : str, list[int, int, int], optional
-        Color for brick (solid) elements.
-    tet : str, list[int, int, int], optional
-        Color for tetrahedral (solid) elements.
-    joint : str, list[int, int, int], optional
-        Color for beam-column joint elements.
-    contact : str, list[int, int, int], optional
-        Color for contact elements.
-    pfem : str, list[int, int, int], optional
-        Color for PFEM elements.
-    constraint : str, list[int, int, int], optional
-        Color for constraint.
-    bc : str, list[int, int, int], optional
-        Color for boundary conditions.
-    cmap : str, list, optional, default: "plasma"
-        One of the following named colorscales: [‘aggrnyl’, ‘agsunset’, ‘algae’, ‘amp’, ‘armyrose’,
-        ‘balance’, ‘blackbody’, ‘bluered’, ‘blues’, ‘blugrn’, ‘bluyl’, ‘brbg’, ‘brwnyl’, ‘bugn’,
-        ‘bupu’, ‘burg’, ‘burgyl’, ‘cividis’, ‘curl’, ‘darkmint’, ‘deep’, ‘delta’, ‘dense’,
-        ‘earth’, ‘edge’, ‘electric’, ‘emrld’, ‘fall’, ‘geyser’, ‘gnbu’, ‘gray’, ‘greens’, ‘greys’,
-        ‘haline’, ‘hot’, ‘hsv’, ‘ice’, ‘icefire’, ‘inferno’, ‘jet’, ‘magenta’, ‘magma’, ‘matter’,
-        ‘mint’, ‘mrybm’, ‘mygbm’, ‘oranges’, ‘orrd’, ‘oryel’, ‘oxy’, ‘peach’, ‘phase’, ‘picnic’,
-        ‘pinkyl’, ‘piyg’, ‘plasma’, ‘plotly3’, ‘portland’, ‘prgn’, ‘pubu’, ‘pubugn’, ‘puor’, ‘purd’,
-        ‘purp’, ‘purples’, ‘purpor’, ‘rainbow’, ‘rdbu’, ‘rdgy’, ‘rdpu’, ‘rdylbu’, ‘rdylgn’, ‘redor’,
-        ‘reds’, ‘solar’, ‘spectral’, ‘speed’, ‘sunset’, ‘sunsetdark’, ‘teal’, ‘tealgrn’, ‘tealrose’, ‘tempo’,
-        ‘temps’, ‘thermal’, ‘tropic’, ‘turbid’, ‘turbo’, ‘twilight’,
-        ‘viridis’, ‘ylgn’, ‘ylgnbu’, ‘ylorbr’, ‘ylorrd’].
+    kwargs : optional keyword arguments, including:
+        * point : str, list[int, int, int], optional
+            Color for nodal points.
+            Either a string, RGB list, or hex color string.  For example,
+            ``point='white'``, ``point='w'``, ``point=[1, 1, 1]``, or
+            ``point='#FFFFFF'``.
+            frame : str, list[int, int, int], optional
+            Color for frame elements.
+        * frame : str, list[int, int, int], optional
+            Color for frame elements.
+        * truss : str, list[int, int, int], optional
+            Color for truss elements.
+        * link : str, list[int, int, int], optional
+            Color for link elements.
+        * shell : str, list[int, int, int], optional
+            Color for shell elements.
+        * plane : str, list[int, int, int], optional
+            Color for plane elements.
+        * brick : str, list[int, int, int], optional
+            Color for brick (solid) elements.
+        * tet : str, list[int, int, int], optional
+            Color for tetrahedral (solid) elements.
+        * joint : str, list[int, int, int], optional
+            Color for beam-column joint elements.
+        * contact : str, list[int, int, int], optional
+            Color for contact elements.
+        * pfem : str, list[int, int, int], optional
+            Color for PFEM elements.
+        * constraint : str, list[int, int, int], optional
+            Color for constraint.
+        * bc : str, list[int, int, int], optional
+            Color for boundary conditions.
+        * cmap : str, list, optional, default: "plasma"
+            One of the following named colorscales: [‘aggrnyl’, ‘agsunset’, ‘algae’, ‘amp’, ‘armyrose’,
+            ‘balance’, ‘blackbody’, ‘bluered’, ‘blues’, ‘blugrn’, ‘bluyl’, ‘brbg’, ‘brwnyl’, ‘bugn’,
+            ‘bupu’, ‘burg’, ‘burgyl’, ‘cividis’, ‘curl’, ‘darkmint’, ‘deep’, ‘delta’, ‘dense’,
+            ‘earth’, ‘edge’, ‘electric’, ‘emrld’, ‘fall’, ‘geyser’, ‘gnbu’, ‘gray’, ‘greens’, ‘greys’,
+            ‘haline’, ‘hot’, ‘hsv’, ‘ice’, ‘icefire’, ‘inferno’, ‘jet’, ‘magenta’, ‘magma’, ‘matter’,
+            ‘mint’, ‘mrybm’, ‘mygbm’, ‘oranges’, ‘orrd’, ‘oryel’, ‘oxy’, ‘peach’, ‘phase’, ‘picnic’,
+            ‘pinkyl’, ‘piyg’, ‘plasma’, ‘plotly3’, ‘portland’, ‘prgn’, ‘pubu’, ‘pubugn’, ‘puor’, ‘purd’,
+            ‘purp’, ‘purples’, ‘purpor’, ‘rainbow’, ‘rdbu’, ‘rdgy’, ‘rdpu’, ‘rdylbu’, ‘rdylgn’, ‘redor’,
+            ‘reds’, ‘solar’, ‘spectral’, ‘speed’, ‘sunset’, ‘sunsetdark’, ‘teal’, ‘tealgrn’, ‘tealrose’, ‘tempo’,
+            ‘temps’, ‘thermal’, ‘tropic’, ‘turbid’, ‘turbo’, ‘twilight’,
+            ‘viridis’, ‘ylgn’, ‘ylgnbu’, ‘ylorbr’, ‘ylorrd’].
 
-        Appending ‘_r’ to a named colorscale reverses it.
-    cmap_model : str, list, optional, default=None
-        Matplotlib colormap used for geometry model visualization.
-        Same as ``cmap``, except that this parameter will be used
-        for geometry model visualization and will be automatically mapped
-        according to different element types.
-        If None, If None, the color specified in the function``set_plot_colors``
-        will be used.
+            Appending ‘_r’ to a named colorscale reverses it.
+        * cmap_model : str, list, optional, default=None
+            Matplotlib colormap used for geometry model visualization.
+            Same as ``cmap``, except that this parameter will be used
+            for geometry model visualization and will be automatically mapped
+            according to different element types.
+            If None, If None, the color specified in the function``set_plot_colors``
+            will be used.
 
-        Available color maps are shown in
-        `Colormaps in Matplotlib <https://matplotlib.org/stable/users/explain/colors/colormaps.html>`_
+            Available color maps are shown in
+            `Colormaps in Matplotlib <https://matplotlib.org/stable/users/explain/colors/colormaps.html>`_
 
     Returns
     -------
     None
 
     """
-    PLOT_ARGS.color_point = point
-    PLOT_ARGS.color_beam = frame
-    PLOT_ARGS.color_truss = truss
-    PLOT_ARGS.color_link = link
-    PLOT_ARGS.color_plane = plane
-    PLOT_ARGS.color_shell = shell
-    PLOT_ARGS.color_tet = tet
-    PLOT_ARGS.color_pfem = pfem
-    PLOT_ARGS.color_brick = brick
-    PLOT_ARGS.joint = joint
-    PLOT_ARGS.color_contact = contact
-    PLOT_ARGS.color_constraint = constraint
-    PLOT_ARGS.color_bc = bc
-    PLOT_ARGS.color_map = cmap
-    PLOT_ARGS.cmap = cmap
-    PLOT_ARGS.cmap_model = cmap_model
-
-
-set_plot_props()
-set_plot_colors()
+    for key, value in kwargs.items():
+        if key in ["cmap", "cmap_model"]:
+            setattr(PLOT_ARGS, key, value)
+        else:
+            setattr(PLOT_ARGS, "color_"+key, value)
+    if "frame" in kwargs.keys():
+        setattr(PLOT_ARGS, "color_beam", kwargs["frame"])
 
 
 def _get_ele_color(ele_types: list[str]):
@@ -230,7 +207,7 @@ def _get_ele_color(ele_types: list[str]):
         colors = ["#01153e"] * len(ele_types)
         for i, ele_type in enumerate(ele_types):
             if ele_type in OPS_ELE_TYPES.Beam:
-                colors[i] = PLOT_ARGS.color_beam
+                colors[i] = PLOT_ARGS.color_frame
             elif ele_type in OPS_ELE_TYPES.Truss:
                 colors[i] = PLOT_ARGS.color_truss
             elif ele_type in OPS_ELE_TYPES.Link:
