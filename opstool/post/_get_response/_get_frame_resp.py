@@ -244,9 +244,9 @@ def _get_beam_sec_resp(beam_tags, ele_load_data, local_forces):
                     defos = defos[:6]
                 sec_f.append(forces)  # N, Mz, Vy, My, Vz, T
                 sec_d.append(defos)  # N, Mz, Vy, My, Vz, T
-        beam_locs.append(xlocs)
-        beam_secF.append(sec_f)
-        beam_secD.append(sec_d)
+        beam_locs.append(np.array(xlocs))
+        beam_secF.append(np.array(sec_f))
+        beam_secD.append(np.array(sec_d))
     beam_locs = _expand_to_uniform_array(beam_locs)
     beam_secF = _expand_to_uniform_array(beam_secF)
     beam_secD = _expand_to_uniform_array(beam_secD)
