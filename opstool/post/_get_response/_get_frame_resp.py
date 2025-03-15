@@ -2,10 +2,10 @@ import numpy as np
 import openseespy.opensees as ops
 import xarray as xr
 
-from ._response_base import ResponseBase
+from ._response_base import ResponseBase, _expand_to_uniform_array
 
 ELASTIC_BEAM_CLASSES = [3, 5, 5001, 145, 146, 63, 631]
-N_SECS = 15  # Must >= 10
+N_SECS_ELASTIC_BEAM = 7
 
 class FrameRespStepData(ResponseBase):
 
@@ -79,7 +79,7 @@ class FrameRespStepData(ResponseBase):
                     "MZ2",
                 ],
                 "basicDofs": ["N", "MZ1", "MZ2", "MY1", "MY2", "T"],
-                "secPoints": np.arange(N_SECS)+1,
+                "secPoints": np.arange(sec_locs.shape[1])+1,
                 "secDofs": ["N", "MZ", "VY", "MY", "VZ", "T"],
             },
             attrs={
@@ -205,17 +205,17 @@ def _get_beam_sec_resp(beam_tags, ele_load_data, local_forces):
     beam_lengths = _get_ele_length(beam_tags)
     for eletag, length, local_f in zip(beam_tags, beam_lengths, local_forces):
         eletag = int(eletag)
-        xlocs = np.full(N_SECS, np.nan)
-        sec_f, sec_d = np.full((len(xlocs), 6), np.nan), np.full((len(xlocs), 6), np.nan)
         if ops.getEleClassTags(eletag)[0] in ELASTIC_BEAM_CLASSES:  # elastic beam
-            xlocs = np.linspace(0, 1.0, len(xlocs))
+            xlocs = np.linspace(0, 1.0, N_SECS_ELASTIC_BEAM)
             sec_f = _get_sec_forces(eletag, length, ele_load_data, pattern_tags, load_eletags, local_f, xlocs)
             sec_d = np.zeros_like(sec_f)
         else:
+            xlocs = []
+            sec_f, sec_d = [], []
             locs = ops.sectionLocation(eletag)
             locs = locs / length
             for i, loc in enumerate(locs):
-                xlocs[i] = loc
+                xlocs.append(loc)
                 forces = ops.sectionForce(eletag, i + 1)
                 if len(forces) == 0:
                     forces = [0.0] * 6
@@ -242,11 +242,14 @@ def _get_beam_sec_resp(beam_tags, ele_load_data, local_forces):
                     defos = [defos[0], defos[1], defos[4], defos[2], 0.0, defos[3]]
                 elif len(defos) > 6:
                     defos = defos[:6]
-                sec_f[i] = forces  # N, Mz, Vy, My, Vz, T
-                sec_d[i] = defos  # N, Mz, Vy, My, Vz, T
+                sec_f.append(forces)  # N, Mz, Vy, My, Vz, T
+                sec_d.append(defos)  # N, Mz, Vy, My, Vz, T
         beam_locs.append(xlocs)
         beam_secF.append(sec_f)
         beam_secD.append(sec_d)
+    beam_locs = _expand_to_uniform_array(beam_locs)
+    beam_secF = _expand_to_uniform_array(beam_secF)
+    beam_secD = _expand_to_uniform_array(beam_secD)
     return beam_secF, beam_secD, beam_locs
 
 
