@@ -433,13 +433,19 @@ class FiberSecMesh:
             If not provided, will rotate about the center of the bounding box.
             Defaults to "center".
         """
+        if self.section_geom is None:
+            self._to_geometry()
         if rot_point == 'center':
-            if self.section_geom is None:
-                self._to_geometry()
             cx, cy = self.section_geom.calculate_centroid()
         else:
             cx, cy = rot_point
         self.section_geom = self.section_geom.rotate_section(angle=-angle, rot_point=(cx, cy), use_radians=False)
+
+    def _centering_section_geometry(self):
+        if self.section_geom is None:
+            self._to_geometry()
+        cx, cy = self.section_geom.calculate_centroid()
+        self.section_geom = self.section_geom.shift_section(x_offset=-cx, y_offset=-cy)
 
     def set_mesh_size(
         self, mesh_size: Union[dict[str, float], list[float], tuple[float], float]
@@ -1521,6 +1527,7 @@ class FiberSecMesh:
         for name, geom in self.geom_group_map.items():
             new_geom = geom.shift_section(-self.centroid[0], -self.centroid[1])
             self.geom_group_map[name] = new_geom
+        self._centering_section_geometry()
         self.is_centring = True
         self.centroid = np.array([0.0, 0.0])
 
@@ -1736,7 +1743,13 @@ class FiberSecMesh:
                     output.write(txt.format(xy[0], xy[1], area, mat_tag))
             output.write("# end of fibersection definition\n")
 
-    def view(self, fill: bool = True, show_legend: bool = True, ax=None):
+    def view(
+            self,
+            fill: bool = True,
+            show_legend: bool = True,
+            aspect_ratio: Union[float, str] = None,
+            ax=None
+    ):
         """Display the section mesh.
 
         Parameters
@@ -1745,6 +1758,8 @@ class FiberSecMesh:
              Whether to fill the trangles.
         show_legend: bool, default=True
             Whether to show the legend.
+        aspect_ratio: float or str, default=None
+            Aspect ratio of the figure.
         ax : matplotlib.axes.Axes, optional
             The axes to plot the section mesh.
 
@@ -1759,21 +1774,19 @@ class FiberSecMesh:
             for name in self.geom_group_map.keys():
                 self.color_map[name] = get_random_color()
         vertices = self.points
-        x = vertices[:, 0]
-        y = vertices[:, 1]
-        aspect_ratio = (np.max(y) - np.min(y)) / (np.max(x) - np.min(x))
+        if aspect_ratio is None:
+            x = vertices[:, 0]
+            y = vertices[:, 1]
+            aspect_ratio = (np.max(y) - np.min(y)) / (np.max(x) - np.min(x))
+            if aspect_ratio <= 0.333:
+                aspect_ratio = 0.333
+            if aspect_ratio >= 3:
+                aspect_ratio = 3
         self._plot_mpl(fill, aspect_ratio, show_legend=show_legend, ax=ax)
 
     def _plot_mpl(self, fill, aspect_ratio, show_legend: bool = True, ax=None):
         # matplotlib plot
-        if aspect_ratio <= 0.333:
-            aspect_ratio = 0.333
-        if aspect_ratio >= 3:
-            aspect_ratio = 3
-        if aspect_ratio < 1:
-            figsize = 8, 8
-        else:
-            figsize = 6, 6 * aspect_ratio
+        figsize = 6, 6
         if ax is None:
             fig, ax = plt.subplots(figsize=figsize)
 
