@@ -14,19 +14,20 @@ simulations more efficient and accessible.
 Quick Guide
 ---------------------------
 
-.. toctree::
-   :maxdepth: 1
-   :caption: Quick Start
+.. card:: 
 
-   examples/post/Frame2D/test_model.ipynb
-   src/quick_start/plot_model.ipynb
+  .. toctree::
+    :maxdepth: 1
+
+    examples/post/Frame2D/test_model.ipynb
+    src/quick_start/plot_model.ipynb
 
 
 Other Features
 ---------------
 
-1. **Preprocessing Tools**:
-   
+.. card:: :octicon:`graph;1.5em;sd-mr-1 fill-primary` Preprocessing Tools
+
    - *Fiber Section Meshing*: Generate detailed fiber meshes for various geometries. An example is shown below:
      `Fiber Section Mesh <src/pre/sec_mesh.ipynb>`_
    - *GMSH Integration*: Import and convert `Gmsh <https://gmsh.info/>`__ models, including geometry, mesh, and physical groups.
@@ -41,19 +42,19 @@ Other Features
      An example is shown below: `Tcl to OpenSeesPy <src/pre/tcl2py.rst>`_
 
 
-2. **Postprocessing Capabilities**:
+.. card:: :octicon:`database;1.5em;sd-mr-1 fill-primary` Postprocessing Capabilities
    
    - Easy retrieval and interpretation of analysis results using `xarray <https://docs.xarray.dev/en/stable/index.html#>`__.
      An example is shown below: `Postprocessing with xarray <src/post/index.ipynb>`_
 
-3. **Visualization**:
+.. card:: :octicon:`eye;1.5em;sd-mr-1 fill-primary` Visualization
    
    - Powered by `PyVista <https://docs.pyvista.org/>`__ (VTK-based) and `Plotly <https://plotly.com/python/>`__ (web-based).
    - Nearly identical APIs for flexible visualization of model geometry, modal analysis, and simulation results.
    - Supports most common OpenSees elements.
    - An example is shown below: `Visualization <src/vis/index.ipynb>`_
 
-4. **Intelligent Analysis**:
+.. card:: :octicon:`paper-airplane;1.5em;sd-mr-1 fill-primary` Intelligent Analysis
    
    - Features like automatic step size adjustment and algorithm switching to optimize simulation workflows.
      An example is shown below: `Intelligent Analysis <src/analysis/smart_analysis.rst>`_
