@@ -1,6 +1,10 @@
 Preprocessing
 ===============
 
+.. contents:: Contents
+   :depth: 2 
+   :local: 
+
 Tcl to Python
 ---------------
 
