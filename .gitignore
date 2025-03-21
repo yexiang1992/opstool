@@ -3,6 +3,7 @@ docs/source
 # From https://raw.githubusercontent.com/github/gitignore/main/Python.gitignore
 
 _OPSTOOL_ODB/
+.idea/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
