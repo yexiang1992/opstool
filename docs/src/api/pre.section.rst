@@ -5,38 +5,34 @@ Section mesh class
 --------------------
 This is a main class for creating fiber section triangular mesh.
 
-.. autoclass:: opstool.pre.section.FiberSecMesh
-   :members:
-   :inherited-members:
+.. autosummary::
+   :toctree: _autosummary
+   :template: custom-class-template.rst
+   :recursive:
 
-.. autoclass:: opstool.pre.section.SecMesh
-   :members:
-   :inherited-members:
+    opstool.pre.section.FiberSecMesh
+    opstool.pre.section.SecMesh
+
 
 Utility functions for creating geometry and materials
 -------------------------------------------------------
 
-.. autofunction:: opstool.pre.section.create_material
+.. autosummary::
+   :toctree: _autosummary
+   :template: custom-function-template.rst
+   :recursive:
 
-.. autofunction:: opstool.pre.section.create_polygon_patch
-
-.. autofunction:: opstool.pre.section.create_circle_patch
-
-.. autofunction:: opstool.pre.section.create_patch_from_dxf
-
-.. autofunction:: opstool.pre.section.create_polygon_points
-
-.. autofunction:: opstool.pre.section.create_circle_points
-
-.. autofunction:: opstool.pre.section.offset
-
-.. autofunction:: opstool.pre.section.line_offset
-
-.. autofunction:: opstool.pre.section.poly_offset
-
-.. autofunction:: opstool.pre.section.set_patch_material
-
-.. autofunction:: opstool.pre.section.vis_fiber_sec_real
+    opstool.pre.section.create_material
+    opstool.pre.section.create_polygon_patch
+    opstool.pre.section.create_circle_patch
+    opstool.pre.section.create_patch_from_dxf
+    opstool.pre.section.create_polygon_points
+    opstool.pre.section.create_circle_points
+    opstool.pre.section.offset
+    opstool.pre.section.line_offset
+    opstool.pre.section.poly_offset
+    opstool.pre.section.set_patch_material
+    opstool.pre.section.vis_fiber_sec_real
 
 
 Wrapper for OpenSeesPy section commands
@@ -45,15 +41,15 @@ The following commands wrap the fiber section-related commands in ``OpenSeesPy``
 These commands retain the same functionality as the original commands but additionally save 
 the user-provided input data for purposes such as visualization.
 
-.. autofunction:: opstool.pre.section.section
+.. autosummary::
+   :toctree: _autosummary
+   :recursive:
 
-.. autofunction:: opstool.pre.section.fiber
-
-.. autofunction:: opstool.pre.section.patch
-
-.. autofunction:: opstool.pre.section.layer
-
-.. autofunction:: opstool.pre.section.plot_fiber_sec_cmds
+    opstool.pre.section.section
+    opstool.pre.section.fiber
+    opstool.pre.section.patch
+    opstool.pre.section.layer
+    opstool.pre.section.plot_fiber_sec_cmds
 
 Example
 ++++++++

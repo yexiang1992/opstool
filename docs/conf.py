@@ -92,7 +92,7 @@ html_theme_options = {
     "source_directory": "docs/",
     "top_of_page_buttons": ["view", "edit"],
 }
-templates_path = ["_static/_templates/furo"]
+templates_path = ["_static/_templates/furo", "_static/_templates"]
 html_sidebars = {
     "**": [
         "sidebar/brand.html",
@@ -105,5 +105,5 @@ html_sidebars = {
         "sidebar/variant-selector.html",
     ]
 }
-pygments_style = "gruvbox-light"
+pygments_style = "perldoc"
 pygments_dark_style = "paraiso-dark"

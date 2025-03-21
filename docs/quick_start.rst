@@ -11,7 +11,19 @@ with **OpenSees** and **OpenSeesPy**.
 It provides advanced tools for preprocessing, postprocessing, and visualization, making structural 
 simulations more efficient and accessible.
 
-**Key Features:**
+Quick Guide
+---------------------------
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Quick Start
+
+   examples/post/Frame2D/test_model.ipynb
+   src/quick_start/plot_model.ipynb
+
+
+Other Features
+---------------
 
 1. **Preprocessing Tools**:
    
@@ -48,27 +60,3 @@ simulations more efficient and accessible.
    - Moment-Curvature Analysis: Generate moment-curvature curves for various sections.
      An example is shown below: `Moment-Curvature Analysis <src/analysis/mc_analysis.ipynb>`_
 
-
-**Why Choose opstool?**
-
-- **Efficiency**: Streamlines complex workflows, reducing time spent on repetitive tasks.
-- **Flexibility**: Provides nearly identical interfaces for different visualization engines.
-- **Accessibility**: Makes advanced structural analysis tools like OpenSeesPy more approachable to users of all levels.
-
-``opstool`` is actively evolving, with continuous additions of new features planned for the future.
-With ``opstool``, you can focus on what matters most: 
-understanding and solving your structural engineering challenges. 
-Whether you are building models, visualizing results, or interpreting data, 
-``opstool`` is your go-to solution for OpenSeesPy workflows.
-
-
-Quick Guide
----------------------------
-
-Below is a quick guide to getting started with opstool:
-
-`A simple but complete example: Two-Dimensional Moment Frame Analysis <https://opstool.readthedocs.io/en/latest/examples/post/Frame2D/test_model.html>`_.
-
-Below is a quick guide to getting started with visualization in opstool:
-
-`Quick Model and Eigen Visualization <src/quick_start/plot_model.ipynb>`_.

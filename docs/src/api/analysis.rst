@@ -8,6 +8,8 @@ Intelligent analysis algorithms that help convergence, automatically changing al
 
 .. autosummary::
    :toctree: _autosummary
+   :template: custom-class-template.rst
+   :recursive:
 
    opstool.anlys.SmartAnalyze
 
@@ -18,5 +20,7 @@ Moment-Curvature analysis of sections.
 
 .. autosummary::
    :toctree: _autosummary
+   :template: custom-class-template.rst
+   :recursive:
 
    opstool.anlys.MomentCurvature

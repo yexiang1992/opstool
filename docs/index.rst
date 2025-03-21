@@ -122,6 +122,21 @@ If you used OPSTOOL in your scientific publication, we would very appreciated if
       author = {Yexiang Yan and Yazhou Xie},
       }
 
+
+Why Choose opstool?
+--------------------
+
+- **Efficiency**: Streamlines complex workflows, reducing time spent on repetitive tasks.
+- **Flexibility**: Provides nearly identical interfaces for different visualization engines.
+- **Accessibility**: Makes advanced structural analysis tools like OpenSeesPy more approachable to users of all levels.
+
+``opstool`` is actively evolving, with continuous additions of new features planned for the future.
+With ``opstool``, you can focus on what matters most: 
+understanding and solving your structural engineering challenges. 
+Whether you are building models, visualizing results, or interpreting data, 
+``opstool`` is your go-to solution for OpenSeesPy workflows.
+
+
 Contents
 --------
 
@@ -155,8 +170,6 @@ Contents
    
    src/api/global
    src/api/pre
-   src/api/pre.section
    src/api/post
-   src/api/vis.plotly
-   src/api/vis.pyvista
+   src/api/vis
    src/api/analysis

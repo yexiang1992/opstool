@@ -1,65 +1,86 @@
 Preprocessing
 ===============
 
+Fiber Section Mesh
+--------------------
+
+.. toctree::
+   :maxdepth: 1
+
+   pre.section.rst
+
+
 Tcl to Python
 ---------------
 
-.. autofunction:: opstool.pre.tcl2py
+.. autosummary::
+   :toctree: _autosummary
+   :template: custom-function-template.rst
+   :recursive:
+   
+   opstool.pre.tcl2py
 
 Remove void nodes
 ---------------------
 
-.. autofunction:: opstool.pre.remove_void_nodes
+.. autosummary::
+   :toctree: _autosummary
+   :template: custom-function-template.rst
+   :recursive:
+   
+   opstool.pre.remove_void_nodes
 
-Loads
----------
+Loads Transform and Processing
+--------------------------------
+.. autosummary::
+   :toctree: _autosummary
+   :template: custom-function-template.rst
+   :recursive:
+   
+   opstool.pre.apply_load_distribution
+   opstool.pre.gen_grav_load
+   opstool.pre.transform_beam_uniform_load
+   opstool.pre.transform_beam_point_load
+   opstool.pre.transform_surface_uniform_load
 
-Load distribution pattern
-++++++++++++++++++++++++++
-
-.. autofunction:: opstool.pre.apply_load_distribution
-
-Generate gravity load
-+++++++++++++++++++++++
-
-.. autofunction:: opstool.pre.gen_grav_load
-
-Transform beam uniform and point load from global to local coordinate system
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-.. autofunction:: opstool.pre.transform_beam_uniform_load
-
-.. autofunction:: opstool.pre.transform_beam_point_load
-
-Transform surface uniform load from local to global coordinate system
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-.. autofunction:: opstool.pre.transform_surface_uniform_load
 
 Model Mass 
 -----------
 
-.. autoclass:: opstool.pre.ModelMass
-   :members:
-   :inherited-members:
+.. autosummary::
+   :toctree: _autosummary
+   :template: custom-class-template.rst
+   :recursive:
+   
+   opstool.pre.ModelMass
 
 Gmsh to OpenSeesPy
 --------------------
 
-.. autoclass:: opstool.pre.Gmsh2OPS
-   :members:
-   :inherited-members:
+.. autosummary::
+   :toctree: _autosummary
+   :template: custom-class-template.rst
+   :recursive:
+   
+   opstool.pre.Gmsh2OPS
 
 Unit System
 -------------
 
-.. autoclass:: opstool.pre.UnitSystem
-   :members:
-   :inherited-members:
+.. autosummary::
+   :toctree: _autosummary
+   :template: custom-class-template.rst
+   :recursive:
+   
+   opstool.pre.UnitSystem
 
 Model Data
 ----------------
 
-.. autofunction:: opstool.pre.get_node_coord
-
-.. autofunction:: opstool.pre.get_node_mass
+.. autosummary::
+   :toctree: _autosummary
+   :template: custom-function-template.rst
+   :recursive:
+   
+   opstool.pre.get_node_coord
+   opstool.pre.get_node_mass

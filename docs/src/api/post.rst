@@ -5,23 +5,31 @@ Postprocessing
 Data Saving
 ------------
 
-.. autofunction:: opstool.post.set_odb_path
+.. autosummary::
+   :toctree: _autosummary
+   :template: custom-function-template.rst
+   :recursive:
 
-.. autofunction:: opstool.post.save_model_data
+   opstool.post.set_odb_path
+   opstool.post.save_model_data
+   opstool.post.save_eigen_data
 
-.. autofunction:: opstool.post.save_eigen_data
+.. autosummary::
+   :toctree: _autosummary
+   :template: custom-class-template.rst
+   :recursive:
 
-.. autoclass:: opstool.post.CreateODB
-   :members:
-   :inherited-members:
+   opstool.post.CreateODB
 
 Result Reading
 --------------
 
-.. autofunction:: opstool.post.get_model_data
+.. autosummary::
+   :toctree: _autosummary
+   :template: custom-function-template.rst
+   :recursive:
 
-.. autofunction:: opstool.post.get_eigen_data
-
-.. autofunction:: opstool.post.get_nodal_responses
-
-.. autofunction:: opstool.post.get_element_responses
+   opstool.post.get_model_data
+   opstool.post.get_eigen_data
+   opstool.post.get_nodal_responses
+   opstool.post.get_element_responses
