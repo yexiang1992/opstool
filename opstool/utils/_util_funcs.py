@@ -71,6 +71,8 @@ def add_ops_hints_file():
 
 
 def print_version():
+    """Print pacakge version.
+    """
     from ..__about__ import __version__
 
     CONSOLE.print(__version__, style="bold #0343df")
