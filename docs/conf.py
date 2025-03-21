@@ -34,7 +34,7 @@ extensions = [
     "sphinx.ext.mathjax",
     "sphinx.ext.viewcode",
     "sphinx_design",
-    # "sphinx.ext.autosummary",
+    "sphinx.ext.autosummary",
     "nbsphinx",
     # "myst_nb",
     "jupyter_sphinx",

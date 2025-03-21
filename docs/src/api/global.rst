@@ -1,10 +1,10 @@
 Global Functions
 =================
 
-.. autofunction:: opstool.load_ops_examples
+.. autosummary::
+    :toctree: _autosummary
 
-.. autofunction:: opstool.add_ops_hints_file
-
-.. autofunction:: opstool.run_model
-
-.. autofunction:: opstool.print_version
+    opstool.load_ops_examples
+    opstool.add_ops_hints_file
+    opstool.run_model
+    opstool.print_version

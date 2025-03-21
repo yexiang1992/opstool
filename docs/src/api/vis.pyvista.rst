@@ -1,8 +1,6 @@
 Pyvista-based Visualization
 ============================
-.. contents:: Contents
-   :depth: 2 
-   :local: 
+
 
 Set Plot Properties
 ---------------------
