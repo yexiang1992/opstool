@@ -32,6 +32,14 @@ it is recommended that you use [Anaconda](https://www.anaconda.com/) to avoid li
 > [!TIP]
 > Since an opstool version **v1.0.1**, the API and features have undergone significant changes and upgrades. As a result, it feels more like a new library, and you should take some time to familiarize yourself with the new interface usage.
 
+## Citing
+
+If you use `opstool` in your work, please cite the following publication:
+
+Yexiang Yan, Yazhou Xie. "*opstool: A Python library for OpenSeesPy analysis automation, streamlined pre- and post-processing, and enhanced data visualization*,"
+SoftwareX, 30, 102126, (2025). 
+[https://doi.org/10.1016/j.softx.2025.102126](https://doi.org/10.1016/j.softx.2025.102126)
+
 ## Key Features
 
 1. **Preprocessing Tools**:
