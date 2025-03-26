@@ -109,9 +109,10 @@ def _get_nodal_resp(node_tags):
     node_vel = []  # 6 data each row, Ux, Uy, Uz, Rx, Ry, Rz
     node_accel = []  # 6 data each row, Ux, Uy, Uz, Rx, Ry, Rz
     node_pressure = []  # 1 data each row, P
+    all_node_tags = ops.getNodeTags()
     for i, tag in enumerate(node_tags):
         tag = int(tag)
-        if tag in ops.getNodeTags():
+        if tag in all_node_tags:
             coord = ops.nodeCoord(tag)
             disp = ops.nodeDisp(tag)
             vel = ops.nodeVel(tag)
