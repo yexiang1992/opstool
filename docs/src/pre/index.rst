@@ -10,6 +10,6 @@ The following is a guide to the preprocessing features provided by `opstool`.
    sec_mesh.ipynb
    read_gmsh.ipynb
    tcl2py.rst
-   unit_system.rst
+   unit_system.ipynb
    loads.ipynb
    model_mass.ipynb
