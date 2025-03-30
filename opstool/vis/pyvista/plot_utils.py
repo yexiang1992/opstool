@@ -36,6 +36,7 @@ PLOT_ARGS = SimpleNamespace(
     # --------------------------
     color_point="#FF0055",
     color_frame="#0652ff",
+    color_beam="#0652ff",
     color_truss="#FF8C00",
     color_link="#39FF14",
     color_shell="#769958",
