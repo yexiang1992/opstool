@@ -17,7 +17,6 @@
       :nosignatures:
    
       ~CreateODB.fetch_response_step
-      ~CreateODB.initialize
       ~CreateODB.reset
       ~CreateODB.save_eigen_data
       ~CreateODB.save_model_data

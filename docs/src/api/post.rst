@@ -33,3 +33,4 @@ Result Reading
    opstool.post.get_eigen_data
    opstool.post.get_nodal_responses
    opstool.post.get_element_responses
+   opstool.post.get_sensitivity_responses

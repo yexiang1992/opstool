@@ -18,6 +18,7 @@
    
       ~SmartAnalyze.StaticAnalyze
       ~SmartAnalyze.TransientAnalyze
+      ~SmartAnalyze.set_sensitivity_algorithm
       ~SmartAnalyze.static_split
       ~SmartAnalyze.transient_split
    
