@@ -8,6 +8,7 @@ from ._get_shell_resp import ShellRespStepData
 from ._get_plane_resp import PlaneRespStepData
 from ._get_solid_resp import BrickRespStepData
 from ._get_contact_resp import ContactRespStepData
+from ._get_sensitivity_resp import SensitivityRespStepData
 
 __all__ = [
     "ModelInfoStepData",
@@ -20,4 +21,5 @@ __all__ = [
     "PlaneRespStepData",
     "BrickRespStepData",
     "ContactRespStepData",
+    "SensitivityRespStepData"
 ]

@@ -12,7 +12,7 @@ class SensitivityRespStepData(ResponseBase):
             "vel",
             "accel",
             "pressure",
-            "lambda",
+            "lambdas",
             # "sensSectionForce",
         ]
         self.node_tags = node_tags if node_tags is not None else ops.getNodeTags()
@@ -33,14 +33,18 @@ class SensitivityRespStepData(ResponseBase):
         self.initialize()
 
     def add_data_one_step(self, node_tags, sens_para_tags):
+        if node_tags is None:
+            node_tags = self.node_tags
+        if sens_para_tags is None:
+            sens_para_tags = self.sens_para_tags
         disp, vel, accel, pressure = _get_nodal_sens_resp(node_tags, sens_para_tags)
-        lambdas = _get_sens_lambda(sens_para_tags)
+        lambdas_ = _get_sens_lambda(sens_para_tags)
         datas = [disp, vel, accel]
         data_vars = {}
         for name, data_ in zip(["disp", "vel", "accel"], datas):
             data_vars[name] = (["paraTags", "nodeTags", "DOFs"], data_)
         data_vars["pressure"] = (["paraTags", "nodeTags"], pressure)
-        data_vars["lambda"] = (["paraTags", "patternTags"], lambdas)
+        data_vars["lambdas"] = (["paraTags", "patternTags"], lambdas_)
         # can have different dimensions and coordinates
         ds = xr.Dataset(
             data_vars=data_vars,
@@ -48,7 +52,7 @@ class SensitivityRespStepData(ResponseBase):
                 "paraTags": sens_para_tags,
                 "nodeTags": node_tags,
                 "DOFs": ["UX", "UY", "UZ", "RX", "RY", "RZ"],
-                "patternTags": np.arange(lambdas.shape[1]) + 1
+                "patternTags": np.arange(lambdas_.shape[1]) + 1
             },
             attrs={
                 "UX": "Displacement in X direction",

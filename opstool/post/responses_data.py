@@ -15,7 +15,8 @@ from ._get_response import (
     ShellRespStepData,
     PlaneRespStepData,
     BrickRespStepData,
-    ContactRespStepData
+    ContactRespStepData,
+    SensitivityRespStepData
 )
 from .eigen_data import save_eigen_data
 from .model_data import save_model_data
@@ -24,6 +25,27 @@ from ..utils import get_random_color, CONSTANTS
 
 POST_ARGS = SimpleNamespace(
     elastic_frame_sec_points=7,
+    # ------------------------------
+    save_nodal_resp= True,
+    save_frame_resp= True,
+    save_truss_resp= True,
+    save_link_resp= True,
+    save_shell_resp= True,
+    save_fiber_sec_resp= True,
+    save_plane_resp= True,
+    save_brick_resp= True,
+    save_contact_resp= True,
+    save_sensitivity_resp= True,
+    # ----------------------------------
+    node_tags = None,
+    frame_tags= None,
+    truss_tags= None,
+    link_tags= None,
+    shell_tags = None,
+    plane_tags= None,
+    brick_tags = None,
+    contact_tags= None,
+    sensitivity_para_tags = None,
 )
 
 
@@ -43,120 +65,113 @@ class CreateODB:
             keep this parameter set to **False**.
             Enabling model updates unnecessarily can increase memory usage and slow down performance.
             If some nodes or elements are deleted during the analysis, you should set this parameter to `True`.
-
-    save_nodal_resp: bool, default: True
-        Whether to save nodal responses.
-    save_frame_resp: bool, default: True
-        Whether to save frame element responses.
-    save_truss_resp: bool, default: True
-        Whether to save truss element responses.
-    save_link_resp: bool, default: True
-        Whether to save link element responses.
-    save_shell_resp: bool, default: True
-        Whether to save shell element responses.
-    save_fiber_sec_resp: bool, default: True
-        Whether to save fiber section responses.
-    save_plane_resp: bool, default: True
-        Whether to save plane element responses.
-    save_brick_resp: bool, default: True
-        Whether to save brick element responses.
-    save_contact_resp: bool, default: True
-        Whether to save contact element responses.
-    node_tags: Union[list, tuple, int], default: None
-        Node tags to be saved.
-        If None, save all nodes' responses.
-    frame_tags: Union[list, tuple, int], default: None
-        Frame element tags to be saved.
-        If None, save all frame elements' responses.
-    truss_tags: Union[list, tuple, int], default: None
-        Truss element tags to be saved.
-        If None, save all truss elements' responses.
-    link_tags: Union[list, tuple, int], default: None
-        Link element tags to be saved.
-        If None, save all link elements' responses.
-    shell_tags: Union[list, tuple, int], default: None
-        Shell element tags to be saved.
-        If None, save all shell elements' responses.
-    plane_tags: Union[list, tuple, int], default: None
-        Plane element tags to be saved.
-        If None, save all plane elements' responses.
-    brick_tags: Union[list, tuple, int], default: None
-        Brick element tags to be saved.
-        If None, save all brick elements' responses.
-    contact_tags: Union[list, tuple, int], default: None
-        Contact element tags to be saved.
-
-    .. Note::
-        If you enter optional node and element tags to avoid saving all data,
-        make sure these tags are not deleted during the analysis.
-        Otherwise, unexpected behavior may occur.
-
     kwargs: Other post-processing parameters, optional:
         * elastic_frame_sec_points: int, default: 7
             The number of elastic frame elements section points.
             A larger number may result in a larger file size.
+        * save_nodal_resp: bool, default: True
+            Whether to save nodal responses.
+        * save_frame_resp: bool, default: True
+            Whether to save frame element responses.
+        * save_truss_resp: bool, default: True
+            Whether to save truss element responses.
+        * save_link_resp: bool, default: True
+            Whether to save link element responses.
+        * save_shell_resp: bool, default: True
+            Whether to save shell element responses.
+        * save_fiber_sec_resp: bool, default: True
+            Whether to save fiber section responses.
+        * save_plane_resp: bool, default: True
+            Whether to save plane element responses.
+        * save_brick_resp: bool, default: True
+            Whether to save brick element responses.
+        * save_contact_resp: bool, default: True
+            Whether to save contact element responses.
+        * save_sensitivity_resp: bool, default: True
+            Whether to save sensitivity analysis responses.
+        * node_tags: Union[list, tuple, int], default: None
+            Node tags to be saved.
+            If None, save all nodes' responses.
+        * frame_tags: Union[list, tuple, int], default: None
+            Frame element tags to be saved.
+            If None, save all frame elements' responses.
+        * truss_tags: Union[list, tuple, int], default: None
+            Truss element tags to be saved.
+            If None, save all truss elements' responses.
+        * link_tags: Union[list, tuple, int], default: None
+            Link element tags to be saved.
+            If None, save all link elements' responses.
+        * shell_tags: Union[list, tuple, int], default: None
+            Shell element tags to be saved.
+            If None, save all shell elements' responses.
+        * plane_tags: Union[list, tuple, int], default: None
+            Plane element tags to be saved.
+            If None, save all plane elements' responses.
+        * brick_tags: Union[list, tuple, int], default: None
+            Brick element tags to be saved.
+            If None, save all brick elements' responses.
+        * contact_tags: Union[list, tuple, int], default: None
+            Contact element tags to be saved.
+        * sensitivity_para_tags: Union[list, tuple, int], default: None
+            Sensitivity parameter tags to be saved.
+
+        .. Note::
+            If you enter optional node and element tags to avoid saving all data,
+            make sure these tags are not deleted during the analysis.
+            Otherwise, unexpected behavior may occur.
     """
 
     def __init__(
             self,
             odb_tag: Union[int, str] = 1,
             model_update: bool = False,
-            save_nodal_resp: bool = True,
-            save_frame_resp: bool = True,
-            save_truss_resp: bool = True,
-            save_link_resp: bool = True,
-            save_shell_resp: bool = True,
-            save_fiber_sec_resp: bool = True,
-            save_plane_resp: bool = True,
-            save_brick_resp: bool = True,
-            save_contact_resp: bool = True,
-            node_tags: Union[list, tuple, int] = None,
-            frame_tags: Union[list, tuple, int] = None,
-            truss_tags: Union[list, tuple, int] = None,
-            link_tags: Union[list, tuple, int] = None,
-            shell_tags: Union[list, tuple, int] = None,
-            plane_tags: Union[list, tuple, int] = None,
-            brick_tags: Union[list, tuple, int] = None,
-            contact_tags: Union[list, tuple, int] = None,
             **kwargs
     ):
         self.odb_tag = odb_tag
         self.model_update = model_update
-        self.save_nodal_resp = save_nodal_resp
-        self.save_frame_resp = save_frame_resp
-        self.save_truss_resp = save_truss_resp
-        self.save_link_resp = save_link_resp
-        self.save_shell_resp = save_shell_resp
-        self.save_fiber_sec_resp = save_fiber_sec_resp
-        self.save_plane_resp = save_plane_resp
-        self.save_brick_resp = save_brick_resp
-        self.save_contact_resp = save_contact_resp
 
-        self.node_tags = node_tags
-        self.frame_tags = frame_tags
-        self.truss_tags = truss_tags
-        self.link_tags = link_tags
-        self.shell_tags = shell_tags
-        self.plane_tags = plane_tags
-        self.brick_tags = brick_tags
-        self.contact_tags = contact_tags
+        for key, value in kwargs.items():
+            setattr(POST_ARGS, key, value)
 
-        if node_tags is not None:
-            self.node_tags = [int(tag) for tag in np.atleast_1d(node_tags)]
-        if frame_tags is not None:
-            self.frame_tags = [int(tag) for tag in np.atleast_1d(frame_tags)]
-        if truss_tags is not None:
-            self.truss_tags = [int(tag) for tag in np.atleast_1d(truss_tags)]
-        if link_tags is not None:
-            self.link_tags = [int(tag) for tag in np.atleast_1d(link_tags)]
-        if shell_tags is not None:
-            self.shell_tags = [int(tag) for tag in np.atleast_1d(shell_tags)]
-        if plane_tags is not None:
-            self.plane_tags = [int(tag) for tag in np.atleast_1d(plane_tags)]
-        if brick_tags is not None:
-            self.brick_tags = [int(tag) for tag in np.atleast_1d(brick_tags)]
-        if contact_tags is not None:
-            self.contact_tags = [int(tag) for tag in np.atleast_1d(contact_tags)]
+        self.save_nodal_resp = POST_ARGS.save_nodal_resp
+        self.save_frame_resp = POST_ARGS.save_frame_resp
+        self.save_truss_resp = POST_ARGS.save_truss_resp
+        self.save_link_resp = POST_ARGS.save_link_resp
+        self.save_shell_resp = POST_ARGS.save_shell_resp
+        self.save_fiber_sec_resp = POST_ARGS.save_fiber_sec_resp
+        self.save_plane_resp = POST_ARGS.save_plane_resp
+        self.save_brick_resp = POST_ARGS.save_brick_resp
+        self.save_contact_resp = POST_ARGS.save_contact_resp
+        self.save_sensitivity_resp = POST_ARGS.save_sensitivity_resp
+
+        self.node_tags = POST_ARGS.node_tags
+        self.frame_tags = POST_ARGS.frame_tags
+        self.truss_tags = POST_ARGS.truss_tags
+        self.link_tags = POST_ARGS.link_tags
+        self.shell_tags = POST_ARGS.shell_tags
+        self.plane_tags = POST_ARGS.plane_tags
+        self.brick_tags = POST_ARGS.brick_tags
+        self.contact_tags = POST_ARGS.contact_tags
+        self.sensitivity_para_tags = POST_ARGS.sensitivity_para_tags
+
+        if self.node_tags is not None:
+            self.node_tags = [int(tag) for tag in np.atleast_1d(self.node_tags)]
+        if self.frame_tags is not None:
+            self.frame_tags = [int(tag) for tag in np.atleast_1d(self.frame_tags)]
+        if self.truss_tags is not None:
+            self.truss_tags = [int(tag) for tag in np.atleast_1d(self.truss_tags)]
+        if self.link_tags is not None:
+            self.link_tags = [int(tag) for tag in np.atleast_1d(self.link_tags)]
+        if self.shell_tags is not None:
+            self.shell_tags = [int(tag) for tag in np.atleast_1d(self.shell_tags)]
+        if self.plane_tags is not None:
+            self.plane_tags = [int(tag) for tag in np.atleast_1d(self.plane_tags)]
+        if self.brick_tags is not None:
+            self.brick_tags = [int(tag) for tag in np.atleast_1d(self.brick_tags)]
+        if self.contact_tags is not None:
+            self.contact_tags = [int(tag) for tag in np.atleast_1d(self.contact_tags)]
+        if self.sensitivity_para_tags is not None:
+            self.sensitivity_para_tags = [int(tag) for tag in np.atleast_1d(self.sensitivity_para_tags)]
 
         self.ModelInfo = None
         self.NodalResp = None
@@ -168,21 +183,19 @@ class CreateODB:
         self.PlaneResp = None
         self.BrickResp = None
         self.ContactResp = None
+        self.SensitivityResp = None
 
-        for key, value in kwargs.items():
-            setattr(POST_ARGS, key, value)
-
-        self.initialize()
+        self._initialize()
 
     def _get_resp(self):
         output = [
             self.ModelInfo, self.NodalResp, self.FrameResp, self.TrussResp,
             self.LinkResp, self.ShellResp, self.FiberSecResp,
-            self.PlaneResp, self.BrickResp, self.ContactResp,
+            self.PlaneResp, self.BrickResp, self.ContactResp, self.SensitivityResp
         ]
         return output
 
-    def initialize(self):
+    def _initialize(self):
         self.ModelInfo = ModelInfoStepData(model_update=self.model_update)
         if self.node_tags is not None:
             node_tags = self.node_tags
@@ -247,14 +260,21 @@ class CreateODB:
             contact_tags = self.ModelInfo.get_current_contact_tags()
         if len(contact_tags) > 0 and self.save_contact_resp:
             self.ContactResp = ContactRespStepData(contact_tags)
+        # ------------------------------------------------------------------
+        if len(node_tags) > 0 and self.save_sensitivity_resp:
+            self.SensitivityResp = SensitivityRespStepData(
+                node_tags=node_tags, ele_tags=None, sens_para_tags=self.sensitivity_para_tags
+            )
 
     def reset(self):
+        """Reset the ODB model.
+        """
         for resp in self._get_resp():
             if resp is not None:
                 resp.reset()
 
     def fetch_response_step(self, print_info: bool = False):
-        """Extract response data for the current moment.
+        """Extract response data for the current analysis step.
 
         Parameters
         ------------
@@ -321,6 +341,9 @@ class CreateODB:
             contact_tags = self.ModelInfo.get_current_contact_tags()
         if len(contact_tags) > 0 and self.save_contact_resp:
             self.ContactResp.add_data_one_step(contact_tags)
+        # -------------------------------------------------------------------
+        if len(node_tags) > 0 and self.save_sensitivity_resp:
+            self.SensitivityResp.add_data_one_step(node_tags=node_tags, sens_para_tags=self.sensitivity_para_tags)
 
         if print_info:
             time = ops.getTime()
@@ -448,6 +471,8 @@ def loadODB(obd_tag, resp_type: str = "Nodal"):
             resp_step = BrickRespStepData.read_file(dt)
         elif resp_type.lower() == "contact":
             resp_step = ContactRespStepData.read_file(dt)
+        elif resp_type.lower() == "sensitivity":
+            resp_step = SensitivityRespStepData.read_file(dt)
         else:
             raise ValueError(f"Unsupported response type {resp_type}!")
 
@@ -503,7 +528,8 @@ def get_model_data(
 def get_nodal_responses(
         odb_tag: int,
         resp_type: str = None,
-        node_tags: Union[list, tuple, int] = None
+        node_tags: Union[list, tuple, int] = None,
+        print_info: bool = True,
 ) -> xr.Dataset:
     """Read nodal responses data from a file.
 
@@ -511,7 +537,7 @@ def get_nodal_responses(
     ----------
     odb_tag: Union[int, str], default: one
         Tag of output databases (ODB) to be read.
-    resp_type: str, default: disp
+    resp_type: str, default: None
         Type of response to be read.
         Optional:
 
@@ -538,13 +564,16 @@ def get_nodal_responses(
             If some nodes are deleted during the analysis,
             their response data will be filled with `numpy.nan`.
 
+    print_info: bool, default: True
+        Whether to print information
+
     Returns
     ---------
-    NodalResp: xarray.Dataset
+    NodalResp: `xarray.Dataset <https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html>`_
         Nodal responses' data.
 
-    .. Note::
-        The returned data can be viewed using `.dims` and `.coords` to view the
+    .. note::
+        The returned data can be viewed using ".data_vars,” `.dims`, `.coords`, and `.attrs` to view the
         dimension names and coordinates.
         You can further index or process the data.
 
@@ -555,10 +584,16 @@ def get_nodal_responses(
 
     filename = f"{RESULTS_DIR}/" + f"RespStepData-{odb_tag}.nc"
     with xr.open_datatree(filename, engine="netcdf4").load() as dt:
-        color = get_random_color()
-        CONSOLE.print(
-            f"{PKG_PREFIX} Loading {resp_type} response data from [bold {color}]{filename}[/] ..."
-        )
+        if print_info:
+            color = get_random_color()
+            if resp_type is None:
+                CONSOLE.print(
+                    f"{PKG_PREFIX} Loading all response data from [bold {color}]{filename}[/] ..."
+                )
+            else:
+                CONSOLE.print(
+                    f"{PKG_PREFIX} Loading {resp_type} response data from [bold {color}]{filename}[/] ..."
+                )
 
         nodal_resp = NodalRespStepData.read_response(dt, resp_type=resp_type, node_tags=node_tags)
     return nodal_resp
@@ -568,7 +603,8 @@ def get_element_responses(
         odb_tag: int,
         ele_type: str,
         resp_type: str = None,
-        ele_tags: Union[list, tuple, int] = None
+        ele_tags: Union[list, tuple, int] = None,
+        print_info: bool = True,
 ) -> xr.Dataset:
     """Read nodal responses data from a file.
 
@@ -619,16 +655,19 @@ def get_element_responses(
         If None, return all nodal responses.
 
         .. note::
-            If some nodes are deleted during the analysis,
+            If some elements are deleted during the analysis,
             their response data will be filled with `numpy.nan`.
+
+    print_info: bool, default: True
+        Whether to print information.
 
     Returns
     ---------
-    EleResp: xarray.Dataset
+    EleResp: `xarray.Dataset <https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html>`_
         Element responses' data.
 
     .. note::
-        The returned data can be viewed using `.dims`、`.coords` and `.attrs` to view the
+        The returned data can be viewed using ".data_vars,” `.dims`, `.coords`, and `.attrs` to view the
         dimension names and coordinates.
         You can further index or process the data.
     """
@@ -638,10 +677,16 @@ def get_element_responses(
 
     filename = f"{RESULTS_DIR}/" + f"RespStepData-{odb_tag}.nc"
     with xr.open_datatree(filename, engine="netcdf4").load() as dt:
-        color = get_random_color()
-        CONSOLE.print(
-            f"{PKG_PREFIX} Loading {ele_type} {resp_type} response data from [bold {color}]{filename}[/] ..."
-        )
+        if print_info:
+            color = get_random_color()
+            if resp_type is None:
+                CONSOLE.print(
+                    f"{PKG_PREFIX} Loading {ele_type} response data from [bold {color}]{filename}[/] ..."
+                )
+            else:
+                CONSOLE.print(
+                    f"{PKG_PREFIX} Loading {ele_type} {resp_type} response data from [bold {color}]{filename}[/] ..."
+                )
 
         if ele_type.lower() == "frame":
             ele_resp = FrameRespStepData.read_response(dt, resp_type=resp_type, ele_tags=ele_tags)
@@ -664,3 +709,55 @@ def get_element_responses(
             )
 
     return ele_resp
+
+
+def get_sensitivity_responses(
+        odb_tag: int,
+        resp_type: str = None,
+        print_info: bool = True,
+) -> xr.Dataset:
+    """Read sensitivity responses data from a file.
+
+    Parameters
+    ------------
+    odb_tag: Union[int, str], default: one
+        Tag of output databases (ODB) to be read.
+    resp_type: str, default: None
+        Type of response to be read.
+        Optional:
+
+        * "disp" - Displacement at the node.
+        * "vel" - Velocity at the node.
+        * "accel" - Acceleration at the node.
+        * "pressure" - Pressure applied to the node.
+        * "lambda" - Multiplier in load patterns.
+        * If None, return all responses.
+
+    print_info: bool, default: True
+        Whether to print information.
+
+    Returns
+    ---------
+    SensResp: `xarray.Dataset <https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html>`_
+        Sensitivity responses' data.
+    """
+    RESULTS_DIR = CONSTANTS.get_output_dir()
+    CONSOLE = CONSTANTS.get_console()
+    PKG_PREFIX = CONSTANTS.get_pkg_prefix()
+
+    filename = f"{RESULTS_DIR}/" + f"RespStepData-{odb_tag}.nc"
+    with xr.open_datatree(filename, engine="netcdf4").load() as dt:
+        if print_info:
+            color = get_random_color()
+            if resp_type is None:
+                CONSOLE.print(
+                    f"{PKG_PREFIX} Loading response data from [bold {color}]{filename}[/] ..."
+                )
+            else:
+                CONSOLE.print(
+                    f"{PKG_PREFIX} Loading {resp_type} response data from [bold {color}]{filename}[/] ..."
+                )
+
+        resp = SensitivityRespStepData.read_response(dt, resp_type=resp_type)
+
+    return resp
