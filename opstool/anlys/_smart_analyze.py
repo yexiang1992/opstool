@@ -225,6 +225,10 @@ class SmartAnalyze:
         )
         self._setAlgorithm(self.control["algoTypes"][0], self.control["UserAlgoArgs"])
 
+        # Since the intelligent static analysis may reset the integrator,
+        # the sensitivity analysis algorithm needs to be reset
+        self.sensitivity_algorithm = None
+
         self.current = {
             "startTime": time.time(),
             "algoIndex": 0,
@@ -315,6 +319,27 @@ class SmartAnalyze:
 
     def _get_time(self):
         return time.time() - self.current["startTime"]
+
+    def set_sensitivity_algorithm(self, algorithm: str = "-computeAtEachStep"):
+        """Set analysis sensitivity algorithm. Since the Smart Static Analysis may reset the integrator,
+        the sensitivity analysis algorithm will need to be reset afterwards.
+
+        Parameters
+        -----------
+        algorithm: Sensitivity analysis algorithm, default: "-computeAtEachStep".
+            Optional: "-computeAtEachStep" or "-computeByCommand".
+
+        Return
+        -------
+        None
+        """
+        if algorithm not in ["-computeAtEachStep", "-computeByCommand"]:
+            raise ValueError("algorithm must be '-computeAtEachStep' or '-computeByCommand'")
+        self.sensitivity_algorithm = algorithm
+
+    def _run_sensitivity_algorithm(self):
+        if self.sensitivity_algorithm is not None:
+            ops.sensitivityAlgorithm(self.sensitivity_algorithm)
 
     def TransientAnalyze(self, dt: float, print_info: bool = True):
         """Single Step Transient Analysis.
@@ -408,6 +433,9 @@ class SmartAnalyze:
 
         ops.integrator("DisplacementControl", node, dof, seg)
         ops.analysis(self.control["analysis"])
+
+        # reset sensitivity analysis algorithm
+        self._run_sensitivity_algorithm()
 
         ok = self._RecursiveAnalyze(
             seg,
@@ -540,6 +568,10 @@ class SmartAnalyze:
                 "DisplacementControl", vcurrent["node"], vcurrent["dof"], step
             )
             vcurrent["step"] = step
+
+            # reset sensitivity analysis algorithm
+            self._run_sensitivity_algorithm()
+
         # trial analyzes once
         if vcontrol["analysis"] == "Static":
             ok = ops.analyze(1)
