@@ -80,51 +80,51 @@ class CreateODB:
             Whether to compute mechanical measures for ``solid and planar elements``,
             including principal stresses, principal strains, von Mises stresses, etc.
         * Whether to save the responses:
-            * _save_nodal_resp: bool, default: True
+            * save_nodal_resp: bool, default: True
                 Whether to save nodal responses.
-            * _save_frame_resp: bool, default: True
+            * save_frame_resp: bool, default: True
                 Whether to save frame element responses.
-            * _save_truss_resp: bool, default: True
+            * save_truss_resp: bool, default: True
                 Whether to save truss element responses.
-            * _save_link_resp: bool, default: True
+            * save_link_resp: bool, default: True
                 Whether to save link element responses.
-            * _save_shell_resp: bool, default: True
+            * save_shell_resp: bool, default: True
                 Whether to save shell element responses.
-            * _save_fiber_sec_resp: bool, default: True
+            * save_fiber_sec_resp: bool, default: True
                 Whether to save fiber section responses.
-            * _save_plane_resp: bool, default: True
+            * save_plane_resp: bool, default: True
                 Whether to save plane element responses.
-            * _save_brick_resp: bool, default: True
+            * save_brick_resp: bool, default: True
                 Whether to save brick element responses.
-            * _save_contact_resp: bool, default: True
+            * save_contact_resp: bool, default: True
                 Whether to save contact element responses.
-            * _save_sensitivity_resp: bool, default: True
+            * save_sensitivity_resp: bool, default: True
                 Whether to save sensitivity analysis responses.
         * Nodes or elements that need to be saved:
-            * _node_tags: Union[list, tuple, int], default: None
+            * node_tags: Union[list, tuple, int], default: None
                 Node tags to be saved.
                 If None, save all nodes' responses.
-            * _frame_tags: Union[list, tuple, int], default: None
+            * frame_tags: Union[list, tuple, int], default: None
                 Frame element tags to be saved.
                 If None, save all frame elements' responses.
-            * _truss_tags: Union[list, tuple, int], default: None
+            * truss_tags: Union[list, tuple, int], default: None
                 Truss element tags to be saved.
                 If None, save all truss elements' responses.
-            * _link_tags: Union[list, tuple, int], default: None
+            * link_tags: Union[list, tuple, int], default: None
                 Link element tags to be saved.
                 If None, save all link elements' responses.
-            * _shell_tags: Union[list, tuple, int], default: None
+            * shell_tags: Union[list, tuple, int], default: None
                 Shell element tags to be saved.
                 If None, save all shell elements' responses.
-            * _plane_tags: Union[list, tuple, int], default: None
+            * plane_tags: Union[list, tuple, int], default: None
                 Plane element tags to be saved.
                 If None, save all plane elements' responses.
-            * _brick_tags: Union[list, tuple, int], default: None
+            * brick_tags: Union[list, tuple, int], default: None
                 Brick element tags to be saved.
                 If None, save all brick elements' responses.
-            * _contact_tags: Union[list, tuple, int], default: None
+            * contact_tags: Union[list, tuple, int], default: None
                 Contact element tags to be saved.
-            * _sensitivity_para_tags: Union[list, tuple, int], default: None
+            * sensitivity_para_tags: Union[list, tuple, int], default: None
                 Sensitivity parameter tags to be saved.
 
             .. Note::
