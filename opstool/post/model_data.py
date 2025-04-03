@@ -10,6 +10,10 @@ from typing import Union
 from ..utils import CONSTANTS, get_random_color
 from ._get_model_data_base import FEMData
 
+RESULTS_DIR = CONSTANTS.get_output_dir()
+CONSOLE = CONSTANTS.get_console()
+PKG_PREFIX = CONSTANTS.get_pkg_prefix()
+MODEL_FILE_NAME = CONSTANTS.get_model_filename()
 
 class GetFEMData(FEMData):
 
@@ -457,12 +461,7 @@ def save_model_data(
     odb_tag: Union[str, int], default = 1
         Output database tag, the data will be saved in ``ModelData-{odb_tag}.nc``.
     """
-    # ---------------------------------------------------------------------------------------------
-    RESULTS_DIR = CONSTANTS.get_output_dir()
-    CONSOLE = CONSTANTS.get_console()
-    PKG_PREFIX = CONSTANTS.get_pkg_prefix()
-
-    output_filename = RESULTS_DIR + "/" + f"ModelData-{odb_tag}.nc"
+    output_filename = RESULTS_DIR + "/" + f"{MODEL_FILE_NAME}-{odb_tag}.nc"
     model_data = GetFEMData()
     model_info, cells = model_data.get_model_info()
     model_data = dict()
@@ -473,7 +472,7 @@ def save_model_data(
             model_data[f"Cells/{key}"] = xr.Dataset({key: cells[key]})
     else:
         model_data["Cells"] = xr.Dataset()
-    dt = xr.DataTree.from_dict(model_data, name="ModelData")
+    dt = xr.DataTree.from_dict(model_data, name=f"{MODEL_FILE_NAME}")
     dt.to_netcdf(output_filename, mode="w", engine="netcdf4")
     # /////////////////////////////////////
     color = get_random_color()
@@ -500,11 +499,7 @@ def load_model_data(
     model_info: dict[xarray.DataArray]
     cells: dict[xarray.DataArray]
     """
-    RESULTS_DIR = CONSTANTS.get_output_dir()
-    CONSOLE = CONSTANTS.get_console()
-    PKG_PREFIX = CONSTANTS.get_pkg_prefix()
-
-    filename = f"{RESULTS_DIR}/" + f"ModelData-{odb_tag}.nc"
+    filename = f"{RESULTS_DIR}/" + f"{MODEL_FILE_NAME}-{odb_tag}.nc"
     if not os.path.exists(filename):
         resave = True
     if resave:

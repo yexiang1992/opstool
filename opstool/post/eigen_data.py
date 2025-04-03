@@ -7,6 +7,11 @@ import openseespy.opensees as ops
 from ..utils import CONSTANTS, get_random_color
 from .model_data import GetFEMData
 
+RESULTS_DIR = CONSTANTS.get_output_dir()
+CONSOLE = CONSTANTS.get_console()
+PKG_PREFIX = CONSTANTS.get_pkg_prefix()
+EIGEN_FILE_NAME = CONSTANTS.get_eigen_filename()
+
 def _get_modal_properties(mode_tag: int = 1, solver: str = "-genBandArpack"):
     """Get modal properties' data.
 
@@ -131,12 +136,7 @@ def save_eigen_data(
        OpenSees' eigenvalue analysis solver, by default "-genBandArpack".
        See `eigen Command <https://opensees.github.io/OpenSeesDocumentation/user/manual/analysis/eigen.html>`_
     """
-    # ----------------------------------------------------------------------
-    RESULTS_DIR = CONSTANTS.get_output_dir()
-    CONSOLE = CONSTANTS.get_console()
-    PKG_PREFIX = CONSTANTS.get_pkg_prefix()
-
-    output_filename = RESULTS_DIR + "/" + f"EigenData-{odb_tag}.nc"
+    output_filename = RESULTS_DIR + "/" + f"{EIGEN_FILE_NAME}-{odb_tag}.nc"
     # -----------------------------------------------------------------
     model_info, _ = GetFEMData().get_model_info()
     modal_props, eigen_vectors = _get_eigen_info(mode_tag, solver)
@@ -145,7 +145,7 @@ def save_eigen_data(
         eigen_data[f"ModelInfo/{key}"] = xr.Dataset({key: model_info[key]})
     eigen_data["Eigen/ModalProps"] = xr.Dataset({modal_props.name: modal_props})
     eigen_data["Eigen/EigenVectors"] = xr.Dataset({eigen_vectors.name: eigen_vectors})
-    dt = xr.DataTree.from_dict(eigen_data, name="EigenData")
+    dt = xr.DataTree.from_dict(eigen_data, name=f"{EIGEN_FILE_NAME}")
     dt.to_netcdf(output_filename, mode="w", engine="netcdf4")
     # /////////////////////////////////////
     color = get_random_color()
@@ -161,11 +161,7 @@ def load_eigen_data(
     resave: bool = True,
 ):
     """Get the eigenvalue data from the saved file."""
-    RESULTS_DIR = CONSTANTS.get_output_dir()
-    CONSOLE = CONSTANTS.get_console()
-    PKG_PREFIX = CONSTANTS.get_pkg_prefix()
-
-    filename = f"{RESULTS_DIR}/" + f"EigenData-{odb_tag}.nc"
+    filename = f"{RESULTS_DIR}/" + f"{EIGEN_FILE_NAME}-{odb_tag}.nc"
     if not os.path.exists(filename):
         resave = True
     if resave:
