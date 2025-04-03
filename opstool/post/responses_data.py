@@ -31,6 +31,7 @@ MODEL_FILE_NAME = CONSTANTS.get_model_filename()
 
 POST_ARGS = SimpleNamespace(
     elastic_frame_sec_points=7,
+    compute_mechanical_measures=True,
     # ------------------------------
     save_nodal_resp= True,
     save_frame_resp= True,
@@ -75,6 +76,10 @@ class CreateODB:
         * elastic_frame_sec_points: int, default: 7
             The number of elastic frame elements section points.
             A larger number may result in a larger file size.
+        * compute_mechanical_measures: bool, default: True
+            Whether to compute mechanical measures for ``solid and planar elements``,
+            including principal stresses, principal strains, von Mises stresses, etc.
+        * ----------------------------------------------------------------------
         * save_nodal_resp: bool, default: True
             Whether to save nodal responses.
         * save_frame_resp: bool, default: True
@@ -95,6 +100,7 @@ class CreateODB:
             Whether to save contact element responses.
         * save_sensitivity_resp: bool, default: True
             Whether to save sensitivity analysis responses.
+        * ----------------------------------------------------------------------
         * node_tags: Union[list, tuple, int], default: None
             Node tags to be saved.
             If None, save all nodes' responses.
@@ -258,7 +264,10 @@ class CreateODB:
         else:
             brick_tags = self.ModelInfo.get_current_brick_tags()
         if len(brick_tags) > 0 and self.save_brick_resp:
-            self.BrickResp = BrickRespStepData(brick_tags)
+            self.BrickResp = BrickRespStepData(
+                brick_tags,
+                compute_measures=POST_ARGS.compute_mechanical_measures,
+            )
         # -----------------------------------------------------------------
         if self.contact_tags is not None:
             contact_tags = self.contact_tags
@@ -267,9 +276,13 @@ class CreateODB:
         if len(contact_tags) > 0 and self.save_contact_resp:
             self.ContactResp = ContactRespStepData(contact_tags)
         # ------------------------------------------------------------------
-        if len(node_tags) > 0 and self.save_sensitivity_resp:
+        if self.sensitivity_para_tags is not None:
+            sens_para_tags = self.sensitivity_para_tags
+        else:
+            sens_para_tags = ops.getParamTags()
+        if len(node_tags) > 0 and len(sens_para_tags) > 0 and self.save_sensitivity_resp:
             self.SensitivityResp = SensitivityRespStepData(
-                node_tags=node_tags, ele_tags=None, sens_para_tags=self.sensitivity_para_tags
+                node_tags=node_tags, ele_tags=None, sens_para_tags=sens_para_tags
             )
 
     def reset(self):
@@ -348,8 +361,12 @@ class CreateODB:
         if len(contact_tags) > 0 and self.save_contact_resp:
             self.ContactResp.add_data_one_step(contact_tags)
         # -------------------------------------------------------------------
-        if len(node_tags) > 0 and self.save_sensitivity_resp:
-            self.SensitivityResp.add_data_one_step(node_tags=node_tags, sens_para_tags=self.sensitivity_para_tags)
+        if self.sensitivity_para_tags is not None:
+            sens_para_tags = self.sensitivity_para_tags
+        else:
+            sens_para_tags = ops.getParamTags()
+        if len(node_tags) > 0 and len(sens_para_tags) > 0 and self.save_sensitivity_resp:
+            self.SensitivityResp.add_data_one_step(node_tags=node_tags, sens_para_tags=sens_para_tags)
 
         if print_info:
             time = ops.getTime()
