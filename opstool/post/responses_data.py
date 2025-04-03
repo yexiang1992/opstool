@@ -79,58 +79,58 @@ class CreateODB:
         * compute_mechanical_measures: bool, default: True
             Whether to compute mechanical measures for ``solid and planar elements``,
             including principal stresses, principal strains, von Mises stresses, etc.
-        * ----------------------------------------------------------------------
-        * save_nodal_resp: bool, default: True
-            Whether to save nodal responses.
-        * save_frame_resp: bool, default: True
-            Whether to save frame element responses.
-        * save_truss_resp: bool, default: True
-            Whether to save truss element responses.
-        * save_link_resp: bool, default: True
-            Whether to save link element responses.
-        * save_shell_resp: bool, default: True
-            Whether to save shell element responses.
-        * save_fiber_sec_resp: bool, default: True
-            Whether to save fiber section responses.
-        * save_plane_resp: bool, default: True
-            Whether to save plane element responses.
-        * save_brick_resp: bool, default: True
-            Whether to save brick element responses.
-        * save_contact_resp: bool, default: True
-            Whether to save contact element responses.
-        * save_sensitivity_resp: bool, default: True
-            Whether to save sensitivity analysis responses.
-        * ----------------------------------------------------------------------
-        * node_tags: Union[list, tuple, int], default: None
-            Node tags to be saved.
-            If None, save all nodes' responses.
-        * frame_tags: Union[list, tuple, int], default: None
-            Frame element tags to be saved.
-            If None, save all frame elements' responses.
-        * truss_tags: Union[list, tuple, int], default: None
-            Truss element tags to be saved.
-            If None, save all truss elements' responses.
-        * link_tags: Union[list, tuple, int], default: None
-            Link element tags to be saved.
-            If None, save all link elements' responses.
-        * shell_tags: Union[list, tuple, int], default: None
-            Shell element tags to be saved.
-            If None, save all shell elements' responses.
-        * plane_tags: Union[list, tuple, int], default: None
-            Plane element tags to be saved.
-            If None, save all plane elements' responses.
-        * brick_tags: Union[list, tuple, int], default: None
-            Brick element tags to be saved.
-            If None, save all brick elements' responses.
-        * contact_tags: Union[list, tuple, int], default: None
-            Contact element tags to be saved.
-        * sensitivity_para_tags: Union[list, tuple, int], default: None
-            Sensitivity parameter tags to be saved.
+        * Whether to save the responses:
+            * _save_nodal_resp: bool, default: True
+                Whether to save nodal responses.
+            * _save_frame_resp: bool, default: True
+                Whether to save frame element responses.
+            * _save_truss_resp: bool, default: True
+                Whether to save truss element responses.
+            * _save_link_resp: bool, default: True
+                Whether to save link element responses.
+            * _save_shell_resp: bool, default: True
+                Whether to save shell element responses.
+            * _save_fiber_sec_resp: bool, default: True
+                Whether to save fiber section responses.
+            * _save_plane_resp: bool, default: True
+                Whether to save plane element responses.
+            * _save_brick_resp: bool, default: True
+                Whether to save brick element responses.
+            * _save_contact_resp: bool, default: True
+                Whether to save contact element responses.
+            * _save_sensitivity_resp: bool, default: True
+                Whether to save sensitivity analysis responses.
+        * Nodes or elements that need to be saved:
+            * _node_tags: Union[list, tuple, int], default: None
+                Node tags to be saved.
+                If None, save all nodes' responses.
+            * _frame_tags: Union[list, tuple, int], default: None
+                Frame element tags to be saved.
+                If None, save all frame elements' responses.
+            * _truss_tags: Union[list, tuple, int], default: None
+                Truss element tags to be saved.
+                If None, save all truss elements' responses.
+            * _link_tags: Union[list, tuple, int], default: None
+                Link element tags to be saved.
+                If None, save all link elements' responses.
+            * _shell_tags: Union[list, tuple, int], default: None
+                Shell element tags to be saved.
+                If None, save all shell elements' responses.
+            * _plane_tags: Union[list, tuple, int], default: None
+                Plane element tags to be saved.
+                If None, save all plane elements' responses.
+            * _brick_tags: Union[list, tuple, int], default: None
+                Brick element tags to be saved.
+                If None, save all brick elements' responses.
+            * _contact_tags: Union[list, tuple, int], default: None
+                Contact element tags to be saved.
+            * _sensitivity_para_tags: Union[list, tuple, int], default: None
+                Sensitivity parameter tags to be saved.
 
-        .. Note::
-            If you enter optional node and element tags to avoid saving all data,
-            make sure these tags are not deleted during the analysis.
-            Otherwise, unexpected behavior may occur.
+            .. Note::
+                If you enter optional node and element tags to avoid saving all data,
+                make sure these tags are not deleted during the analysis.
+                Otherwise, unexpected behavior may occur.
     """
 
     def __init__(
@@ -139,149 +139,149 @@ class CreateODB:
             model_update: bool = False,
             **kwargs
     ):
-        self.odb_tag = odb_tag
-        self.model_update = model_update
+        self._odb_tag = odb_tag
+        self._model_update = model_update
 
         for key, value in kwargs.items():
             setattr(POST_ARGS, key, value)
 
-        self.save_nodal_resp = POST_ARGS.save_nodal_resp
-        self.save_frame_resp = POST_ARGS.save_frame_resp
-        self.save_truss_resp = POST_ARGS.save_truss_resp
-        self.save_link_resp = POST_ARGS.save_link_resp
-        self.save_shell_resp = POST_ARGS.save_shell_resp
-        self.save_fiber_sec_resp = POST_ARGS.save_fiber_sec_resp
-        self.save_plane_resp = POST_ARGS.save_plane_resp
-        self.save_brick_resp = POST_ARGS.save_brick_resp
-        self.save_contact_resp = POST_ARGS.save_contact_resp
-        self.save_sensitivity_resp = POST_ARGS.save_sensitivity_resp
+        self._save_nodal_resp = POST_ARGS.save_nodal_resp
+        self._save_frame_resp = POST_ARGS.save_frame_resp
+        self._save_truss_resp = POST_ARGS.save_truss_resp
+        self._save_link_resp = POST_ARGS.save_link_resp
+        self._save_shell_resp = POST_ARGS.save_shell_resp
+        self._save_fiber_sec_resp = POST_ARGS.save_fiber_sec_resp
+        self._save_plane_resp = POST_ARGS.save_plane_resp
+        self._save_brick_resp = POST_ARGS.save_brick_resp
+        self._save_contact_resp = POST_ARGS.save_contact_resp
+        self._save_sensitivity_resp = POST_ARGS.save_sensitivity_resp
 
-        self.node_tags = POST_ARGS.node_tags
-        self.frame_tags = POST_ARGS.frame_tags
-        self.truss_tags = POST_ARGS.truss_tags
-        self.link_tags = POST_ARGS.link_tags
-        self.shell_tags = POST_ARGS.shell_tags
-        self.plane_tags = POST_ARGS.plane_tags
-        self.brick_tags = POST_ARGS.brick_tags
-        self.contact_tags = POST_ARGS.contact_tags
-        self.sensitivity_para_tags = POST_ARGS.sensitivity_para_tags
+        self._node_tags = POST_ARGS.node_tags
+        self._frame_tags = POST_ARGS.frame_tags
+        self._truss_tags = POST_ARGS.truss_tags
+        self._link_tags = POST_ARGS.link_tags
+        self._shell_tags = POST_ARGS.shell_tags
+        self._plane_tags = POST_ARGS.plane_tags
+        self._brick_tags = POST_ARGS.brick_tags
+        self._contact_tags = POST_ARGS.contact_tags
+        self._sensitivity_para_tags = POST_ARGS.sensitivity_para_tags
 
-        if self.node_tags is not None:
-            self.node_tags = [int(tag) for tag in np.atleast_1d(self.node_tags)]
-        if self.frame_tags is not None:
-            self.frame_tags = [int(tag) for tag in np.atleast_1d(self.frame_tags)]
-        if self.truss_tags is not None:
-            self.truss_tags = [int(tag) for tag in np.atleast_1d(self.truss_tags)]
-        if self.link_tags is not None:
-            self.link_tags = [int(tag) for tag in np.atleast_1d(self.link_tags)]
-        if self.shell_tags is not None:
-            self.shell_tags = [int(tag) for tag in np.atleast_1d(self.shell_tags)]
-        if self.plane_tags is not None:
-            self.plane_tags = [int(tag) for tag in np.atleast_1d(self.plane_tags)]
-        if self.brick_tags is not None:
-            self.brick_tags = [int(tag) for tag in np.atleast_1d(self.brick_tags)]
-        if self.contact_tags is not None:
-            self.contact_tags = [int(tag) for tag in np.atleast_1d(self.contact_tags)]
-        if self.sensitivity_para_tags is not None:
-            self.sensitivity_para_tags = [int(tag) for tag in np.atleast_1d(self.sensitivity_para_tags)]
+        if self._node_tags is not None:
+            self._node_tags = [int(tag) for tag in np.atleast_1d(self._node_tags)]
+        if self._frame_tags is not None:
+            self._frame_tags = [int(tag) for tag in np.atleast_1d(self._frame_tags)]
+        if self._truss_tags is not None:
+            self._truss_tags = [int(tag) for tag in np.atleast_1d(self._truss_tags)]
+        if self._link_tags is not None:
+            self._link_tags = [int(tag) for tag in np.atleast_1d(self._link_tags)]
+        if self._shell_tags is not None:
+            self._shell_tags = [int(tag) for tag in np.atleast_1d(self._shell_tags)]
+        if self._plane_tags is not None:
+            self._plane_tags = [int(tag) for tag in np.atleast_1d(self._plane_tags)]
+        if self._brick_tags is not None:
+            self._brick_tags = [int(tag) for tag in np.atleast_1d(self._brick_tags)]
+        if self._contact_tags is not None:
+            self._contact_tags = [int(tag) for tag in np.atleast_1d(self._contact_tags)]
+        if self._sensitivity_para_tags is not None:
+            self._sensitivity_para_tags = [int(tag) for tag in np.atleast_1d(self._sensitivity_para_tags)]
 
-        self.ModelInfo = None
-        self.NodalResp = None
-        self.FrameResp = None
-        self.TrussResp = None
-        self.LinkResp = None
-        self.ShellResp = None
-        self.FiberSecResp = None
-        self.PlaneResp = None
-        self.BrickResp = None
-        self.ContactResp = None
-        self.SensitivityResp = None
+        self._ModelInfo = None
+        self._NodalResp = None
+        self._FrameResp = None
+        self._TrussResp = None
+        self._LinkResp = None
+        self._ShellResp = None
+        self._FiberSecResp = None
+        self._PlaneResp = None
+        self._BrickResp = None
+        self._ContactResp = None
+        self._SensitivityResp = None
 
         self._initialize()
 
     def _get_resp(self):
         output = [
-            self.ModelInfo, self.NodalResp, self.FrameResp, self.TrussResp,
-            self.LinkResp, self.ShellResp, self.FiberSecResp,
-            self.PlaneResp, self.BrickResp, self.ContactResp, self.SensitivityResp
+            self._ModelInfo, self._NodalResp, self._FrameResp, self._TrussResp,
+            self._LinkResp, self._ShellResp, self._FiberSecResp,
+            self._PlaneResp, self._BrickResp, self._ContactResp, self._SensitivityResp
         ]
         return output
 
     def _initialize(self):
-        self.ModelInfo = ModelInfoStepData(model_update=self.model_update)
-        if self.node_tags is not None:
-            node_tags = self.node_tags
+        self._ModelInfo = ModelInfoStepData(model_update=self._model_update)
+        if self._node_tags is not None:
+            node_tags = self._node_tags
         else:
-            node_tags = self.ModelInfo.get_current_node_tags()
-        if len(node_tags) > 0 and self.save_nodal_resp:
-            self.NodalResp = NodalRespStepData(node_tags)
+            node_tags = self._ModelInfo.get_current_node_tags()
+        if len(node_tags) > 0 and self._save_nodal_resp:
+            self._NodalResp = NodalRespStepData(node_tags)
         # -----------------------------------------------------------------
-        if self.frame_tags is not None:
-            frame_tags = self.frame_tags
+        if self._frame_tags is not None:
+            frame_tags = self._frame_tags
         else:
-            frame_tags = self.ModelInfo.get_current_frame_tags()
-        frame_load_data = self.ModelInfo.get_current_frame_load_data()
-        if len(frame_tags) > 0 and self.save_frame_resp:
-            self.FrameResp = FrameRespStepData(
+            frame_tags = self._ModelInfo.get_current_frame_tags()
+        frame_load_data = self._ModelInfo.get_current_frame_load_data()
+        if len(frame_tags) > 0 and self._save_frame_resp:
+            self._FrameResp = FrameRespStepData(
                 frame_tags,
                 frame_load_data,
                 elastic_frame_sec_points=POST_ARGS.elastic_frame_sec_points
             )
         # -----------------------------------------------------------------
-        if self.truss_tags is not None:
-            truss_tags = self.truss_tags
+        if self._truss_tags is not None:
+            truss_tags = self._truss_tags
         else:
-            truss_tags = self.ModelInfo.get_current_truss_tags()
-        if len(truss_tags) > 0 and self.save_truss_resp:
-            self.TrussResp = TrussRespStepData(truss_tags)
+            truss_tags = self._ModelInfo.get_current_truss_tags()
+        if len(truss_tags) > 0 and self._save_truss_resp:
+            self._TrussResp = TrussRespStepData(truss_tags)
         # -----------------------------------------------------------------
-        if self.link_tags is not None:
-            link_tags = self.link_tags
+        if self._link_tags is not None:
+            link_tags = self._link_tags
         else:
-            link_tags = self.ModelInfo.get_current_link_tags()
-        if len(link_tags) > 0 and self.save_link_resp:
-            self.LinkResp = LinkRespStepData(link_tags)
+            link_tags = self._ModelInfo.get_current_link_tags()
+        if len(link_tags) > 0 and self._save_link_resp:
+            self._LinkResp = LinkRespStepData(link_tags)
         # -----------------------------------------------------------------
-        if self.shell_tags is not None:
-            shell_tags = self.shell_tags
+        if self._shell_tags is not None:
+            shell_tags = self._shell_tags
         else:
-            shell_tags = self.ModelInfo.get_current_shell_tags()
-        if len(shell_tags) > 0 and self.save_shell_resp:
-            self.ShellResp = ShellRespStepData(shell_tags)
+            shell_tags = self._ModelInfo.get_current_shell_tags()
+        if len(shell_tags) > 0 and self._save_shell_resp:
+            self._ShellResp = ShellRespStepData(shell_tags)
         # -----------------------------------------------------------------
-        if self.save_fiber_sec_resp:
-            self.FiberSecResp = FiberSecRespStepData()
+        if self._save_fiber_sec_resp:
+            self._FiberSecResp = FiberSecRespStepData()
         # -----------------------------------------------------------------
-        if self.plane_tags is not None:
-            plane_tags = self.plane_tags
+        if self._plane_tags is not None:
+            plane_tags = self._plane_tags
         else:
-            plane_tags = self.ModelInfo.get_current_plane_tags()
-        if len(plane_tags) > 0 and self.save_plane_resp:
-            self.PlaneResp = PlaneRespStepData(plane_tags)
+            plane_tags = self._ModelInfo.get_current_plane_tags()
+        if len(plane_tags) > 0 and self._save_plane_resp:
+            self._PlaneResp = PlaneRespStepData(plane_tags)
         # -----------------------------------------------------------------
-        if self.brick_tags is not None:
-            brick_tags = self.brick_tags
+        if self._brick_tags is not None:
+            brick_tags = self._brick_tags
         else:
-            brick_tags = self.ModelInfo.get_current_brick_tags()
-        if len(brick_tags) > 0 and self.save_brick_resp:
-            self.BrickResp = BrickRespStepData(
+            brick_tags = self._ModelInfo.get_current_brick_tags()
+        if len(brick_tags) > 0 and self._save_brick_resp:
+            self._BrickResp = BrickRespStepData(
                 brick_tags,
                 compute_measures=POST_ARGS.compute_mechanical_measures,
             )
         # -----------------------------------------------------------------
-        if self.contact_tags is not None:
-            contact_tags = self.contact_tags
+        if self._contact_tags is not None:
+            contact_tags = self._contact_tags
         else:
-            contact_tags = self.ModelInfo.get_current_contact_tags()
-        if len(contact_tags) > 0 and self.save_contact_resp:
-            self.ContactResp = ContactRespStepData(contact_tags)
+            contact_tags = self._ModelInfo.get_current_contact_tags()
+        if len(contact_tags) > 0 and self._save_contact_resp:
+            self._ContactResp = ContactRespStepData(contact_tags)
         # ------------------------------------------------------------------
-        if self.sensitivity_para_tags is not None:
-            sens_para_tags = self.sensitivity_para_tags
+        if self._sensitivity_para_tags is not None:
+            sens_para_tags = self._sensitivity_para_tags
         else:
             sens_para_tags = ops.getParamTags()
-        if len(node_tags) > 0 and len(sens_para_tags) > 0 and self.save_sensitivity_resp:
-            self.SensitivityResp = SensitivityRespStepData(
+        if len(node_tags) > 0 and len(sens_para_tags) > 0 and self._save_sensitivity_resp:
+            self._SensitivityResp = SensitivityRespStepData(
                 node_tags=node_tags, ele_tags=None, sens_para_tags=sens_para_tags
             )
 
@@ -300,73 +300,74 @@ class CreateODB:
         print_info: bool, optional
             print information, by default, False
         """
-        self.ModelInfo.add_data_one_step()
-        if self.node_tags is not None:
-            node_tags = self.node_tags
+        self._ModelInfo.add_data_one_step()
+        if self._node_tags is not None:
+            node_tags = self._node_tags
         else:
-            node_tags = self.ModelInfo.get_current_node_tags()
-        if len(node_tags) > 0 and self.save_nodal_resp:
-            self.NodalResp.add_data_one_step(node_tags)
+            node_tags = self._ModelInfo.get_current_node_tags()
+        if len(node_tags) > 0 and self._save_nodal_resp:
+            self._NodalResp.add_data_one_step(node_tags)
         # -----------------------------------------------------------------
-        if self.frame_tags is not None:
-            frame_tags = self.frame_tags
+        if self._frame_tags is not None:
+            frame_tags = self._frame_tags
         else:
-            frame_tags = self.ModelInfo.get_current_frame_tags()
-        frame_load_data = self.ModelInfo.get_current_frame_load_data()
-        if len(frame_tags) > 0 and self.save_frame_resp:
-            self.FrameResp.add_data_one_step(frame_tags, frame_load_data)
+            frame_tags = self._ModelInfo.get_current_frame_tags()
+        frame_load_data = self._ModelInfo.get_current_frame_load_data()
+        if len(frame_tags) > 0 and self._save_frame_resp:
+            self._FrameResp.add_data_one_step(frame_tags, frame_load_data)
         # -----------------------------------------------------------------
-        if self.truss_tags is not None:
-            truss_tags = self.truss_tags
+        if self._truss_tags is not None:
+            truss_tags = self._truss_tags
         else:
-            truss_tags = self.ModelInfo.get_current_truss_tags()
-        if len(truss_tags) > 0 and self.save_truss_resp:
-            self.TrussResp.add_data_one_step(truss_tags)
+            truss_tags = self._ModelInfo.get_current_truss_tags()
+        if len(truss_tags) > 0 and self._save_truss_resp:
+            self._TrussResp.add_data_one_step(truss_tags)
         # -----------------------------------------------------------------
-        if self.link_tags is not None:
-            link_tags = self.link_tags
+        if self._link_tags is not None:
+            link_tags = self._link_tags
         else:
-            link_tags = self.ModelInfo.get_current_link_tags()
-        if len(link_tags) > 0 and self.save_link_resp:
-            self.LinkResp.add_data_one_step(link_tags)
+            link_tags = self._ModelInfo.get_current_link_tags()
+        if len(link_tags) > 0 and self._save_link_resp:
+            self._LinkResp.add_data_one_step(link_tags)
         # -----------------------------------------------------------------
-        if self.shell_tags is not None:
-            shell_tags = self.shell_tags
+        if self._shell_tags is not None:
+            shell_tags = self._shell_tags
         else:
-            shell_tags = self.ModelInfo.get_current_shell_tags()
-        if len(shell_tags) > 0 and self.save_shell_resp:
-            self.ShellResp.add_data_one_step(shell_tags)
-        if self.save_fiber_sec_resp:
-            self.FiberSecResp.add_data_one_step()
+            shell_tags = self._ModelInfo.get_current_shell_tags()
+        if len(shell_tags) > 0 and self._save_shell_resp:
+            self._ShellResp.add_data_one_step(shell_tags)
         # -----------------------------------------------------------------
-        if self.plane_tags is not None:
-            plane_tags = self.plane_tags
+        if self._save_fiber_sec_resp:
+            self._FiberSecResp.add_data_one_step()
+        # -----------------------------------------------------------------
+        if self._plane_tags is not None:
+            plane_tags = self._plane_tags
         else:
-            plane_tags = self.ModelInfo.get_current_plane_tags()
+            plane_tags = self._ModelInfo.get_current_plane_tags()
         # -----------------------------------------------------------------
-        if len(plane_tags) > 0 and self.save_plane_resp:
-            self.PlaneResp.add_data_one_step(plane_tags)
+        if len(plane_tags) > 0 and self._save_plane_resp:
+            self._PlaneResp.add_data_one_step(plane_tags)
         # -----------------------------------------------------------------
-        if self.brick_tags is not None:
-            brick_tags = self.brick_tags
+        if self._brick_tags is not None:
+            brick_tags = self._brick_tags
         else:
-            brick_tags = self.ModelInfo.get_current_brick_tags()
-        if len(brick_tags) > 0 and self.save_brick_resp:
-            self.BrickResp.add_data_one_step(brick_tags)
+            brick_tags = self._ModelInfo.get_current_brick_tags()
+        if len(brick_tags) > 0 and self._save_brick_resp:
+            self._BrickResp.add_data_one_step(brick_tags)
         # -----------------------------------------------------------------
-        if self.contact_tags is not None:
-            contact_tags = self.contact_tags
+        if self._contact_tags is not None:
+            contact_tags = self._contact_tags
         else:
-            contact_tags = self.ModelInfo.get_current_contact_tags()
-        if len(contact_tags) > 0 and self.save_contact_resp:
-            self.ContactResp.add_data_one_step(contact_tags)
+            contact_tags = self._ModelInfo.get_current_contact_tags()
+        if len(contact_tags) > 0 and self._save_contact_resp:
+            self._ContactResp.add_data_one_step(contact_tags)
         # -------------------------------------------------------------------
-        if self.sensitivity_para_tags is not None:
-            sens_para_tags = self.sensitivity_para_tags
+        if self._sensitivity_para_tags is not None:
+            sens_para_tags = self._sensitivity_para_tags
         else:
             sens_para_tags = ops.getParamTags()
-        if len(node_tags) > 0 and len(sens_para_tags) > 0 and self.save_sensitivity_resp:
-            self.SensitivityResp.add_data_one_step(node_tags=node_tags, sens_para_tags=sens_para_tags)
+        if len(node_tags) > 0 and len(sens_para_tags) > 0 and self._save_sensitivity_resp:
+            self._SensitivityResp.add_data_one_step(node_tags=node_tags, sens_para_tags=sens_para_tags)
 
         if print_info:
             time = ops.getTime()
@@ -386,7 +387,7 @@ class CreateODB:
             which is useful when your result files are expected to be large,
             especially if model updating is turned on.
         """
-        filename = f"{RESULTS_DIR}/" + f"{RESP_FILE_NAME}-{self.odb_tag}.nc"
+        filename = f"{RESULTS_DIR}/" + f"{RESP_FILE_NAME}-{self._odb_tag}.nc"
         with xr.DataTree(name=f"{RESP_FILE_NAME}") as dt:
             for resp in self._get_resp():
                 if resp is not None:
@@ -422,7 +423,7 @@ class CreateODB:
 
         color = get_random_color()
         CONSOLE.print(
-            f"{PKG_PREFIX} All responses data with odb_tag = {self.odb_tag} "
+            f"{PKG_PREFIX} All responses data with _odb_tag = {self._odb_tag} "
             f"saved in [bold {color}]{filename}[/]!"
         )
 
@@ -440,13 +441,13 @@ class CreateODB:
         solver : str, optional,
            OpenSees' eigenvalue analysis solver, by default "-genBandArpack".
         """
-        save_eigen_data(odb_tag=self.odb_tag, mode_tag=mode_tag, solver=solver)
+        save_eigen_data(odb_tag=self._odb_tag, mode_tag=mode_tag, solver=solver)
 
     def save_model_data(
             self,
     ):
         """Save the model data from the current domain."""
-        save_model_data(odb_tag=self.odb_tag)
+        save_model_data(odb_tag=self._odb_tag)
 
 
 def loadODB(obd_tag, resp_type: str = "Nodal"):
