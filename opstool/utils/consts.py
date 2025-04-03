@@ -10,6 +10,10 @@ class CONSTANTS:
     RESULTS_DIR = "_OPSTOOL_ODB"
     PKG_PREFIX = f"[bold #cf6275]{PKG_NAME}[/bold #cf6275] [bold #12e193]::[/bold #12e193] "
 
+    MODEL_FILE_NAME = "ModelData"
+    EIGEN_FILE_NAME = "EigenData"
+    RESP_FILE_NAME = "RespStepData"
+
     # shape dict used to subplots
     SHAPE_MAP = {
         1: (1, 1),
@@ -99,6 +103,18 @@ class CONSTANTS:
     @classmethod
     def get_pkg_name(cls):
         return cls.PKG_NAME
+
+    @classmethod
+    def get_model_filename(cls):
+        return cls.MODEL_FILE_NAME
+
+    @classmethod
+    def get_eigen_filename(cls):
+        return cls.EIGEN_FILE_NAME
+
+    @classmethod
+    def get_resp_filename(cls):
+        return cls.RESP_FILE_NAME
 
     @classmethod
     def get_shape_map(cls):
