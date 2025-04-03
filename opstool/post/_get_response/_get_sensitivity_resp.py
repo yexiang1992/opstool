@@ -45,6 +45,7 @@ class SensitivityRespStepData(ResponseBase):
             data_vars[name] = (["paraTags", "nodeTags", "DOFs"], data_)
         data_vars["pressure"] = (["paraTags", "nodeTags"], pressure)
         data_vars["lambdas"] = (["paraTags", "patternTags"], lambdas_)
+        patternTags = [] if len(lambdas_) == 0 else np.arange(lambdas_.shape[1]) + 1
         # can have different dimensions and coordinates
         ds = xr.Dataset(
             data_vars=data_vars,
@@ -52,7 +53,7 @@ class SensitivityRespStepData(ResponseBase):
                 "paraTags": sens_para_tags,
                 "nodeTags": node_tags,
                 "DOFs": ["UX", "UY", "UZ", "RX", "RY", "RZ"],
-                "patternTags": np.arange(lambdas_.shape[1]) + 1
+                "patternTags": patternTags
             },
             attrs={
                 "UX": "Displacement in X direction",
