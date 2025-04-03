@@ -16,7 +16,7 @@ from ...utils import OPS_ELE_TAGS
 
 class PlaneRespStepData(ResponseBase):
 
-    def __init__(self, ele_tags=None):
+    def __init__(self, ele_tags=None, compute_measures: bool = True):
         self.resp_names = [
             "Stresses",
             "Strains",
@@ -25,6 +25,7 @@ class PlaneRespStepData(ResponseBase):
         self.step_track = 0
         self.ele_tags = ele_tags
         self.times = []
+        self.compute_measures = compute_measures
         self.initialize()
 
     def initialize(self):
@@ -42,10 +43,10 @@ class PlaneRespStepData(ResponseBase):
         data_vars["Stresses"] = (["eleTags", "GaussPoints", "DOFs"], stresses)
         data_vars["Strains"] = (["eleTags", "GaussPoints", "DOFs"], strains)
         ndofs = stresses.shape[-1]
-        if ndofs == 7:
-            dofs = ["sigma11", "sigma22", "sigma12", "p1", "p2", "sigma_vm", "tau_max"]
+        if ndofs == 3:
+            dofs = ["sigma11", "sigma22", "sigma12"]
         else:
-            dofs = ["sigma11", "sigma22", "sigma12", "eta_r", "p1", "p2", "sigma_vm", "tau_max"]
+            dofs = ["sigma11", "sigma22", "sigma12", "eta_r"]
         ds = xr.Dataset(
             data_vars=data_vars,
             coords={
@@ -68,6 +69,37 @@ class PlaneRespStepData(ResponseBase):
     def _to_xarray(self):
         self.resp_steps = xr.concat(self.resp_steps, dim="time", join="outer")
         self.resp_steps.coords["time"] = self.times
+
+        if self.compute_measures:
+            self._compute_measures_()
+
+    def _compute_measures_(self):
+        stresses = self.resp_steps["Stresses"]
+        strains = self.resp_steps["Strains"]
+
+        stress_measures = _calculate_stresses_measures(stresses.data)
+        strain_measures = _calculate_stresses_measures(strains.data)
+
+        dims = ["time", "eleTags", "GaussPoints", "measures"]
+        coords = {
+            "time": stresses.coords["time"],
+            "eleTags": stresses.coords["eleTags"],
+            "GaussPoints": stresses.coords["GaussPoints"],
+            "measures": ["p1", "p2", "sigma_vm", "tau_max"],
+        }
+
+        self.resp_steps["stressMeasures"] = xr.DataArray(
+            stress_measures,
+            dims=dims,
+            coords=coords,
+            name="stressMeasures",
+        )
+        self.resp_steps["strainMeasures"] = xr.DataArray(
+            strain_measures,
+            dims=dims,
+            coords=coords,
+            name="strainMeasures",
+        )
 
     def get_data(self):
         return self.resp_steps
@@ -122,10 +154,6 @@ def _get_gauss_resp(ele_tags):
         strains.append(strain)
     stresses = _expand_to_uniform_array(stresses)
     strains = _expand_to_uniform_array(strains)
-    stress_measures = _calculate_stresses_measures(stresses[..., :3])
-    strain_measures = _calculate_stresses_measures(strains[..., :3])
-    stresses = np.concatenate((stresses, stress_measures), axis=-1)
-    strains = np.concatenate((strains, strain_measures), axis=-1)
     return stresses, strains
 
 
@@ -134,10 +162,10 @@ def _calculate_stresses_measures(stress_array):
     Calculate various stresses from the stress values at Gaussian points.
 
     Parameters:
-    stress_array (numpy.ndarray): A 3D array with shape (num_elements, num_gauss_points, num_stresses).
+    stress_array (numpy.ndarray): A 4D array with shape (num_elements, num_gauss_points, num_stresses).
 
     Returns:
-    dict: A dictionary containing the calculated stresses for each element.
+        dict: A dictionary containing the calculated stresses for each element.
     """
     # Extract individual stress components
     sig11 = stress_array[..., 0]  # Normal stress in x-direction

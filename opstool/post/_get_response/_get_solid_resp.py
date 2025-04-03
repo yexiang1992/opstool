@@ -7,7 +7,7 @@ from ...utils import OPS_ELE_TAGS
 
 class BrickRespStepData(ResponseBase):
 
-    def __init__(self, ele_tags=None):
+    def __init__(self, ele_tags=None, compute_measures: bool = True):
         self.resp_names = [
             "Stresses",
             "Strains",
@@ -16,6 +16,7 @@ class BrickRespStepData(ResponseBase):
         self.step_track = 0
         self.ele_tags = ele_tags
         self.times = []
+        self.compute_measures = compute_measures
         self.initialize()
 
     def initialize(self):
@@ -33,12 +34,10 @@ class BrickRespStepData(ResponseBase):
         data_vars["Stresses"] = (["eleTags", "GaussPoints", "DOFs"], stresses)
         data_vars["Strains"] = (["eleTags", "GaussPoints", "DOFs"], strains)
         ndofs = stresses.shape[-1]
-        if ndofs == 13:
-            dofs = ["sigma11", "sigma22", "sigma33", "sigma12", "sigma23", "sigma13",
-                    "p1", "p2", "p3", "sigma_vm", "tau_max", "sigma_oct", "tau_oct"]
+        if ndofs == 6:
+            dofs = ["sigma11", "sigma22", "sigma33", "sigma12", "sigma23", "sigma13",]
         else:
-            dofs = ["sigma11", "sigma22", "sigma33", "sigma12", "sigma23", "sigma13", "eta_r",
-                    "p1", "p2", "p3", "sigma_vm", "tau_max", "sigma_oct", "tau_oct"]
+            dofs = ["sigma11", "sigma22", "sigma33", "sigma12", "sigma23", "sigma13", "eta_r"]
         ds = xr.Dataset(
             data_vars=data_vars,
             coords={
@@ -64,6 +63,37 @@ class BrickRespStepData(ResponseBase):
     def _to_xarray(self):
         self.resp_steps = xr.concat(self.resp_steps, dim="time", join="outer")
         self.resp_steps.coords["time"] = self.times
+
+        if self.compute_measures:
+            self._compute_measures_()
+
+    def _compute_measures_(self):
+        stresses = self.resp_steps["Stresses"]
+        strains = self.resp_steps["Strains"]
+
+        stress_measures = _calculate_stresses_measures_4D(stresses.data)
+        strain_measures = _calculate_stresses_measures_4D(strains.data)
+
+        dims = ["time", "eleTags", "GaussPoints", "measures"]
+        coords = {
+            "time": stresses.coords["time"],
+            "eleTags": stresses.coords["eleTags"],
+            "GaussPoints": stresses.coords["GaussPoints"],
+            "measures": ["p1", "p2", "p3", "sigma_vm", "tau_max", "sigma_oct", "tau_oct"],
+        }
+
+        self.resp_steps["stressMeasures"] = xr.DataArray(
+            stress_measures,
+            dims=dims,
+            coords=coords,
+            name="stressMeasures",
+        )
+        self.resp_steps["strainMeasures"] = xr.DataArray(
+            strain_measures,
+            dims=dims,
+            coords=coords,
+            name="strainMeasures",
+        )
 
     def get_data(self):
         return self.resp_steps
@@ -117,22 +147,15 @@ def _get_gauss_resp(ele_tags):
         strains.append(strain)
     stresses = _expand_to_uniform_array(stresses)
     strains = _expand_to_uniform_array(strains)
-
-    stress_measures = _calculate_stresses_measures(stresses[..., :6])
-    strain_measures = _calculate_stresses_measures(strains[..., :6])
-
-    stresses = np.concatenate((stresses, stress_measures), axis=-1)
-    strains = np.concatenate((strains, strain_measures), axis=-1)
-
     return stresses, strains
 
 
-def _calculate_stresses_measures(stress_array):
+def _calculate_stresses_measures_4D(stress_array):
     """
     Calculate various stresses from the stress values at Gaussian points.
 
     Parameters:
-    stress_array (numpy.ndarray): A 3D array with shape (num_elements, num_gauss_points, num_stresses).
+    stress_array (numpy.ndarray): A 4D array with shape (num_elements, num_gauss_points, num_stresses).
 
     Returns:
     dict: A dictionary containing the calculated stresses for each element.
@@ -153,7 +176,7 @@ def _calculate_stresses_measures(stress_array):
 
     # Calculate principal stresses
     # Using the stress tensor to calculate eigenvalues
-    stress_tensor = assemble_stress_tensor(stress_array)
+    stress_tensor = _assemble_stress_tensor_4D(stress_array)
     # Calculate principal stresses (eigenvalues)
     principal_stresses = np.linalg.eigvalsh(stress_tensor)  # Returns sorted eigenvalues
     p1 = principal_stresses[..., 2]  # Maximum principal stress
@@ -174,7 +197,7 @@ def _calculate_stresses_measures(stress_array):
     return data
 
 
-def assemble_stress_tensor(stress_array):
+def _assemble_stress_tensor_3D(stress_array):
     """
     Assemble a 3D stress array into a 4D stress tensor array.
     """
@@ -197,3 +220,42 @@ def assemble_stress_tensor(stress_array):
             )
             stress_tensor[i, j, ...] = st
     return np.nan_to_num(stress_tensor, nan=0.0)
+
+
+def _assemble_stress_tensor_4D(stress_array):
+    """
+    Assemble a 4D stress array [time, eleTags, GaussPoints, 6]
+    into a 5D stress tensor array [time, eleTags, GaussPoints, 3, 3].
+    Handles NaNs safely (returns 0.0 where data is missing).
+
+    Parameters:
+        stress_array (np.ndarray): shape (time, eleTags, GaussPoints, 6)
+
+    Returns:
+        np.ndarray: shape (time, eleTags, GaussPoints, 3, 3)
+    """
+    num_time, num_elements, num_gauss_points, _ = stress_array.shape
+    stress_tensor = np.full((num_time, num_elements, num_gauss_points, 3, 3), np.nan)
+
+    for t in range(num_time):
+        for i in range(num_elements):
+            for j in range(num_gauss_points):
+                sig11 = stress_array[t, i, j, 0]
+                sig22 = stress_array[t, i, j, 1]
+                sig33 = stress_array[t, i, j, 2]
+                tau12 = stress_array[t, i, j, 3]
+                tau23 = stress_array[t, i, j, 4]
+                tau13 = stress_array[t, i, j, 5]
+
+                if np.any(np.isnan([sig11, sig22, sig33, tau12, tau23, tau13])):
+                    continue  # skip invalid tensor
+
+                stress_tensor[t, i, j, ...] = np.array([
+                    [sig11, tau12, tau13],
+                    [tau12, sig22, tau23],
+                    [tau13, tau23, sig33]
+                ])
+
+    return np.nan_to_num(stress_tensor, nan=0.0)
+
+
