@@ -110,9 +110,9 @@ Citing OPSTOOL
 OPSTOOL was published in
 
 .. card:: :octicon:`project-roadmap;1.5em;sd-mr-1 fill-primary` OPSTOOL Publication
-    :link: https://doi.org/10.1016/j.softx.2025.102126
+    :link: https://www.sciencedirect.com/science/article/pii/S2352711025000937
 
-    Yexiang Yan, Yazhou Xie. "*opstool: A Python library for OpenSeesPy analysis automation, streamlined pre- and post-processing, and enhanced data visualization.*" SoftwareX 30, 102126, (2025). `https://doi.org/10.1016/j.softx.2025.102126 <https://doi.org/10.1016/j.softx.2025.102126>`_.
+    Yexiang Yan and Yazhou Xie. *"opstool: A Python library for OpenSeesPy analysis automation, streamlined pre-and post-processing, and enhanced data visualization."* SoftwareX 30 (2025): 102126. DOI: `https://doi.org/10.1016/j.softx.2025.102126 <https://www.sciencedirect.com/science/article/pii/S2352711025000937>`_.
 
 
 If you used OPSTOOL in your scientific publication, we would very appreciated if you include the adequate citation:
