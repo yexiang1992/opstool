@@ -40,19 +40,23 @@ class PlaneRespStepData(ResponseBase):
     def add_data_one_step(self, ele_tags):
         stresses, strains = _get_gauss_resp(ele_tags)
         data_vars = dict()
-        data_vars["Stresses"] = (["eleTags", "GaussPoints", "DOFs"], stresses)
-        data_vars["Strains"] = (["eleTags", "GaussPoints", "DOFs"], strains)
+        data_vars["Stresses"] = (["eleTags", "GaussPoints", "stressDOFs"], stresses)
+        data_vars["Strains"] = (["eleTags", "GaussPoints", "strainDOFs"], strains)
         ndofs = stresses.shape[-1]
         if ndofs == 3:
-            dofs = ["sigma11", "sigma22", "sigma12"]
+            stressDOFs = ["sigma11", "sigma22", "sigma12"]
+        elif ndofs == 5:
+            stressDOFs = ["sigma11", "sigma22", "sigma12", "sigma33", "eta_r"]
         else:
-            dofs = ["sigma11", "sigma22", "sigma12", "eta_r"]
+            stressDOFs = [f"sigma{i+1}" for i in range(ndofs)]
+        strainDOFs = ["eps11", "eps22", "eps12"]
         ds = xr.Dataset(
             data_vars=data_vars,
             coords={
                 "eleTags": ele_tags,
                 "GaussPoints": np.arange(strains.shape[1])+1,
-                "DOFs": dofs,
+                "stressDOFs": stressDOFs,
+                "strainDOFs": strainDOFs
             },
             attrs={
                 "sigma11, sigma22, sigma12": "Normal stress and shear stress (strain) in the x-y plane.",
@@ -137,24 +141,40 @@ class PlaneRespStepData(ResponseBase):
 
 
 def _get_gauss_resp(ele_tags):
-    stresses, strains = [], []
+    all_stresses, all_strains = [], []
     for etag in ele_tags:
         etag = int(etag)
-        stress = ops.eleResponse(etag, "stresses")
-        strain = ops.eleResponse(etag, "strains")
-        strain = np.reshape(strain, (-1, 3))
-        if ops.getEleClassTags(etag)[0] in OPS_ELE_TAGS.UP:
-            stress = np.reshape(stress, (-1, 5))
-            stress = stress[:, [0, 1, 3, 4]]
-            eta_r = stress[:, -1].reshape(-1, 1)
-            strain = np.hstack((strain, eta_r))
-        else:
-            stress = np.reshape(stress, (-1, 3))
-        stresses.append(stress)
-        strains.append(strain)
-    stresses = _expand_to_uniform_array(stresses)
-    strains = _expand_to_uniform_array(strains)
+        integr_point_stress = []
+        integr_point_strain = []
+        for i in range(100000000):  # Ugly but useful
+            # loop for integrPoint
+            stress_ = ops.eleResponse(etag, "material", f"{i+1}", "stresses")
+            stress_ = _reshape_stress(stress_)
+            strain_ = ops.eleResponse(etag, "material", f"{i+1}", "strains")
+            if len(stress_) == 0 or len(strain_) == 0:
+                break
+            integr_point_stress.append(stress_)
+            integr_point_strain.append(strain_)
+        # Call material response directly
+        if len(integr_point_stress) == 0 or len(integr_point_strain) == 0:
+            stress = ops.eleResponse(etag, "stresses")
+            stress = _reshape_stress(stress)
+            strain = ops.eleResponse(etag, "strains")
+            integr_point_stress.append(stress)
+            integr_point_strain.append(strain)
+        all_stresses.append(np.array(integr_point_stress))
+        all_strains.append(np.array(integr_point_strain))
+    stresses = _expand_to_uniform_array(all_stresses)
+    strains = _expand_to_uniform_array(all_strains)
     return stresses, strains
+
+
+def _reshape_stress(stress):
+    if len(stress) == 5:
+        # σxx, σyy, σzz, σxy, ηr, where ηr is the ratio between the shear (deviatoric) stress and peak
+        # shear strength at the current confinement (0<=ηr<=1.0).
+        stress = [stress[0], stress[1], stress[3], stress[2], stress[4]]
+    return stress
 
 
 def _calculate_stresses_measures(stress_array):

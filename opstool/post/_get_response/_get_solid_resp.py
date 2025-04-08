@@ -3,7 +3,7 @@ import openseespy.opensees as ops
 import xarray as xr
 
 from ._response_base import ResponseBase, _expand_to_uniform_array
-from ...utils import OPS_ELE_TAGS
+# from ...utils import OPS_ELE_TAGS
 
 class BrickRespStepData(ResponseBase):
 
@@ -31,19 +31,22 @@ class BrickRespStepData(ResponseBase):
     def add_data_one_step(self, ele_tags):
         stresses, strains = _get_gauss_resp(ele_tags)
         data_vars = dict()
-        data_vars["Stresses"] = (["eleTags", "GaussPoints", "DOFs"], stresses)
-        data_vars["Strains"] = (["eleTags", "GaussPoints", "DOFs"], strains)
-        ndofs = stresses.shape[-1]
-        if ndofs == 6:
-            dofs = ["sigma11", "sigma22", "sigma33", "sigma12", "sigma23", "sigma13",]
+        data_vars["Stresses"] = (["eleTags", "GaussPoints", "stressDOFs"], stresses)
+        data_vars["Strains"] = (["eleTags", "GaussPoints", "strainDOFs"], strains)
+        if stresses.shape[-1] == 6:
+            stressDOFs = ["sigma11", "sigma22", "sigma33", "sigma12", "sigma23", "sigma13",]
+        elif stresses.shape[-1] == 7:
+            stressDOFs = ["sigma11", "sigma22", "sigma33", "sigma12", "sigma23", "sigma13", "eta_r"]
         else:
-            dofs = ["sigma11", "sigma22", "sigma33", "sigma12", "sigma23", "sigma13", "eta_r"]
+            stressDOFs = [f"sigma{i+1}" for i in stresses.shape[-1]]
+        strainDOFs = ["eps11", "eps22", "eps33", "eps12", "eps23", "eps13"]
         ds = xr.Dataset(
             data_vars=data_vars,
             coords={
                 "eleTags": ele_tags,
                 "GaussPoints": np.arange(stresses.shape[1])+1,
-                "DOFs": dofs,
+                "stressDOFs": stressDOFs,
+                "strainDOFs": strainDOFs,
             },
             attrs={
                 "sigma11, sigma22, sigma33": "Normal stress (strain) along x, y, z.",
@@ -131,22 +134,29 @@ class BrickRespStepData(ResponseBase):
 
 
 def _get_gauss_resp(ele_tags):
-    stresses, strains = [], []
+    all_stresses, all_strains = [], []
     for etag in ele_tags:
         etag = int(etag)
-        stress = ops.eleResponse(etag, "stresses")
-        strain = ops.eleResponse(etag, "strains")
-        strain = np.reshape(strain, (-1, 6))
-        if ops.getEleClassTags(etag)[0] in OPS_ELE_TAGS.UP:
-            stress = np.reshape(stress, (-1, 7))
-            eta_r = stress[:, -1].reshape(-1, 1)
-            strain = np.hstack((strain, eta_r))
-        else:
-            stress = np.reshape(stress, (-1, 6))
-        stresses.append(stress)
-        strains.append(strain)
-    stresses = _expand_to_uniform_array(stresses)
-    strains = _expand_to_uniform_array(strains)
+        integr_point_stress = []
+        integr_point_strain = []
+        for i in range(100000000):  # Ugly but useful
+            # loop for integrPoint
+            stress_ = ops.eleResponse(etag, "material", f"{i+1}", "stresses")
+            strain_ = ops.eleResponse(etag, "material", f"{i+1}", "strains")
+            if len(stress_) == 0 or len(strain_) == 0:
+                break
+            integr_point_stress.append(stress_)
+            integr_point_strain.append(strain_)
+        # Call material response directly
+        if len(integr_point_stress) == 0 or len(integr_point_strain) == 0:
+            stress = ops.eleResponse(etag, "stresses")
+            strain = ops.eleResponse(etag, "strains")
+            integr_point_stress.append(stress)
+            integr_point_strain.append(strain)
+        all_stresses.append(np.array(integr_point_stress))
+        all_strains.append(np.array(integr_point_strain))
+    stresses = _expand_to_uniform_array(all_stresses)
+    strains = _expand_to_uniform_array(all_strains)
     return stresses, strains
 
 
