@@ -657,66 +657,74 @@ def _check_input(ele_type, resp_type, resp_dof):
                 "Valid options are: FXX, FYY, FXY, MXX, MYY, MXY, VXZ, VYZ."
             )
     elif ele_type.lower() == "plane":
+        ele_type = "Plane"
         if resp_type is None:
             resp_type = "Stresses"
         if resp_type.lower() in ["stresses", "stress"]:
-            resp_type = "Stresses"
+            if resp_dof is None:
+                resp_dof = "sigma_vm"
+            if resp_dof.lower() in ["p1", "p2", "sigma_vm", "tau_max"]:
+                resp_type = "stressMeasures"
+            elif resp_dof.lower() in ["sigma11", "sigma22", "sigma12"]:
+                resp_type = "Stresses"
+            else:
+                raise ValueError(
+                    f"Not supported component {resp_dof}! "
+                    "Valid options are: sigma11, sigma22, sigma12, p1, p2, sigma_vm, tau_max."
+                )
         elif resp_type.lower() in ["strains", "strain"]:
-            resp_type = "Strains"
+            if resp_dof is None:
+                resp_dof = "sigma_vm"
+            if resp_dof.lower() in ["p1", "p2", "sigma_vm", "tau_max"]:
+                resp_type = "strainMeasures"
+            elif resp_dof.lower() in ["sigma11", "sigma22", "sigma12"]:
+                resp_type = "Strains"
+                resp_dof = resp_dof.replace("sigma", "eps")
+            else:
+                raise ValueError(
+                    f"Not supported component {resp_dof}! "
+                    "Valid options are: sigma11, sigma22, sigma12, p1, p2, sigma_vm, tau_max."
+                )
         else:
             raise ValueError(
                 f"Not supported response type {resp_type}! "
                 "Valid options are: Stresses, Strains."
             )
-        if resp_dof is None:
-            resp_dof = "sigma_vm"
-        if resp_dof.lower() not in [
-            "sigma11",
-            "sigma22",
-            "sigma12",
-            "p1",
-            "p2",
-            "sigma_vm",
-            "tau_max",
-        ]:
-            raise ValueError(
-                f"Not supported component {resp_dof}! "
-                "Valid options are: sigma11, sigma22, sigma12, p1, p2, sigma_vm, tau_max."
-            )
+
     elif ele_type.lower() in ["brick", "solid"]:
         ele_type = "Brick"
         if resp_type is None:
             resp_type = "Stresses"
         if resp_type.lower() in ["stresses", "stress"]:
-            resp_type = "Stresses"
+            if resp_dof is None:
+                resp_dof = "sigma_vm"
+            if resp_dof.lower() in ["p1", "p2", "p3", "sigma_vm", "tau_max", "sigma_oct", "tau_oct"]:
+                resp_type = "stressMeasures"
+            elif resp_dof.lower() in ["sigma11", "sigma22", "sigma33", "sigma12", "sigma23", "sigma13"]:
+                resp_type = "Stresses"
+            else:
+                raise ValueError(
+                    f"Not supported component {resp_dof}! "
+                    "Valid options are: sigma11, sigma22, sigma33, sigma12, sigma23, sigma13, "
+                    "p1, p2, p3, sigma_vm, tau_max, sigma_oct, tau_oct!"
+                )
         elif resp_type.lower() in ["strains", "strain"]:
-            resp_type = "Strains"
+            if resp_dof is None:
+                resp_dof = "sigma_vm"
+            if resp_dof.lower() in ["p1", "p2", "p3", "sigma_vm", "tau_max", "sigma_oct", "tau_oct"]:
+                resp_type = "strainMeasures"
+            elif resp_dof.lower() in ["sigma11", "sigma22", "sigma33", "sigma12", "sigma23", "sigma13"]:
+                resp_type = "Strains"
+                resp_dof = resp_dof.replace("sigma", "eps")
+            else:
+                raise ValueError(
+                    f"Not supported component {resp_dof}! "
+                    "Valid options are: sigma11, sigma22, sigma12, p1, p2, sigma_vm, tau_max."
+                )
         else:
             raise ValueError(
                 f"Not supported response type {resp_type}! "
                 "Valid options are: Stresses, Strains."
-            )
-        if resp_dof is None:
-            resp_dof = "sigma_vm"
-        if resp_dof.lower() not in [
-            "sigma11",
-            "sigma22",
-            "sigma33",
-            "sigma12",
-            "sigma23",
-            "sigma13",
-            "p1",
-            "p2",
-            "p3",
-            "sigma_vm",
-            "tau_max",
-            "sigma_oct",
-            "tau_oct",
-        ]:
-            raise ValueError(
-                f"Not supported component {resp_dof}! "
-                "Valid options are: sigma11, sigma22, sigma33, sigma12, sigma23, sigma13, "
-                "p1, p2, p3, sigma_vm, tau_max, sigma_oct, tau_oct."
             )
     else:
         raise ValueError(
