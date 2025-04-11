@@ -46,13 +46,13 @@ class FiberSecData:
         return cls.FIBER_GEO_DATA
 
 
-def set_fiber_sec_data(ele_tags: Union[str, list] = None):
-    FiberSecData.add_data(ele_tags)
+def set_fiber_sec_data(fiber_ele_tags: Union[str, list] = "all"):
+    FiberSecData.add_data(fiber_ele_tags)
 
 
 class FiberSecRespStepData(ResponseBase):
-
-    def __init__(self):
+    def __init__(self, fiber_ele_tags: Union[str, list] = "all"):
+        set_fiber_sec_data(fiber_ele_tags)
         self.ELE_SEC_TAGS = FiberSecData.get_ele_sec_tags()
         self.ELE_SEC_KEYS = FiberSecData.get_ele_sec_keys()
         self.FIBER_GEO_DATA = FiberSecData.get_fiber_geo_data()
