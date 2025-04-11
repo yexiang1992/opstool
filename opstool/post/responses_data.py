@@ -116,6 +116,10 @@ class CreateODB:
             * shell_tags: Union[list, tuple, int], default: None
                 Shell element tags to be saved.
                 If None, save all shell elements' responses.
+            * fiber_ele_tags: Union[list, str], default: "all"
+                Element tags that contain fiber sections to be saved.
+                If "all", save all fiber section elements responses.
+                If None, save nothing.
             * plane_tags: Union[list, tuple, int], default: None
                 Plane element tags to be saved.
                 If None, save all plane elements' responses.
@@ -161,6 +165,7 @@ class CreateODB:
         self._truss_tags = POST_ARGS.truss_tags
         self._link_tags = POST_ARGS.link_tags
         self._shell_tags = POST_ARGS.shell_tags
+        self._fiber_ele_tags = POST_ARGS.fiber_ele_tags
         self._plane_tags = POST_ARGS.plane_tags
         self._brick_tags = POST_ARGS.brick_tags
         self._contact_tags = POST_ARGS.contact_tags
@@ -176,6 +181,14 @@ class CreateODB:
             self._link_tags = [int(tag) for tag in np.atleast_1d(self._link_tags)]
         if self._shell_tags is not None:
             self._shell_tags = [int(tag) for tag in np.atleast_1d(self._shell_tags)]
+        if self._fiber_ele_tags is not None:
+            if not isinstance(self._fiber_ele_tags, str):
+                self._fiber_ele_tags = [int(tag) for tag in np.atleast_1d(self._fiber_ele_tags)]
+            else:
+                if not self._fiber_ele_tags.lower() == "all":
+                    self._fiber_ele_tags = None
+        else:
+            self._fiber_ele_tags = "all"
         if self._plane_tags is not None:
             self._plane_tags = [int(tag) for tag in np.atleast_1d(self._plane_tags)]
         if self._brick_tags is not None:
@@ -249,8 +262,8 @@ class CreateODB:
         if len(shell_tags) > 0 and self._save_shell_resp:
             self._ShellResp = ShellRespStepData(shell_tags)
         # -----------------------------------------------------------------
-        if self._save_fiber_sec_resp:
-            self._FiberSecResp = FiberSecRespStepData()
+        if self._fiber_ele_tags is not None and self._save_fiber_sec_resp:
+            self._FiberSecResp = FiberSecRespStepData(self._fiber_ele_tags)
         # -----------------------------------------------------------------
         if self._plane_tags is not None:
             plane_tags = self._plane_tags
