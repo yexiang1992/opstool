@@ -16,8 +16,7 @@ with open(this_dir / "opstool" / "__about__.py") as f:
 __version__ = about["__version__"]
 
 # include pkg root folder to sys.path
-os.environ["PYTHONPATH"] = ":".join(
-    (str(this_dir), os.environ.get("PYTHONPATH", "")))
+os.environ["PYTHONPATH"] = ":".join((str(this_dir), os.environ.get("PYTHONPATH", "")))
 sys.path.append(str(this_dir))
 
 project = "opstool"
@@ -85,8 +84,7 @@ html_favicon = "_static/logo.png"
 html_theme_options = {
     "light_logo": "logo-light.png",  # add light mode logo
     "dark_logo": "logo-dark.png",  # add dark mode logo
-    "sidebar_hide_name":
-    True,  # hide the name of a project in the sidebar (already in logo)
+    "sidebar_hide_name": True,  # hide the name of a project in the sidebar (already in logo)
     "source_repository": "https://github.com/yexiang1992/opstool",
     "source_branch": "master",
     "source_directory": "docs/",
@@ -105,5 +103,5 @@ html_sidebars = {
         "sidebar/variant-selector.html",
     ]
 }
-pygments_style = "perldoc"
+pygments_style = "gruvbox-light"
 pygments_dark_style = "paraiso-dark"
