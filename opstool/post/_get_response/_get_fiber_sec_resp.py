@@ -54,19 +54,14 @@ class FiberSecRespStepData(ResponseBase):
         self.initialize()
 
     def add_data_one_step(self):
-        stress, strain, ys, zs, areas, mats, defo, force = _get_fiber_sec_resp(self.ELE_SEC_KEYS)
+        stress, strain, defo, force = _get_fiber_sec_resp(self.ELE_SEC_KEYS)
         data_vars = {}
         if len(stress) > 0:
             data_vars["Stresses"] = (("eleTags", "secPoints", "fiberPoints"), stress)
             data_vars["Strains"] = (("eleTags", "secPoints", "fiberPoints"), strain)
-            data_vars["ys"] = (("eleTags", "secPoints", "fiberPoints"), ys)
-            data_vars["zs"] = (("eleTags", "secPoints", "fiberPoints"), zs)
-            data_vars["areas"] = (("eleTags", "secPoints", "fiberPoints"), areas)
-            data_vars["matTags"] = (("eleTags", "secPoints", "fiberPoints"), mats)
             if len(defo) > 0:
                 data_vars["secDefo"] = (("eleTags", "secPoints", "DOFs"), defo)
                 data_vars["secForce"] = (("eleTags", "secPoints", "DOFs"), force)
-
             ds = xr.Dataset(
                 data_vars=data_vars,
                 coords={
@@ -83,9 +78,36 @@ class FiberSecRespStepData(ResponseBase):
         self.step_track += 1
         self.times.append(ops.getTime())
 
+    def _get_fiber_geo_data(self):
+        all_ys, all_zs, all_mats, all_areas = [], [], [], []
+        for ele_tag, sec_num in self.ELE_SEC_KEYS.items():
+            ele_tag = int(ele_tag)
+            sec_num = int(sec_num)
+            ys, zs, areas, mats = [], [], [], []
+            for i in range(sec_num):
+                fiber_data = _get_fiber_sec_data(ele_tag, i + 1)
+                ys.append(fiber_data[:, 0])
+                zs.append(fiber_data[:, 1])
+                areas.append(fiber_data[:, 2])
+                mats.append(fiber_data[:, 3])
+            all_ys.append(_expand_to_uniform_array(ys))
+            all_zs.append(_expand_to_uniform_array(zs))
+            all_areas.append(_expand_to_uniform_array(areas))
+            all_mats.append(_expand_to_uniform_array(mats))
+        all_ys = _expand_to_uniform_array(all_ys)
+        all_zs = _expand_to_uniform_array(all_zs)
+        all_areas = _expand_to_uniform_array(all_areas)
+        all_mats = _expand_to_uniform_array(all_mats)
+
+        self.resp_steps["ys"] = (("eleTags", "secPoints", "fiberPoints"), all_ys)
+        self.resp_steps["zs"] = (("eleTags", "secPoints", "fiberPoints"), all_zs)
+        self.resp_steps["areas"] = (("eleTags", "secPoints", "fiberPoints"), all_areas)
+        self.resp_steps["matTags"] = (("eleTags", "secPoints", "fiberPoints"), all_mats)
+
     def _to_xarray(self):
         self.resp_steps = xr.concat(self.resp_steps, dim="time", join="outer")
         self.resp_steps.coords["time"] = self.times
+        self._get_fiber_geo_data()
 
     def get_data(self):
         return self.resp_steps
@@ -132,32 +154,18 @@ def _get_fiber_sec_resp(ele_secs: dict):
     """
     all_stress = []
     all_strains = []
-    all_ys, all_zs, all_mats, all_areas = [], [], [], []
     for ele_tag, sec_num in ele_secs.items():
         ele_tag = int(ele_tag)
         sec_num = int(sec_num)
         stress, strain, defo, force = [], [], [], []
-        ys, zs, areas, mats = [], [], [], []
         for i in range(sec_num):
             fiber_data = _get_fiber_sec_data(ele_tag, i+1)
             stress.append(fiber_data[:, -2])
             strain.append(fiber_data[:, -1])
-            ys.append(fiber_data[:, 0])
-            zs.append(fiber_data[:, 1])
-            areas.append(fiber_data[:, 2])
-            mats.append(fiber_data[:, 3])
         all_stress.append(_expand_to_uniform_array(stress))
         all_strains.append(_expand_to_uniform_array(strain))
-        all_ys.append(_expand_to_uniform_array(ys))
-        all_zs.append(_expand_to_uniform_array(zs))
-        all_areas.append(_expand_to_uniform_array(areas))
-        all_mats.append(_expand_to_uniform_array(mats))
     all_stress = _expand_to_uniform_array(all_stress)
     all_strains = _expand_to_uniform_array(all_strains)
-    all_ys = _expand_to_uniform_array(all_ys)
-    all_zs = _expand_to_uniform_array(all_zs)
-    all_areas = _expand_to_uniform_array(all_areas)
-    all_mats = _expand_to_uniform_array(all_mats)
 
     # -----------------------------------------------------------------------
     all_defo = []
@@ -188,7 +196,7 @@ def _get_fiber_sec_resp(ele_secs: dict):
     all_defo = _expand_to_uniform_array(all_defo)
     all_force = _expand_to_uniform_array(all_force)
 
-    return all_stress, all_strains, all_ys, all_zs, all_areas, all_mats, all_defo, all_force
+    return all_stress, all_strains, all_defo, all_force
 
 def _get_fiber_sec_data(ele_tag: int, sec_num: int = 1):
     """Get the fiber sec data for a beam element.
