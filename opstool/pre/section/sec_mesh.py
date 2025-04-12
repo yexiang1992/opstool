@@ -1563,7 +1563,6 @@ class FiberSecMesh:
             xo, yo = rot_point
 
         if not remesh:
-            theta = theta / 180 * np.pi
             x_rot, y_rot = sec_rotation(self.points[:, 0], self.points[:, 1], theta, xo=xo, yo=yo)
             self.points[:, 0], self.points[:, 1] = x_rot, y_rot
 
@@ -1869,6 +1868,7 @@ def sec_rotation(x, y, theta, xo=0, yo=0):
     """
     Rotate the section coordinates counterclockwise by theta
     """
+    theta = theta / 180 * np.pi
     x_new = xo + (x-xo) * np.cos(theta) + (y-yo) * np.sin(theta)
     y_new = yo - (x-xo) * np.sin(theta) + (y-yo) * np.cos(theta)
     return x_new, y_new
