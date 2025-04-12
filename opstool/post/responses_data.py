@@ -49,6 +49,7 @@ POST_ARGS = SimpleNamespace(
     truss_tags= None,
     link_tags= None,
     shell_tags = None,
+    fiber_ele_tags = None,
     plane_tags= None,
     brick_tags = None,
     contact_tags= None,
@@ -116,7 +117,7 @@ class CreateODB:
             * shell_tags: Union[list, tuple, int], default: None
                 Shell element tags to be saved.
                 If None, save all shell elements' responses.
-            * fiber_ele_tags: Union[list, str], default: "all"
+            * fiber_ele_tags: Union[list, str], default: None
                 Element tags that contain fiber sections to be saved.
                 If "all", save all fiber section elements responses.
                 If None, save nothing.
@@ -147,7 +148,10 @@ class CreateODB:
         self._model_update = model_update
 
         for key, value in kwargs.items():
-            setattr(POST_ARGS, key, value)
+            if key not in list(vars(POST_ARGS).keys()):
+                raise KeyError(f"Incorrect parameter {key}, should be one of {list(vars(POST_ARGS).keys())}!")
+            else:
+                setattr(POST_ARGS, key, value)
 
         self._save_nodal_resp = POST_ARGS.save_nodal_resp
         self._save_frame_resp = POST_ARGS.save_frame_resp
@@ -187,8 +191,6 @@ class CreateODB:
             else:
                 if not self._fiber_ele_tags.lower() == "all":
                     self._fiber_ele_tags = None
-        else:
-            self._fiber_ele_tags = "all"
         if self._plane_tags is not None:
             self._plane_tags = [int(tag) for tag in np.atleast_1d(self._plane_tags)]
         if self._brick_tags is not None:
@@ -350,7 +352,7 @@ class CreateODB:
         if len(shell_tags) > 0 and self._save_shell_resp:
             self._ShellResp.add_data_one_step(shell_tags)
         # -----------------------------------------------------------------
-        if self._save_fiber_sec_resp:
+        if self._fiber_ele_tags is not None and self._save_fiber_sec_resp:
             self._FiberSecResp.add_data_one_step()
         # -----------------------------------------------------------------
         if self._plane_tags is not None:
@@ -633,7 +635,7 @@ def get_element_responses(
         Tag of output databases (ODB) to be read.
     ele_type: str, default: Frame
         Type of element to be read.
-        Optional: "Frame", "Truss", "Link", "Shell", "Plane", "Solid", "Contact
+        Optional: "Frame", "FiberSection", "Truss", "Link", "Shell", "Plane", "Solid", "Contact
     resp_type: str, default: disp
         The response type, which depends on the parameter `ele_type`.
         If None, return all responses to that `ele_type`.
@@ -646,6 +648,15 @@ def get_element_responses(
             * "sectionForces": Section forces in the element coordinate system.
             * "sectionDeformations": Section deformations in the element coordinate system.
             * "sectionLocs": Section locations, 0.0 to 1.0.
+        #. For `FiberSection`:
+            * "Stresses": Stress.
+            * "Strains": Strain.
+            * "ys": y coords.
+            * "zs": z coords.
+            * "areas": Fiber point areas.
+            * "matTags": Mat tags in OpenSees.
+            * "secDefo": Section deformations.
+            * "secForce": Section forces.
         #. For `Truss`:
             * "axialForce": Axial force.
             * "axialDefo": Axial deformation.
@@ -705,6 +716,8 @@ def get_element_responses(
 
         if ele_type.lower() == "frame":
             ele_resp = FrameRespStepData.read_response(dt, resp_type=resp_type, ele_tags=ele_tags)
+        elif ele_type.lower() == "fibersection":
+            ele_resp = FiberSecRespStepData.read_response(dt, resp_type=resp_type, ele_tags=ele_tags)
         elif ele_type.lower() == "truss":
             ele_resp = TrussRespStepData.read_response(dt, resp_type=resp_type, ele_tags=ele_tags)
         elif ele_type.lower() == "link":
