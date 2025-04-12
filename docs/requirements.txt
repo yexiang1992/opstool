@@ -3,8 +3,8 @@ sphinx-autoapi
 sphinx-autobuild
 sphinx-autodoc-typehints
 sphinx-copybutton
-jupyter-sphinx=
-nbsphinx=
+jupyter-sphinx
+nbsphinx
 sphinx_design
 furo
 notebook
