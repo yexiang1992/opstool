@@ -948,6 +948,51 @@ def _dropnan_by_time(da, model_update=False):
     return cleaned_dataarrays
 
 
+def _get_plotly_dim_scene(mode='3d', show_outline=True):
+    if show_outline:
+        off_axis = {"showgrid": True, "zeroline": True, "visible": True}
+    else:
+        off_axis = {"showgrid": False, "zeroline": False, "visible": False}
+    if mode.lower() == '3d':
+        eye = dict(x=-3.5, y=-3.5, z=3.5)  # for 3D camera
+        scene = dict(
+            aspectratio=dict(x=1, y=1, z=1),
+            aspectmode="data",
+            camera=dict(eye=eye, projection=dict(type="orthographic")),
+            xaxis=off_axis,
+            yaxis=off_axis,
+            zaxis=off_axis,
+        )
+    elif mode.lower() == '2d':
+        if show_outline:
+            xaxis = dict(showbackground=False)
+            yaxis = dict(showbackground=False)
+            zaxis = dict(
+                showbackground=True,
+                showticklabels=False,
+                showgrid=True,
+                title='',
+                ticks='',
+                visible=True
+            )
+        else:
+            xaxis = off_axis
+            yaxis = off_axis
+            zaxis = off_axis
+        eye = dict(x=0.0, y=-0.1, z=10)  # for 2D camera
+        scene = dict(
+            camera=dict(eye=eye),
+            aspectmode='data',
+            dragmode='pan',
+            xaxis=xaxis,
+            yaxis=yaxis,
+            zaxis=zaxis,
+        )
+    else:
+        raise ValueError("mode must be '2d' or '3d'")
+    return scene
+
+
 # def group_cells(cells):
 #     line_cells, line_cells_type = [], []
 #     unstru_cells, unstru_cells_type = [], []

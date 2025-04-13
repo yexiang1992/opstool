@@ -13,6 +13,7 @@ from .plot_utils import (
     _get_unstru_cells,
     _VTKElementTriangulator,
     _make_lines_plotly,
+    _get_plotly_dim_scene
 )
 from .vis_model import PlotModelBase
 from ...post import load_eigen_data
@@ -223,44 +224,20 @@ class PlotEigenBase:
             self._create_mesh(plotter, idx, coloraxis=f"coloraxis{i + 1}", **kargs)
             self.FIGURE.add_traces(plotter, rows=idxi + 1, cols=idxj + 1)
         if not self.show_zaxis:
-            eye = dict(x=0.0, y=-0.1, z=10)  # for 2D camera
-            scene = dict(
-                camera=dict(eye=eye, projection=dict(type="orthographic")),
-            )
+            scene = _get_plotly_dim_scene(mode="2d", show_outline=show_outline)
         else:
-            eye = dict(x=-3.5, y=-3.5, z=3.5)  # for 3D camera
-            scene = dict(
-                aspectratio=dict(x=1, y=1, z=1),
-                aspectmode="data",
-                camera=dict(eye=eye, projection=dict(type="orthographic")),
-            )
+            scene = _get_plotly_dim_scene(mode="3d", show_outline=show_outline)
         scenes = dict()
         coloraxiss = dict()
-        if show_outline:
-            off_axis = {"showgrid": True, "zeroline": True, "visible": True}
-        else:
-            off_axis = {"showgrid": False, "zeroline": False, "visible": False}
         for k in range(shape[0] * shape[1]):
             coloraxiss[f"coloraxis{k + 1}"] = dict(
                 showscale=False, colorscale=self.pargs.cmap
             )
             if k >= 1:
                 if not self.show_zaxis:
-                    scenes[f"scene{k + 1}"] = dict(
-                        camera=dict(eye=eye, projection=dict(type="orthographic")),
-                        xaxis=off_axis,
-                        yaxis=off_axis,
-                        zaxis=off_axis,
-                    )
+                    scenes[f"scene{k + 1}"] = _get_plotly_dim_scene(mode="2d", show_outline=show_outline)
                 else:
-                    scenes[f"scene{k + 1}"] = dict(
-                        aspectratio=dict(x=1, y=1, z=1),
-                        aspectmode="data",
-                        camera=dict(eye=eye, projection=dict(type="orthographic")),
-                        xaxis=off_axis,
-                        yaxis=off_axis,
-                        zaxis=off_axis,
-                    )
+                    scenes[f"scene{k + 1}"] = _get_plotly_dim_scene(mode="3d", show_outline=show_outline)
         title = dict(
             font=dict(family="courier", color="black", size=self.pargs.title_font_size),
             text=f"<b>{PKG_NAME} :: Eigen 3D Viewer</b>",
@@ -446,17 +423,9 @@ class PlotEigenBase:
 
     def update_fig(self, show_outline: bool = False):
         if not self.show_zaxis:
-            eye = dict(x=0.0, y=-0.1, z=10)  # for 2D camera
-            scene = dict(
-                camera=dict(eye=eye, projection=dict(type="orthographic")),
-            )
-        else:
-            eye = dict(x=-3.5, y=-3.5, z=3.5)  # for 3D camera
-            scene = dict(
-                aspectratio=dict(x=1, y=1, z=1),
-                aspectmode="data",
-                camera=dict(eye=eye, projection=dict(type="orthographic")),
-            )
+            scene = _get_plotly_dim_scene(mode="2d", show_outline=show_outline)
+        else:  # for 3D camera
+            scene = _get_plotly_dim_scene(mode="3d", show_outline=show_outline)
         self.FIGURE.update_layout(
             template=self.pargs.theme,
             autosize=True,
@@ -464,15 +433,6 @@ class PlotEigenBase:
             scene=scene,
             font=dict(family=self.pargs.font_family),
         )
-
-        if not show_outline:
-            self.FIGURE.update_layout(
-                scene=dict(
-                    xaxis={"showgrid": False, "zeroline": False, "visible": False},
-                    yaxis={"showgrid": False, "zeroline": False, "visible": False},
-                    zaxis={"showgrid": False, "zeroline": False, "visible": False},
-                ),
-            )
         return self.FIGURE
 
 

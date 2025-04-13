@@ -12,6 +12,7 @@ from .plot_utils import (
     _plot_all_mesh,
     _get_line_cells,
     _get_unstru_cells,
+    _get_plotly_dim_scene
 )
 from .vis_model import _plot_bc, _plot_mp_constraint
 from ...post import loadODB
@@ -502,17 +503,9 @@ class PlotNodalResponse(PlotResponseBase):
 
     def update_fig(self, show_outline: bool = False):
         if not self.show_zaxis:
-            eye = dict(x=0.0, y=-0.1, z=10)  # for 2D camera
-            scene = dict(
-                camera=dict(eye=eye, projection=dict(type="orthographic")),
-            )
+            scene = _get_plotly_dim_scene(mode="2d", show_outline=show_outline)
         else:
-            eye = dict(x=-3.5, y=-3.5, z=3.5)  # for 3D camera
-            scene = dict(
-                aspectratio=dict(x=1, y=1, z=1),
-                aspectmode="data",
-                camera=dict(eye=eye, projection=dict(type="orthographic")),
-            )
+            scene = _get_plotly_dim_scene(mode="3d", show_outline=show_outline)
         self.FIGURE.update_layout(
             template=self.pargs.theme,
             autosize=True,
@@ -522,14 +515,6 @@ class PlotNodalResponse(PlotResponseBase):
             font=dict(family=self.pargs.font_family),
         )
 
-        if not show_outline:
-            self.FIGURE.update_layout(
-                scene=dict(
-                    xaxis={"showgrid": False, "zeroline": False, "visible": False},
-                    yaxis={"showgrid": False, "zeroline": False, "visible": False},
-                    zaxis={"showgrid": False, "zeroline": False, "visible": False},
-                ),
-            )
         return self.FIGURE
 
 

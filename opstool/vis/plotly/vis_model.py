@@ -16,6 +16,7 @@ from .plot_utils import (
     _make_lines_plotly,
     _get_line_cells,
     _get_unstru_cells,
+    _get_plotly_dim_scene
 )
 from ...post import load_model_data
 from ...utils import gram_schmidt, CONSTANTS
@@ -637,15 +638,9 @@ class PlotModelBase:
     def update_fig(self, plotter: list, show_outline: bool = False):
         self.FIGURE.add_traces(plotter)
         if not self.show_zaxis:
-            eye = dict(x=0.0, y=-0.1, z=10)  # for 2D camera
-            scene = dict(camera=dict(eye=eye, projection=dict(type="orthographic")))
+            scene = _get_plotly_dim_scene(mode="2d", show_outline=show_outline)
         else:
-            eye = dict(x=-3.5, y=-3.5, z=3.5)  # for 3D camera
-            scene = dict(
-                aspectratio=dict(x=1, y=1, z=1),
-                aspectmode="data",
-                camera=dict(eye=eye, projection=dict(type="orthographic")),
-            )
+            scene = _get_plotly_dim_scene(mode="3d", show_outline=show_outline)
         txt = f"<b>{PKG_NAME}</b>:: Num. Node: <b>{len(self.nodal_tags)}</b> Num. Ele: <b>{len(self.ele_tags)}</b>"
         self.FIGURE.update_layout(
             template=self.pargs.theme,
@@ -662,14 +657,6 @@ class PlotModelBase:
             height=self.pargs.window_size[1],
             font=dict(family=self.pargs.font_family),
         )
-        if not show_outline:
-            self.FIGURE.update_layout(
-                scene=dict(
-                    xaxis={"showgrid": False, "zeroline": False, "visible": False},
-                    yaxis={"showgrid": False, "zeroline": False, "visible": False},
-                    zaxis={"showgrid": False, "zeroline": False, "visible": False},
-                ),
-            )
         return self.FIGURE
 
 
