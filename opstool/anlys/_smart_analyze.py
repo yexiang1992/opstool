@@ -13,7 +13,7 @@ class SmartAnalyze:
     """The SmartAnalyze is a class to provide OpenSeesPy users an easier
     way to conduct analyses.
     Original Tcl version Author: Dr. Dong Hanlin, see
-    `here <https://www.hanlindong.com/2019/opensees-converge/>`__.
+    `here <https://github.com/Hanlin-Dong/SmartAnalyze/>`__.
     Here's the converted python version, with some modifications.
 
     Parameters
@@ -78,46 +78,92 @@ class SmartAnalyze:
 
     **Algorithm type flag reference**
 
-    * 0:  Linear
-    * 1:  Linear -initial
-    * 2:  Linear -secant
-    * 3:  Linear -factorOnce
-    * 4:  Linear -initial -factorOnce
-    * 5:  Linear -secant -factorOnce
-    * 10:  Newton
-    * 11:  Newton -initial
-    * 12:  Newton -initialThenCurrent
-    * 13:  Newton -Secant
-    * 20:  NewtonLineSearch
-    * 21:  NewtonLineSearch -type Bisection
-    * 22:  NewtonLineSearch -type Secant
-    * 23:  NewtonLineSearch -type RegulaFalsi
-    * 24:  NewtonLineSearch -type LinearInterpolated
-    * 25:  NewtonLineSearch -type InitialInterpolated
-    * 30:  ModifiedNewton
-    * 31:  ModifiedNewton -initial
-    * 32:  ModifiedNewton -secant
-    * 40:  KrylovNewton
-    * 41:  KrylovNewton -iterate initial
-    * 42:  KrylovNewton -increment initial
-    * 43:  KrylovNewton -iterate initial -increment initial
-    * 44:  KrylovNewton -maxDim 10
-    * 45:  KrylovNewton -iterate initial -increment initial -maxDim 10
-    * 50:  SecantNewton
-    * 51:  SecantNewton -iterate initial
-    * 52:  SecantNewton -increment initial
-    * 53:  SecantNewton -iterate initial -increment initial
-    * 60:  BFGS
-    * 61:  BFGS -initial
-    * 62:  BFGS -secant
-    * 70:  Broyden
-    * 71:  Broyden -initial
-    * 72:  Broyden -secant
-    * 80:  PeriodicNewton
-    * 81:  PeriodicNewton -maxDim 10
-    * 90:  ExpressNewton
-    * 91:  ExpressNewton -InitialTangent
-    * 100:  User-defined0
+    .. list-table:: Algorithm type flag reference
+       :widths: 30 30
+       :header-rows: 1
+
+       * - Flags
+         - Algorithm
+       * - 0
+         - Linear
+       * - 1
+         - Linear -initial
+       * - 2
+         - Linear -secant
+       * - 3
+         - Linear -factorOnce
+       * - 4
+         - Linear -initial -factorOnce
+       * - 5
+         - Linear -secant -factorOnce
+       * - 10
+         - Newton
+       * - 11
+         - Newton -initial
+       * - 12
+         - Newton -initialThenCurrent
+       * - 13
+         - Newton -Secant
+       * - 20
+         - NewtonLineSearch
+       * - 21
+         - NewtonLineSearch -type Bisection
+       * - 22
+         - NewtonLineSearch -type Secant
+       * - 23
+         - NewtonLineSearch -type RegulaFalsi
+       * - 24
+         - NewtonLineSearch -type LinearInterpolated
+       * - 25
+         - NewtonLineSearch -type InitialInterpolated
+       * - 30
+         - ModifiedNewton
+       * - 31
+         - ModifiedNewton -initial
+       * - 32
+         - ModifiedNewton -secant
+       * - 40
+         - KrylovNewton
+       * - 41
+         - KrylovNewton -iterate initial
+       * - 42
+         - KrylovNewton -increment initial
+       * - 43
+         - KrylovNewton -iterate initial -increment initial
+       * - 44
+         - KrylovNewton -maxDim 10
+       * - 45
+         - KrylovNewton -iterate initial -increment initial -maxDim 10
+       * - 50
+         - SecantNewton
+       * - 51
+         - SecantNewton -iterate initial
+       * - 52
+         - SecantNewton -increment initial
+       * - 53
+         - SecantNewton -iterate initial -increment initial
+       * - 60
+         - BFGS
+       * - 61
+         - BFGS -initial
+       * - 62
+         - BFGS -secant
+       * - 70
+         - Broyden
+       * - 71
+         - Broyden -initial
+       * - 72
+         - Broyden -secant
+       * - 80
+         - PeriodicNewton
+       * - 81
+         -  PeriodicNewton -maxDim 10
+       * - 90
+         -  ExpressNewton
+       * - 91
+         - ExpressNewton -InitialTangent
+       * - 100
+         - User-defined0
 
     STEP SIZE RELATED:
     ===================
@@ -144,9 +190,10 @@ class SmartAnalyze:
     The following example demonstrates how to use the SmartAnalyze class.
 
     .. Note::
-        ``test()`` and ``algorithm()`` will run automatically in ``SmartAnalyze``,
-        but commands such as ``integrator()`` must be defined outside ``SmartAnalyze``.
 
+        * ``test()`` and ``algorithm()`` will run automatically in ``SmartAnalyze``;
+        * Static analysis only supports displacement control;
+        * Commands such as ``integrator()`` must be defined outside ``SmartAnalyze`` for ransient analysis.
 
     Example 1: Basic usage for Transient
 
@@ -178,9 +225,9 @@ class SmartAnalyze:
 
     >>> analysis = opst.anlys.SmartAnalyze(
     >>>   analysis_type="Transient",
+    >>>   tryAlterAlgoTypes=True,
     >>>   algoTypes=[40, 30, 20],
     >>>   printPer=20,
-    >>>   tryAlterAlgoTypes=True,
     >>>)
     """
 
@@ -188,7 +235,7 @@ class SmartAnalyze:
         if analysis_type not in ("Transient", "Static"):
             raise ValueError("analysis_type must Transient or Static!")
         # default
-        self.control = {
+        self.control_args = {
             "analysis": analysis_type,
             "testType": "EnergyIncr",
             "testTol": 1.0e-10,
@@ -198,7 +245,7 @@ class SmartAnalyze:
             "normTol": 1000,
             "testIterTimesMore": 50,
             "tryLooseTestTol": False,
-            "looseTestTolTo": 1.0,
+            "looseTestTolTo": 1e-3,
             "tryAlterAlgoTypes": False,
             "algoTypes": [40, 10, 20, 30, 50, 60, 70, 90],
             "UserAlgoArgs": None,
@@ -208,32 +255,35 @@ class SmartAnalyze:
             "printPer": 50,
             "debugMode": False,
         }
-        self.control["looseTestTolTo"] = 100 * self.control["testTol"]
+        self.control_args["looseTestTolTo"] = 100 * self.control_args["testTol"]
         for name in kargs.keys():
-            if name not in self.control.keys():
-                raise ValueError(f"arg {name} error!")
-        self.control.update(kargs)
+            if name not in self.control_args.keys():
+                raise ValueError(f"Arg {name} error, valid args are: {self.control_args.keys()}!")
+        self.control_args.update(kargs)
+
+        self.analysis_type = analysis_type
         self.eps = 1.0e-12
         self.logo = "[bold magenta]SmartAnalyze:[/bold magenta]"
 
         # initial test commands
         ops.test(
-            self.control["testType"],
-            self.control["testTol"],
-            self.control["testIterTimes"],
-            self.control["testPrintFlag"],
+            self.control_args["testType"],
+            self.control_args["testTol"],
+            self.control_args["testIterTimes"],
+            self.control_args["testPrintFlag"],
         )
-        self._setAlgorithm(self.control["algoTypes"][0], self.control["UserAlgoArgs"])
+        # initial algorithm
+        self._setAlgorithm(self.control_args["algoTypes"][0], self.control_args["UserAlgoArgs"])
 
         # Since the intelligent static analysis may reset the integrator,
         # the sensitivity analysis algorithm needs to be reset
         self.sensitivity_algorithm = None
 
-        self.current = {
+        self.current_args = {
             "startTime": time.time(),
             "algoIndex": 0,
-            "testIterTimes": self.control["testIterTimes"],
-            "testTol": self.control["testTol"],
+            "testIterTimes": self.control_args["testIterTimes"],
+            "testTol": self.control_args["testTol"],
             "counter": 0,
             "progress": 0,
             "segs": 0,
@@ -256,7 +306,7 @@ class SmartAnalyze:
         -------
         A list to loop.
         """
-        self.current["segs"] = npts
+        self.current_args["segs"] = npts
         return list(range(1, npts + 1))
 
     def static_split(self, targets: Union[list, tuple, np.ndarray], maxStep: float = None):
@@ -314,11 +364,11 @@ class SmartAnalyze:
                     segs.append(-maxStep)
                     j += 1
                 segs.append(section + j * maxStep)
-        self.current["segs"] = len(segs)
+        self.current_args["segs"] = len(segs)
         return segs
 
     def _get_time(self):
-        return time.time() - self.current["startTime"]
+        return time.time() - self.current_args["startTime"]
 
     def set_sensitivity_algorithm(self, algorithm: str = "-computeAtEachStep"):
         """Set analysis sensitivity algorithm. Since the Smart Static Analysis may reset the integrator,
@@ -355,56 +405,13 @@ class SmartAnalyze:
         -------
         Return 0 if successful, otherwise returns a negative number.
         """
-        if self.control["analysis"] != "Transient":
+        if self.control_args["analysis"] != "Transient":
             raise ValueError("Transient! Please check parameter input!")
-        self.control["initialStep"] = dt
+        self.control_args["initialStep"] = dt
 
-        ops.analysis(self.control["analysis"])
+        ops.analysis(self.control_args["analysis"])
 
-        ok = self._RecursiveAnalyze(
-            self.control["initialStep"],
-            0,
-            self.control["testIterTimes"],
-            self.control["testTol"],
-            self.control.copy(),
-            self.current.copy(),
-            self.control["debugMode"],
-        )
-        if ok < 0:
-            color = get_random_color()
-            custime = f"[{color}]{self._get_time():.3f}[/{color}]"
-            print(f">>> {self.logo} Analyze failed. Time consumption: {custime} s.")
-            return ok
-
-        self.current["progress"] += 1
-        self.current["counter"] += 1
-        print_info = True if self.control["debugMode"] else print_info
-        if print_info:
-            if self.current["segs"] > 0:
-                color = get_random_color()
-                if self.control["debugMode"]:
-                    value1 = f"[bold {color}]{100 * self.current['progress'] / self.current['segs']:.3f}[/bold {color}]"
-                    value2 = f"[bold {color}]{self._get_time():.3f}[/bold {color}]"
-                    print(
-                        f"* {self.logo} progress {value1} %. Time consumption: {value2} s."
-                    )
-                elif self.current["counter"] >= self.control["printPer"]:
-                    value1 = f"[bold {color}]{100 * self.current['progress'] / self.current['segs']:.3f}[/bold {color}]"
-                    value2 = f"[bold {color}]{self._get_time():.3f}[/bold {color}]"
-                    print(
-                        f"* {self.logo} progress {value1} %. Time consumption: {value2} s."
-                    )
-                    self.current["counter"] = 0
-        # Finally
-        if (self.current["segs"] > 0) and (
-                self.current["progress"] >= self.current["segs"]
-        ):
-            color = get_random_color()
-            custime = f"[{color}]{self._get_time():.3f}[/{color}]"
-            print(
-                f">>> {self.logo} [{color}]Successfully finished[/{color}]! Time consumption: {custime} s."
-            )
-        return 0
+        return self._analyze(print_info)
 
     def StaticAnalyze(self, node: int, dof: int, seg: float, print_info: bool = True):
         """Single step static analysis and applies to displacement control only.
@@ -424,56 +431,62 @@ class SmartAnalyze:
         -------
         Return 0 if successful, otherwise returns a negative number.
         """
-        if self.control["analysis"] != "Static":
+        if self.control_args["analysis"] != "Static":
             raise ValueError("Static! Please check parameter input!")
-        self.control["initialStep"] = seg
-        self.current["node"] = node
-        self.current["dof"] = dof
-        self.current["step"] = seg
+        self.control_args["initialStep"] = seg
+        self.current_args["node"] = node
+        self.current_args["dof"] = dof
+        self.current_args["step"] = seg
 
         ops.integrator("DisplacementControl", node, dof, seg)
-        ops.analysis(self.control["analysis"])
+        ops.analysis(self.control_args["analysis"])
 
         # reset sensitivity analysis algorithm
         self._run_sensitivity_algorithm()
 
-        ok = self._RecursiveAnalyze(
-            seg,
-            0,
-            self.control["testIterTimes"],
-            self.control["testTol"],
-            self.control.copy(),
-            self.current.copy(),
-            self.control["debugMode"]
-        )
+        return self._analyze(print_info)
+
+    def _analyze(self, verbose):
+        initial_step = self.control_args["initialStep"]
+        ok = self._analyze_one_step(initial_step, verbose)
+        if ok < 0:
+            ok = self._try_add_test_times(initial_step, verbose)
+        if ok < 0:
+            ok = self._try_alter_algo_types(initial_step, verbose)
+        if ok < 0:
+            ok = self._try_relax_step(initial_step, verbose)
+        if ok < 0:
+            ok = self._try_loose_test_tol(initial_step, verbose)
+
         if ok < 0:
             color = get_random_color()
             value = f"[bold {color}]{self._get_time():.3f}[/bold {color}]"
             print(f">>> {self.logo} Analyze failed. Time consumption: {value} s.")
-            return -1
-        self.current["progress"] += 1
-        self.current["counter"] += 1
-        print_info = True if self.control["debugMode"] else print_info
+            return ok
+
+        self.current_args["progress"] += 1
+        self.current_args["counter"] += 1
+        print_info = True if self.control_args["debugMode"] else verbose
         if print_info:
-            if self.current["segs"] > 0:
+            if self.current_args["segs"] > 0:
                 color = get_random_color()
-                if self.control["debugMode"]:
-                    value1 = f"[bold {color}]{100 * self.current['progress'] / self.current['segs']:.3f}[/bold {color}]"
+                if self.control_args["debugMode"]:
+                    value1 = f"[bold {color}]{100 * self.current_args['progress'] / self.current_args['segs']:.3f}[/bold {color}]"
                     value2 = f"[bold {color}]{self._get_time():.3f}[/bold {color}]"
                     print(
                         f"* {self.logo} progress {value1} %. Time consumption: {value2} s."
                     )
-                elif self.current["counter"] >= self.control["printPer"]:
-                    value1 = f"[bold {color}]{100 * self.current['progress'] / self.current['segs']:.3f}[/bold {color}]"
+                elif self.current_args["counter"] >= self.control_args["printPer"]:
+                    value1 = f"[bold {color}]{100 * self.current_args['progress'] / self.current_args['segs']:.3f}[/bold {color}]"
                     value2 = f"[bold {color}]{self._get_time():.3f}[/bold {color}]"
                     print(
                         f"* {self.logo} progress {value1} %. Time consumption: {value2} s."
                     )
-                    self.current["counter"] = 0
+                    self.current_args["counter"] = 0
 
         # Finally
-        if (self.current["segs"] > 0) and (
-                self.current["progress"] >= self.current["segs"]
+        if (self.current_args["segs"] > 0) and (
+                self.current_args["progress"] >= self.current_args["segs"]
         ):
             color = get_random_color()
             value = f"[bold {color}]{self._get_time():.3f}[/bold {color}]"
@@ -482,192 +495,146 @@ class SmartAnalyze:
             )
         return 0
 
-    def _RecursiveAnalyze(
-            self,
-            step: float,
-            algoIndex: int,
-            testIterTimes: int,
-            testTol: float,
-            vcontrol: dict,
-            vcurrent: dict,
-            print_info: bool
-    ):
-        """RecursiveAnalyze.
-
-        Parameters
-        ----------
-        step : float
-            step size, dynamic analysis is dt;
-            static analysis is the displacement of small loading section, <=maxStep
-        algoIndex : int
-            The serial number of the initial iteration method list,
-            generally starting from the first one, which is 0
-        testIterTimes : int
-            The number of iterations, the default is 7
-        testTol : float
-            iteration tolerance
-        vcontrol : dict
-            real-time control parameter dictionary
-        vcurrent : dict
-            real-time status parameter dictionary
-        print_info: bool
-            If True, print info
-
-        Returns
-        -------
-        flag: int
-            Analysis flag, if < 0, analysis failed; elsewise = 0 success.
-        """
-
-        if vcontrol["debugMode"]:
-            color = get_random_color()
-            values = (f"[bold {color}]step=%.3e, algoIndex=%i, testIterTimes=%i, testTol=%.3e[/bold {color}]" %
-                      (step, vcontrol["algoTypes"][algoIndex], testIterTimes, testTol)
-            )
-            print(f"*** {self.logo} Run Recursive: {values}\n")
-
-        if algoIndex != vcurrent["algoIndex"]:
-            if print_info:
-                color = get_random_color()
-                values = f"[bold {color}]%i[/bold {color}]" % (
-                    vcontrol["algoTypes"][algoIndex]
-                )
-                print(f">>> {self.logo} Setting algorithm to {values}\n")
-            self._setAlgorithm(
-                vcontrol["algoTypes"][algoIndex], self.control["UserAlgoArgs"]
-            )
-            vcurrent["algoIndex"] = algoIndex
-
-        if testIterTimes != vcurrent["testIterTimes"] or testTol != vcurrent["testTol"]:
-            if testIterTimes != vcurrent["testIterTimes"]:
-                if print_info:
-                    color = get_random_color()
-                    values = f"[bold {color}]%i[/bold {color}]" % testIterTimes
-                    print(f">>> {self.logo} Setting test iteration times to {values}\n")
-                vcurrent["testIterTimes"] = testIterTimes
-            if testTol != vcurrent["testTol"]:
-                if print_info:
-                    color = get_random_color()
-                    print(
-                        f">>> {self.logo} Setting test tolerance to [bold {color}]%f[/bold {color}]\n"
-                        % testTol
-                    )
-                vcurrent["testTol"] = testTol
-            ops.test(
-                vcontrol["testType"], testTol, testIterTimes, vcontrol["testPrintFlag"]
-            )
-        # static step size
-        if vcontrol["analysis"] == "Static" and vcurrent["step"] != step:
-            if print_info:
+    def _analyze_one_step(self, step: float, verbose: bool):
+        if self.analysis_type == "Static":
+            if verbose:
                 color = get_random_color()
                 print(
                     f">>> {self.logo} Setting step to [bold {color}]%.3e[/bold {color}]\n"
                     % step
                 )
             ops.integrator(
-                "DisplacementControl", vcurrent["node"], vcurrent["dof"], step
+                "DisplacementControl",
+                self.current_args["node"],
+                self.current_args["dof"],
+                step
             )
-            vcurrent["step"] = step
 
             # reset sensitivity analysis algorithm
             self._run_sensitivity_algorithm()
 
-        # trial analyzes once
-        if vcontrol["analysis"] == "Static":
             ok = ops.analyze(1)
         else:
             ok = ops.analyze(1, step)
-        if ok == 0:
-            return 0
-        # If not convergence, add test iteration times. Use current step, algorithm and test tolerance.
-        if vcontrol["tryAddTestTimes"] and testIterTimes != vcontrol["testIterTimesMore"]:
-            norm = ops.testNorm()
-            color = get_random_color()
-            if norm[-1] < vcontrol["normTol"]:
-                if print_info:
-                    print(
-                        f">>> {self.logo} Adding test times to [bold {color}]%i[/bold {color}].\n"
-                        % (vcontrol["testIterTimesMore"])
-                    )
-                return self._RecursiveAnalyze(
-                    step,
-                    algoIndex,
-                    vcontrol["testIterTimesMore"],
-                    testTol,
-                    vcontrol,
-                    vcurrent,
-                    print_info
-                )
-            else:
-                if print_info:
-                    print(
-                        f">>> {self.logo} Not adding test times for norm [bold {color}]%.3e[/bold {color}].\n"
-                        % (norm[-1])
-                    )
 
-        # Change algorithm. Set back test iteration times.
-        if vcontrol["tryAlterAlgoTypes"] and (algoIndex + 1) < len(
-                vcontrol["algoTypes"]
-        ):
-            algoIndex += 1
-            color = get_random_color()
-            if print_info:
-                print(
-                    f">>> {self.logo} Setting algorithm to [bold {color}]%i[/bold {color}].\n"
-                    % (vcontrol["algoTypes"][algoIndex])
-                )
-            return self._RecursiveAnalyze(
-                step, algoIndex, testIterTimes, testTol, vcontrol, vcurrent, print_info
-            )
+        self.current_args["step"] = step
 
-        # If step length is too small, try to add test tolerance. Set algorithm and test iteration times back.
-        # Split the current step into two steps.
-        stepNew = step * vcontrol["relaxation"]
-        # if 0 < stepNew < vcontrol['minStep']:
-        #     stepNew = vcontrol['minStep']
-        # if 0 > stepNew > -vcontrol['minStep']:
-        #     stepNew = -vcontrol['minStep']
-        if np.abs(stepNew) < vcontrol["minStep"]:
-            color = get_random_color()
-            print(
-                f">>> {self.logo} current step [bold {color}]%.3e[/bold {color}] beyond the min step!\n"
-                % stepNew
-            )
-            if vcontrol["tryLooseTestTol"] and (vcurrent["testTol"] != vcontrol["looseTestTolTo"]):
-                if print_info:
-                    print(
-                        f"!!! {self.logo} Warning: [bold {color}]Loosing test tolerance[/bold {color}]\n"
-                    )
-                return self._RecursiveAnalyze(
-                    step,
-                    0,
-                    vcontrol["testIterTimes"],
-                    vcontrol["looseTestTolTo"],
-                    vcontrol,
-                    vcurrent,
-                    print_info
-                )
-            # Here, all methods have been tried. Return negative value.
+        return ok
+
+    def _try_add_test_times(self, step, verbose):
+        if not self.control_args["tryAddTestTimes"]:
             return -1
-
-        stepRest = step - stepNew
+        norm = ops.testNorm()
         color = get_random_color()
-        if print_info:
-            print(
-                f">>> {self.logo} Dividing the current step [bold {color}]%.3e into %.3e and %.3e[/bold {color}]\n"
-                % (step, stepNew, stepRest)
+        if norm[-1] < self.control_args["normTol"]:
+            if verbose:
+                print(
+                    f">>> {self.logo} Adding test times to [bold {color}]%i[/bold {color}].\n"
+                    % (self.control_args["testIterTimesMore"])
+                )
+            ops.test(
+                self.control_args["testType"],
+                self.control_args["testTol"],
+                self.control_args["testIterTimesMore"],
+                self.control_args["testPrintFlag"]
             )
-        ok = self._RecursiveAnalyze(
-            stepNew, 0, testIterTimes, testTol, vcontrol, vcurrent, print_info
-        )
-        if ok < 0:
+            ok = self._analyze_one_step(step, verbose)
+            if ok < 0:  # reback
+                ops.test(
+                    self.control_args["testType"],
+                    self.control_args["testTol"],
+                    self.control_args["testIterTimes"],
+                    self.control_args["testPrintFlag"]
+                )
+            return ok
+        else:
+            if verbose:
+                print(
+                    f">>> {self.logo} Not adding test times for norm [bold {color}]%.3e[/bold {color}].\n"
+                    % (norm[-1])
+                )
             return -1
-        ok = self._RecursiveAnalyze(
-            stepRest, 0, testIterTimes, testTol, vcontrol, vcurrent, print_info
-        )
-        if ok < 0:
+
+    def _try_alter_algo_types(self, step, verbose):
+        if not self.control_args["tryAlterAlgoTypes"]:
             return -1
-        return 0
+
+        if len(self.control_args["algoTypes"]) <= 1:
+            return -1
+
+        ok = -1
+        for algo_flag in self.control_args["algoTypes"][1:]:
+            color = get_random_color()
+            if verbose:
+                print(
+                    f">>> {self.logo} Setting algorithm to "
+                    f"[bold {color}]{algo_flag}[/bold {color}].\n"
+                )
+            self._setAlgorithm(
+                algo_flag,
+                self.control_args["UserAlgoArgs"]
+            )
+            ok = self._analyze_one_step(step, verbose)
+            if ok == 0:
+                break
+        if ok < 0:  # reback
+            self._setAlgorithm(
+                self.control_args["algoTypes"][0],
+                self.control_args["UserAlgoArgs"]
+            )
+        return ok
+
+    def _try_relax_step(self, step, verbose):
+        alpha = self.control_args["relaxation"]
+        min_step = self.control_args["minStep"]
+        step_try = step * alpha  # The current step size we're trying to use
+        step_remaining = step  # How much of the time step is left to complete
+
+        ok = -1
+        while step_remaining > self.eps:
+            if step_try < min_step:
+                color = get_random_color()
+                print(
+                    f">>> {self.logo} current step [bold {color}]%.3e[/bold {color}] beyond the min step!\n"
+                    % step_try
+                )
+                return -1
+
+            if step_try > step_remaining:
+                step_try = step_remaining  # avoid overshooting
+
+            # Try to run one substep
+            ok = self._analyze_one_step(step_try, verbose)
+
+            if ok == 0:
+                step_remaining -= step_try
+                # Try to increase next step size by relaxing alpha
+                step_try = step_remaining
+            else:
+                step_try *= alpha
+                if verbose:
+                    color = get_random_color()
+                    print(
+                        f">>> {self.logo} Dividing the current step [bold {color}]%.3e into %.3e and %.3e[/bold {color}]\n"
+                        % (step, step_try, step_remaining)
+                    )
+        return ok
+
+    def _try_loose_test_tol(self, step, verbose):
+        if not self.control_args["tryLooseTestTol"]:
+            return -1
+        if verbose:
+            color = get_random_color()
+            print(
+                f"!!! {self.logo} Warning: [bold {color}]Loosing test tolerance[/bold {color}]\n"
+            )
+        ops.test(
+            self.control_args["testType"],
+            self.control_args["looseTestTolTo"],
+            self.control_args["testIterTimes"],
+            self.control_args["testPrintFlag"]
+        )
+        return self._analyze_one_step(step, verbose)
 
     def _setAlgorithm(self, algotype, user_algo_args: list = None):
         color = get_random_color()
