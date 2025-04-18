@@ -47,6 +47,8 @@ class PlaneRespStepData(ResponseBase):
             stressDOFs = ["sigma11", "sigma22", "sigma12"]
         elif ndofs == 5:
             stressDOFs = ["sigma11", "sigma22", "sigma12", "sigma33", "eta_r"]
+        elif ndofs == 4:
+            stressDOFs = ["sigma11", "sigma22", "sigma12", "sigma33"]
         else:
             stressDOFs = [f"sigma{i+1}" for i in range(ndofs)]
         strainDOFs = ["eps11", "eps22", "eps12"]
@@ -174,6 +176,8 @@ def _reshape_stress(stress):
         # σxx, σyy, σzz, σxy, ηr, where ηr is the ratio between the shear (deviatoric) stress and peak
         # shear strength at the current confinement (0<=ηr<=1.0).
         stress = [stress[0], stress[1], stress[3], stress[2], stress[4]]
+    elif len(stress) == 4:
+        stress = [stress[0], stress[1], stress[3], stress[2]]
     return stress
 
 
