@@ -3,10 +3,28 @@ import time
 
 import numpy as np
 import openseespy.opensees as ops
-from rich import print
 from typing import Union
+from rich import print
+from rich.progress import (
+    Progress,
+    TextColumn,
+    BarColumn,
+    ProgressColumn,
+)
+from rich.console import RenderableType
 
 from ..utils import get_random_color
+
+
+class HHMMSSMSColumn(ProgressColumn):
+    def render(self, task) -> RenderableType:
+        t = task.elapsed or 0.0
+        total_ms = int(t * 1000)
+        hours = total_ms // (3600 * 1000)
+        minutes = (total_ms // (60 * 1000)) % 60
+        seconds = (total_ms // 1000) % 60
+        millis = total_ms % 1000
+        return f"{hours:02} h:{minutes:02} m:{seconds:02} s:{millis:03} ms"
 
 
 class SmartAnalyze:
@@ -45,7 +63,7 @@ class SmartAnalyze:
         Only useful when tryAddTestTimes is True.
         If unconverged, the last norm of test will be compared to `normTol`.
         If the norm is smaller, the number of test times will be enlarged.
-    testIterTimesMore: int, default=50
+    testIterTimesMore: int or list, default=[50]
         Only useful when tryaddTestTimes is True.
         If unconverge and norm are ok, the test iteration times will be set to this number.
     tryLooseTestTol: bool, default=False
@@ -79,7 +97,7 @@ class SmartAnalyze:
     **Algorithm type flag reference**
 
     .. list-table:: Algorithm type flag reference
-       :widths: 30 30
+       :widths: 10 20
        :header-rows: 1
 
        * - Flags
@@ -180,10 +198,12 @@ class SmartAnalyze:
 
     LOGGING RELATED:
     ===================
+    debugMode: bool, default=False
+        If True, print as much information as possible.
+        If False, the progress bar will be used.
     printPer: int, default=50
         Print to the console every several trials.
-    debugMode: bool, default=False
-        Print as much information as possible.
+        This is only useful when debugMode = True.
 
     Examples
     ---------
@@ -201,11 +221,12 @@ class SmartAnalyze:
     >>> ops.constraints('Transformation')
     >>> ops.numberer('Plain')
     >>> ops.system('BandGeneral')
-    >>> ops.integrator('Newmark', 0.5, 0.25)
+    >>> ops.integrator('Newmark', 0.5, 0.25)  # Dynamic analysis requires external settings
     >>> analysis = opst.anlys.SmartAnalyze(analysis_type="Transient")
     >>> npts, dt = 1000, 0.01
+    >>> # Tells the program the total number of steps, which is necessary for outputting a progress bar
     >>> segs = analysis.transient_split(npts)
-    >>> for seg in segs:
+    >>> for _ in segs:
     >>>     analysis.TransientAnalyze(dt)
 
     Example 2: Basic usage for Static
@@ -214,9 +235,9 @@ class SmartAnalyze:
     >>> ops.constraints('Transformation')
     >>> ops.numberer('Plain')
     >>> ops.system('BandGeneral')
-    >>> protocol=[1, -1, 1, -1, 0]
+    >>> protocol=[0.5, -0.5, 1, -1, 0]  # Load Profile
     >>> analysis = opst.anlys.SmartAnalyze(analysis_type="Static")
-    >>> segs = analysis.static_split(protocol, 0.01)
+    >>> segs = analysis.static_split(protocol, 0.01)  # Use a step size of 0.01 to segment the profile.
     >>> print(segs)
     >>> for seg in segs:
     >>>     analysis.StaticAnalyze(node=1, dof=2, seg=seg)  # node tag 1, dof 2
@@ -224,10 +245,14 @@ class SmartAnalyze:
     Example 3: change control parameters
 
     >>> analysis = opst.anlys.SmartAnalyze(
-    >>>   analysis_type="Transient",
-    >>>   tryAlterAlgoTypes=True,
-    >>>   algoTypes=[40, 30, 20],
-    >>>   printPer=20,
+    >>>    analysis_type="Transient",
+    >>>    tryAlterAlgoTypes=True,
+    >>>    algoTypes=[40, 30, 20],
+    >>>    tryAddTestTimes=True,
+    >>>    testIterTimesMore=[50, 100],
+    >>>    relaxation=0.5,
+    >>>    minStep=1e-5,
+    >>>    printPer=20,
     >>>)
     """
 
@@ -243,7 +268,7 @@ class SmartAnalyze:
             "testPrintFlag": 0,
             "tryAddTestTimes": False,
             "normTol": 1000,
-            "testIterTimesMore": 50,
+            "testIterTimesMore": [50],
             "tryLooseTestTol": False,
             "looseTestTolTo": 1e-3,
             "tryAlterAlgoTypes": False,
@@ -252,8 +277,8 @@ class SmartAnalyze:
             "initialStep": None,
             "relaxation": 0.5,
             "minStep": 1.0e-6,
-            "printPer": 50,
             "debugMode": False,
+            "printPer": 20,
         }
         self.control_args["looseTestTolTo"] = 100 * self.control_args["testTol"]
         for name in kargs.keys():
@@ -264,16 +289,19 @@ class SmartAnalyze:
         self.analysis_type = analysis_type
         self.eps = 1.0e-12
         self.logo = "[bold magenta]SmartAnalyze:[/bold magenta]"
+        self.logo_progress = "[bold magenta]SmartAnalyze"
+        self.logo_analysis_type = f"[bold cerulean]{self.analysis_type}"
+
+        self.debug_mode = self.control_args["debugMode"]
 
         # initial test commands
-        ops.test(
-            self.control_args["testType"],
-            self.control_args["testTol"],
-            self.control_args["testIterTimes"],
-            self.control_args["testPrintFlag"],
-        )
+        self._set_init_test()
         # initial algorithm
-        self._setAlgorithm(self.control_args["algoTypes"][0], self.control_args["UserAlgoArgs"])
+        self._setAlgorithm(
+            self.control_args["algoTypes"][0],
+            self.control_args["UserAlgoArgs"],
+            verbose=self.debug_mode
+        )
 
         # Since the intelligent static analysis may reset the integrator,
         # the sensitivity analysis algorithm needs to be reset
@@ -281,16 +309,33 @@ class SmartAnalyze:
 
         self.current_args = {
             "startTime": time.time(),
-            "algoIndex": 0,
-            "testIterTimes": self.control_args["testIterTimes"],
-            "testTol": self.control_args["testTol"],
             "counter": 0,
             "progress": 0,
-            "segs": 0,
+            "npts": 0,
             "step": 0.0,
             "node": 0,
             "dof": 0,
         }
+
+        self.progress = None
+        self.task = None
+
+    def _set_progress_bar(self, npts):
+        self.progress = Progress(
+            # TextColumn(f"{self.logo_progress} • {{task.description}}"),
+            TextColumn(f"🚀 {self.logo_progress}"),
+            BarColumn(
+                bar_width=40,
+                style="#44475a",
+                complete_style="#ff79c6",
+                finished_style="#6fc276",
+            ),
+            TextColumn("{task.percentage:>3.0f}%", style="bold #6a79f7"),
+            TextColumn("⌛"),
+            HHMMSSMSColumn()
+        )
+        self.progress.start()
+        self.task = self.progress.add_task(self.logo_analysis_type, total=npts)
 
     def transient_split(self, npts: int):
         """Step Segmentation for Transient Analysis.
@@ -306,7 +351,9 @@ class SmartAnalyze:
         -------
         A list to loop.
         """
-        self.current_args["segs"] = npts
+        self.current_args["npts"] = npts
+        if not self.debug_mode and self.progress is None:
+            self._set_progress_bar(npts)
         return list(range(1, npts + 1))
 
     def static_split(self, targets: Union[list, tuple, np.ndarray], maxStep: float = None):
@@ -364,7 +411,9 @@ class SmartAnalyze:
                     segs.append(-maxStep)
                     j += 1
                 segs.append(section + j * maxStep)
-        self.current_args["segs"] = len(segs)
+        self.current_args["npts"] = len(segs)
+        if not self.debug_mode and self.progress is None:
+            self._set_progress_bar(len(segs))
         return segs
 
     def _get_time(self):
@@ -391,15 +440,13 @@ class SmartAnalyze:
         if self.sensitivity_algorithm is not None:
             ops.sensitivityAlgorithm(self.sensitivity_algorithm)
 
-    def TransientAnalyze(self, dt: float, print_info: bool = True):
+    def TransientAnalyze(self, dt: float):
         """Single Step Transient Analysis.
 
         Parameters
         ----------
         dt : float
             Time Step.
-        print_info: bool, default=True
-            If True, print info.
 
         Returns
         -------
@@ -411,9 +458,9 @@ class SmartAnalyze:
 
         ops.analysis(self.control_args["analysis"])
 
-        return self._analyze(print_info)
+        return self._analyze()
 
-    def StaticAnalyze(self, node: int, dof: int, seg: float, print_info: bool = True):
+    def StaticAnalyze(self, node: int, dof: int, seg: float):
         """Single step static analysis and applies to displacement control only.
 
         Parameters
@@ -424,8 +471,6 @@ class SmartAnalyze:
             The dof in the displacement control.
         seg : float
             Each load step, i.e., each element returned by static_split.
-        print_info: bool, default=True
-            If True, print info.
 
         Returns
         -------
@@ -444,11 +489,14 @@ class SmartAnalyze:
         # reset sensitivity analysis algorithm
         self._run_sensitivity_algorithm()
 
-        return self._analyze(print_info)
+        return self._analyze()
 
-    def _analyze(self, verbose):
+    def _analyze(self):
         initial_step = self.control_args["initialStep"]
-        ok = self._analyze_one_step(initial_step, verbose)
+        verbose = True if self.debug_mode else False
+
+        ok = self._analyze_one_step(initial_step)
+
         if ok < 0:
             ok = self._try_add_test_times(initial_step, verbose)
         if ok < 0:
@@ -462,47 +510,63 @@ class SmartAnalyze:
             color = get_random_color()
             value = f"[bold {color}]{self._get_time():.3f}[/bold {color}]"
             print(f">>> {self.logo} Analyze failed. Time consumption: {value} s.")
+
+            if self.progress is not None:
+                self.progress.stop()
+
             return ok
 
         self.current_args["progress"] += 1
         self.current_args["counter"] += 1
-        print_info = True if self.control_args["debugMode"] else verbose
-        if print_info:
-            if self.current_args["segs"] > 0:
-                color = get_random_color()
-                if self.control_args["debugMode"]:
-                    value1 = f"[bold {color}]{100 * self.current_args['progress'] / self.current_args['segs']:.3f}[/bold {color}]"
+
+        color = get_random_color()
+
+        if verbose:
+            if self.current_args["counter"] >= self.control_args["printPer"]:
+                if self.current_args["npts"] > 0:
+                    # value1 = f"[bold {color}]{100 * self.current_args['progress'] / self.current_args['segs']:.3f}[/bold {color}]"
+                    # value2 = f"[bold {color}]{self._get_time():.3f}[/bold {color}]"
+                    # print(
+                    #     f"* {self.logo} progress {value1} %. Time consumption: {value2} s."
+                    # )
+                    value1 = f"[bold {color}]{100 * self.current_args['progress'] / self.current_args['npts']:.3f}[/bold {color}]"
                     value2 = f"[bold {color}]{self._get_time():.3f}[/bold {color}]"
                     print(
                         f"* {self.logo} progress {value1} %. Time consumption: {value2} s."
                     )
-                elif self.current_args["counter"] >= self.control_args["printPer"]:
-                    value1 = f"[bold {color}]{100 * self.current_args['progress'] / self.current_args['segs']:.3f}[/bold {color}]"
+                else:
+                    value1 = self.current_args["progress"]
                     value2 = f"[bold {color}]{self._get_time():.3f}[/bold {color}]"
-                    print(
-                        f"* {self.logo} progress {value1} %. Time consumption: {value2} s."
-                    )
-                    self.current_args["counter"] = 0
+                    print(f"* {self.logo} progress {value1} steps. Time consumption: {value2} s.")
+                self.current_args["counter"] = 0
+
+        if self.progress is not None:
+            self.progress.advance(self.task, advance=1)
 
         # Finally
-        if (self.current_args["segs"] > 0) and (
-                self.current_args["progress"] >= self.current_args["segs"]
+        if (self.current_args["npts"] > 0) and (
+                self.current_args["progress"] >= self.current_args["npts"]
         ):
             color = get_random_color()
             value = f"[bold {color}]{self._get_time():.3f}[/bold {color}]"
             print(
                 f">>> {self.logo} [{color}]Successfully finished[/{color}]! Time consumption: {value} s."
             )
+
+            if self.progress is not None:
+                self.progress.update(self.task, completed=self.current_args["npts"])
+                time.sleep(0.1)  # flush
+                self.progress.stop()
         return 0
 
-    def _analyze_one_step(self, step: float, verbose: bool):
+    # def close(self):
+    #     if not self.debug_mode:
+    #         self.progress.update(self.task, completed=self.current_args["progress"])
+    #         time.sleep(0.05)  # flush
+    #         self.progress.stop()
+
+    def _analyze_one_step(self, step: float):
         if self.analysis_type == "Static":
-            if verbose:
-                color = get_random_color()
-                print(
-                    f">>> {self.logo} Setting step to [bold {color}]%.3e[/bold {color}]\n"
-                    % step
-                )
             ops.integrator(
                 "DisplacementControl",
                 self.current_args["node"],
@@ -524,36 +588,40 @@ class SmartAnalyze:
     def _try_add_test_times(self, step, verbose):
         if not self.control_args["tryAddTestTimes"]:
             return -1
-        norm = ops.testNorm()
-        color = get_random_color()
-        if norm[-1] < self.control_args["normTol"]:
-            if verbose:
-                print(
-                    f">>> {self.logo} Adding test times to [bold {color}]%i[/bold {color}].\n"
-                    % (self.control_args["testIterTimesMore"])
-                )
-            ops.test(
-                self.control_args["testType"],
-                self.control_args["testTol"],
-                self.control_args["testIterTimesMore"],
-                self.control_args["testPrintFlag"]
-            )
-            ok = self._analyze_one_step(step, verbose)
-            if ok < 0:  # reback
+        times = self.control_args["testIterTimesMore"]
+        if isinstance(times, (int, float)):
+            times = [int(times)]
+
+        ok = -1
+        for num in times:
+            norm = ops.testNorm()
+            if norm[-1] < self.control_args["normTol"]:
+                if verbose:
+                    color = get_random_color()
+                    print(
+                        f">>> {self.logo} Adding test times to [bold {color}]{num}[/bold {color}].\n"
+                    )
                 ops.test(
                     self.control_args["testType"],
                     self.control_args["testTol"],
-                    self.control_args["testIterTimes"],
+                    num,
                     self.control_args["testPrintFlag"]
                 )
-            return ok
-        else:
-            if verbose:
-                print(
-                    f">>> {self.logo} Not adding test times for norm [bold {color}]%.3e[/bold {color}].\n"
-                    % (norm[-1])
-                )
-            return -1
+                ok = self._analyze_one_step(step)
+
+                if ok == 0:
+                    self._set_init_test()
+                    return ok
+            else:
+                if verbose:
+                    color = get_random_color()
+                    print(
+                        f">>> {self.logo} Not adding test times for norm [bold {color}]%.3e[/bold {color}].\n"
+                        % (norm[-1])
+                    )
+        # goback
+        self._set_init_test()
+        return ok
 
     def _try_alter_algo_types(self, step, verbose):
         if not self.control_args["tryAlterAlgoTypes"]:
@@ -572,15 +640,17 @@ class SmartAnalyze:
                 )
             self._setAlgorithm(
                 algo_flag,
-                self.control_args["UserAlgoArgs"]
+                self.control_args["UserAlgoArgs"],
+                verbose=self.debug_mode
             )
-            ok = self._analyze_one_step(step, verbose)
+            ok = self._analyze_one_step(step)
             if ok == 0:
-                break
-        if ok < 0:  # reback
+                return ok
+        if ok < 0:  # goback
             self._setAlgorithm(
                 self.control_args["algoTypes"][0],
-                self.control_args["UserAlgoArgs"]
+                self.control_args["UserAlgoArgs"],
+                verbose=self.debug_mode
             )
         return ok
 
@@ -589,6 +659,13 @@ class SmartAnalyze:
         min_step = self.control_args["minStep"]
         step_try = step * alpha  # The current step size we're trying to use
         step_remaining = step  # How much of the time step is left to complete
+
+        if verbose:
+            color = get_random_color()
+            print(
+                f">>> {self.logo} Dividing the current step [bold {color}]%.3e into %.3e and %.3e[/bold {color}]\n"
+                % (step, step_try, step_remaining)
+            )
 
         ok = -1
         while step_remaining > self.eps:
@@ -604,7 +681,7 @@ class SmartAnalyze:
                 step_try = step_remaining  # avoid overshooting
 
             # Try to run one substep
-            ok = self._analyze_one_step(step_try, verbose)
+            ok = self._analyze_one_step(step_try)
 
             if ok == 0:
                 step_remaining -= step_try
@@ -626,7 +703,8 @@ class SmartAnalyze:
         if verbose:
             color = get_random_color()
             print(
-                f"!!! {self.logo} Warning: [bold {color}]Loosing test tolerance[/bold {color}]\n"
+                f"!!! {self.logo} Warning: [bold {color}]Loosing test tolerance to "
+                f"{self.control_args["looseTestTolTo"]}[/bold {color}]\n"
             )
         ops.test(
             self.control_args["testType"],
@@ -634,170 +712,208 @@ class SmartAnalyze:
             self.control_args["testIterTimes"],
             self.control_args["testPrintFlag"]
         )
-        return self._analyze_one_step(step, verbose)
+        ok =  self._analyze_one_step(step)
 
-    def _setAlgorithm(self, algotype, user_algo_args: list = None):
+        # goback whenever
+        self._set_init_test()
+
+        return ok
+
+    def _set_init_test(self):
+        ops.test(
+            self.control_args["testType"],
+            self.control_args["testTol"],
+            self.control_args["testIterTimes"],
+            self.control_args["testPrintFlag"],
+        )
+
+    def _setAlgorithm(self, algotype, user_algo_args: list = None, verbose=True):
         color = get_random_color()
 
         def case0():
-            print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]Linear ...[/bold {color}]"
-            )
+            if verbose:
+                print(
+                    f"> {self.logo} Setting algorithm to  [bold {color}]Linear ...[/bold {color}]"
+                )
             ops.algorithm("Linear")
 
         def case1():
-            print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]Linear -initial ...[/bold {color}]"
-            )
+            if verbose:
+                print(
+                    f"> {self.logo} Setting algorithm to  [bold {color}]Linear -initial ...[/bold {color}]"
+                )
             ops.algorithm("Linear", "-Initial")
 
         def case2():
-            print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]Linear -secant ...[/bold {color}]"
-            )
+            if verbose:
+                print(
+                    f"> {self.logo} Setting algorithm to  [bold {color}]Linear -secant ...[/bold {color}]"
+                )
             ops.algorithm("Linear", "-Secant")
 
         def case3():
-            print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]Linear -factorOnce ...[/bold {color}]"
-            )
+            if verbose:
+                print(
+                    f"> {self.logo} Setting algorithm to  [bold {color}]Linear -factorOnce ...[/bold {color}]"
+                )
             ops.algorithm("Linear", "-FactorOnce")
 
         def case4():
-            print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]Linear -initial -factorOnce ...[/bold {color}]"
-            )
+            if verbose:
+                print(
+                    f"> {self.logo} Setting algorithm to  [bold {color}]Linear -initial -factorOnce ...[/bold {color}]"
+                )
             ops.algorithm("Linear", "-Initial", "-FactorOnce")
 
         def case5():
-            print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]Linear -secant -factorOnce ...[/bold {color}]"
-            )
+            if verbose:
+                print(
+                    f"> {self.logo} Setting algorithm to  [bold {color}]Linear -secant -factorOnce ...[/bold {color}]"
+                )
             ops.algorithm("Linear", "-Secant", "-FactorOnce")
 
         def case10():
-            print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]Newton ...[/bold {color}]"
-            )
+            if verbose:
+                print(
+                    f"> {self.logo} Setting algorithm to  [bold {color}]Newton ...[/bold {color}]"
+                )
             ops.algorithm("Newton")
 
         def case11():
-            print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]Newton -initial ...[/bold {color}]"
-            )
+            if verbose:
+                print(
+                    f"> {self.logo} Setting algorithm to  [bold {color}]Newton -initial ...[/bold {color}]"
+                )
             ops.algorithm("Newton", "-Initial")
 
         def case12():
-            print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]Newton -initialThenCurrent ...[/bold {color}]"
-            )
+            if verbose:
+                print(
+                    f"> {self.logo} Setting algorithm to  [bold {color}]Newton -initialThenCurrent ...[/bold {color}]"
+                )
             ops.algorithm("Newton", "-intialThenCurrent")
 
         def case13():
-            print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]Newton -Secant ...[/bold {color}]"
-            )
+            if verbose:
+                print(
+                    f"> {self.logo} Setting algorithm to  [bold {color}]Newton -Secant ...[/bold {color}]"
+                )
             ops.algorithm("Newton", "-Secant")
 
         def case20():
-            print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]NewtonLineSearch ...[/bold {color}]"
-            )
+            if verbose:
+                print(
+                    f"> {self.logo} Setting algorithm to  [bold {color}]NewtonLineSearch ...[/bold {color}]"
+                )
             ops.algorithm("NewtonLineSearch")
 
         def case21():
-            print(
-                f"> {self.logo} Setting algorithm to "
-                f"[bold {color}]NewtonLineSearch -type Bisection ...[/bold {color}]"
-            )
+            if verbose:
+                print(
+                    f"> {self.logo} Setting algorithm to "
+                    f"[bold {color}]NewtonLineSearch -type Bisection ...[/bold {color}]"
+                )
             ops.algorithm("NewtonLineSearch", "-type", "Bisection")
 
         def case22():
-            print(
-                f"> {self.logo} Setting algorithm to "
-                f"[bold {color}]NewtonLineSearch -type Secant ...[/bold {color}]"
-            )
+            if verbose:
+                print(
+                    f"> {self.logo} Setting algorithm to "
+                    f"[bold {color}]NewtonLineSearch -type Secant ...[/bold {color}]"
+                )
             ops.algorithm("NewtonLineSearch", "-type", "Secant")
 
         def case23():
-            print(
-                f"> {self.logo} Setting algorithm to "
-                f"[bold {color}]NewtonLineSearch -type RegulaFalsi ...[/bold {color}]"
-            )
+            if verbose:
+                print(
+                    f"> {self.logo} Setting algorithm to "
+                    f"[bold {color}]NewtonLineSearch -type RegulaFalsi ...[/bold {color}]"
+                )
             ops.algorithm("NewtonLineSearch", "-type", "RegulaFalsi")
 
         def case24():
-            print(
-                f"> {self.logo} Setting algorithm to "
-                f"[bold {color}]NewtonLineSearch -type LinearInterpolated ...[/bold {color}]"
-            )
+            if verbose:
+                print(
+                    f"> {self.logo} Setting algorithm to "
+                    f"[bold {color}]NewtonLineSearch -type LinearInterpolated ...[/bold {color}]"
+                )
             ops.algorithm("NewtonLineSearch", "-type", "LinearInterpolated")
 
         def case25():
-            print(
-                f"> {self.logo} Setting algorithm to "
-                f"[bold {color}]NewtonLineSearch -type InitialInterpolated ...[/bold {color}]"
-            )
+            if verbose:
+                print(
+                    f"> {self.logo} Setting algorithm to "
+                    f"[bold {color}]NewtonLineSearch -type InitialInterpolated ...[/bold {color}]"
+                )
             ops.algorithm("NewtonLineSearch", "-type", "InitialInterpolated")
 
         def case30():
-            print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]Modified Newton ...[/bold {color}]"
-            )
+            if verbose:
+                print(
+                    f"> {self.logo} Setting algorithm to  [bold {color}]Modified Newton ...[/bold {color}]"
+                )
             ops.algorithm("ModifiedNewton")
 
         def case31():
-            print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]ModifiedNewton -initial ...[/bold {color}]"
-            )
+            if verbose:
+                print(
+                    f"> {self.logo} Setting algorithm to  [bold {color}]ModifiedNewton -initial ...[/bold {color}]"
+                )
             ops.algorithm("ModifiedNewton", "-initial")
 
         def case32():
-            print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]ModifiedNewton -secant ...[/bold {color}]"
-            )
+            if verbose:
+                print(
+                    f"> {self.logo} Setting algorithm to  [bold {color}]ModifiedNewton -secant ...[/bold {color}]"
+                )
             ops.algorithm("ModifiedNewton", "-secant")
 
         def case40():
-            print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]KrylovNewton ...[/bold {color}]"
-            )
+            if verbose:
+                print(
+                    f"> {self.logo} Setting algorithm to  [bold {color}]KrylovNewton ...[/bold {color}]"
+                )
             ops.algorithm("KrylovNewton")
 
         def case41():
-            print(
-                f"> {self.logo} Setting algorithm to "
-                f"[bold {color}]KrylovNewton -iterate initial ...[/bold {color}]"
-            )
+            if verbose:
+                print(
+                    f"> {self.logo} Setting algorithm to "
+                    f"[bold {color}]KrylovNewton -iterate initial ...[/bold {color}]"
+                )
             ops.algorithm("KrylovNewton", "-iterate", "initial")
 
         def case42():
-            print(
-                f"> {self.logo} Setting algorithm to "
-                f"[bold {color}]KrylovNewton -increment initial ...[/bold {color}]"
-            )
+            if verbose:
+                print(
+                    f"> {self.logo} Setting algorithm to "
+                    f"[bold {color}]KrylovNewton -increment initial ...[/bold {color}]"
+                )
             ops.algorithm("KrylovNewton", "-increment", "initial")
 
         def case43():
-            print(
-                f"> {self.logo} Setting algorithm to "
-                f"[bold {color}]KrylovNewton -iterate initial -increment initial ...[/bold {color}]"
-            )
+            if verbose:
+                print(
+                    f"> {self.logo} Setting algorithm to "
+                    f"[bold {color}]KrylovNewton -iterate initial -increment initial ...[/bold {color}]"
+                )
             ops.algorithm(
                 "KrylovNewton", "-iterate", "initial", "-increment", "initial"
             )
 
         def case44():
-            print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]KrylovNewton -maxDim 10[/bold {color}]"
-            )
+            if verbose:
+                print(
+                    f"> {self.logo} Setting algorithm to  [bold {color}]KrylovNewton -maxDim 10[/bold {color}]"
+                )
             ops.algorithm("KrylovNewton", "-maxDim", 10)
 
         def case45():
-            print(
-                f"> {self.logo} Setting algorithm to "
-                f"[bold {color}]KrylovNewton -iterate initial -increment initial -maxDim 10[/bold {color}]"
-            )
+            if verbose:
+                print(
+                    f"> {self.logo} Setting algorithm to "
+                    f"[bold {color}]KrylovNewton -iterate initial -increment initial -maxDim 10[/bold {color}]"
+                )
             ops.algorithm(
                 "KrylovNewton",
                 "-iterate",
@@ -809,96 +925,114 @@ class SmartAnalyze:
             )
 
         def case50():
-            print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]SecantNewton ...[/bold {color}]"
-            )
+            if verbose:
+                print(
+                    f"> {self.logo} Setting algorithm to  [bold {color}]SecantNewton ...[/bold {color}]"
+                )
             ops.algorithm("SecantNewton")
 
         def case51():
-            print(
-                f"> {self.logo} Setting algorithm to "
-                f"[bold {color}]SecantNewton -iterate initial ...[/bold {color}]"
-            )
+            if verbose:
+                print(
+                    f"> {self.logo} Setting algorithm to "
+                    f"[bold {color}]SecantNewton -iterate initial ...[/bold {color}]"
+                )
             ops.algorithm("SecantNewton", "-iterate", "initial")
 
         def case52():
-            print(
-                f"> {self.logo} Setting algorithm to "
-                f"[bold {color}]SecantNewton -increment initial  ...[/bold {color}]"
-            )
+            if verbose:
+                print(
+                    f"> {self.logo} Setting algorithm to "
+                    f"[bold {color}]SecantNewton -increment initial  ...[/bold {color}]"
+                )
             ops.algorithm("SecantNewton", "-increment", "initial")
 
         def case53():
-            print(
-                f"> {self.logo} Setting algorithm to "
-                f"[bold {color}]SecantNewton -iterate initial -increment initial ...[/bold {color}]"
-            )
+            if verbose:
+                print(
+                    f"> {self.logo} Setting algorithm to "
+                    f"[bold {color}]SecantNewton -iterate initial -increment initial ...[/bold {color}]"
+                )
             ops.algorithm(
                 "SecantNewton", "-iterate", "initial", "-increment", "initial"
             )
 
         def case60():
-            print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]BFGS ...[/bold {color}]"
-            )
+            if verbose:
+                print(
+                    f"> {self.logo} Setting algorithm to  [bold {color}]BFGS ...[/bold {color}]"
+                )
             ops.algorithm("BFGS")
 
         def case61():
-            print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]BFGS -initial...[/bold {color}]"
-            )
+            if verbose:
+                print(
+                    f"> {self.logo} Setting algorithm to  [bold {color}]BFGS -initial...[/bold {color}]"
+                )
             ops.algorithm("BFGS", "-initial")
 
         def case62():
-            print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]BFGS -secant ...[/bold {color}]"
-            )
+            if verbose:
+                print(
+                    f"> {self.logo} Setting algorithm to  [bold {color}]BFGS -secant ...[/bold {color}]"
+                )
             ops.algorithm("BFGS", "-secant")
 
         def case70():
-            print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]Broyden ...[/bold {color}]"
-            )
+            if verbose:
+                print(
+                    f"> {self.logo} Setting algorithm to  [bold {color}]Broyden ...[/bold {color}]"
+                )
             ops.algorithm("Broyden")
 
         def case71():
-            print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]Broyden -initial ...[/bold {color}]"
-            )
+            if verbose:
+                print(
+                    f"> {self.logo} Setting algorithm to  [bold {color}]Broyden -initial ...[/bold {color}]"
+                )
             ops.algorithm("Broyden", "-initial")
 
         def case72():
-            print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]Broyden -secant ...[/bold {color}]"
-            )
+            if verbose:
+                print(
+                    f"> {self.logo} Setting algorithm to  [bold {color}]Broyden -secant ...[/bold {color}]"
+                )
             ops.algorithm("Broyden", "-secant")
 
         def case80():
-            print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]PeriodicNewton ...[/bold {color}]"
-            )
+            if verbose:
+                print(
+                    f"> {self.logo} Setting algorithm to  [bold {color}]PeriodicNewton ...[/bold {color}]"
+                )
             ops.algorithm("PeriodicNewton")
 
         def case81():
-            print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]PeriodicNewton -maxDim, 10 ...[/bold {color}]"
-            )
+            if verbose:
+                print(
+                    f"> {self.logo} Setting algorithm to  [bold {color}]PeriodicNewton -maxDim, 10 ...[/bold {color}]"
+                )
             ops.algorithm("PeriodicNewton", "-maxDim", 10)
 
         def case90():
-            print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]ExpressNewton ...[/bold {color}]"
-            )
+            if verbose:
+                print(
+                    f"> {self.logo} Setting algorithm to  [bold {color}]ExpressNewton ...[/bold {color}]"
+                )
             ops.algorithm("ExpressNewton")
 
         def case91():
-            print(
-                f"> {self.logo} Setting algorithm to  [bold {color}]ExpressNewton -InitialTangent ...[/bold {color}]"
-            )
+            if verbose:
+                print(
+                    f"> {self.logo} Setting algorithm to  [bold {color}]ExpressNewton -InitialTangent ...[/bold {color}]"
+                )
             ops.algorithm("ExpressNewton", "-InitialTangent")
 
         def case100():
             # User algorithm0
+            if verbose:
+                print(
+                    f"> {self.logo} Setting algorithm to User Algorithm: [bold {color}]{user_algo_args} ...[/bold {color}]"
+                )
             if user_algo_args is not None:
                 ops.algorithm(*user_algo_args)
 
