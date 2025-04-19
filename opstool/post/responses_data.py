@@ -521,7 +521,7 @@ def get_model_data(
         Tag of output databases (ODB) to be read.
     data_type: str, default: Nodal
         Type of data to be read.
-        Optional: "Nodal"
+        Optional: "Nodal", "Frame", "Link", "Truss", "Shell", "Plane", "Brick".
     from_responses: bool, default: False
         Whether to read data from response data.
         If True, the data will be read from the response data file.
@@ -533,6 +533,20 @@ def get_model_data(
     """
     if data_type.lower() == "nodal":
         data_type = "NodalData"
+    elif data_type.lower() in ["frame", "beam"]:
+        data_type = "BeamData"
+    elif data_type.lower() == "link":
+        data_type = "LinkData"
+    elif data_type.lower() == "truss":
+        data_type = "TrussData"
+    elif data_type.lower() == "link":
+        data_type = "LinkData"
+    elif data_type.lower() == "shell":
+        data_type = "ShellData"
+    elif data_type.lower() == "plane":
+        data_type = "PlaneData"
+    elif data_type.lower() in ["brick", "solid"]:
+        data_type = "BrickData"
     else:
         raise ValueError(f"Data type {data_type} not found.")
     if from_responses:
