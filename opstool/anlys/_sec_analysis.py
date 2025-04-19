@@ -4,6 +4,7 @@ import xarray as xr
 import openseespy.opensees as ops
 from typing import Union
 from warnings import warn
+from scipy.integrate import trapezoid
 
 from ._smart_analyze import SmartAnalyze
 
@@ -72,6 +73,7 @@ class MomentCurvature:
             smart_analyze=smart_analyze,
             debug=debug,
         )
+        print("MomentCurvature: 🎉 Successfully finished! 🎉")
 
     def set_cycle_path(self, max_phi: float, n_cycle: int = 20, n_hold: int = 1):
         """set a deformation cycle path.
@@ -360,7 +362,7 @@ class MomentCurvature:
         phi = self.phi
         M = self.M
         bu = np.argmin(np.abs(phiu - phi))
-        Q = np.trapezoid(M[: bu + 1], phi[: bu + 1])
+        Q = trapezoid(M[: bu + 1], phi[: bu + 1])
         k = My / phiy
         Phi_eq = (k * phiu - np.sqrt((k * phiu) ** 2 - 2 * k * Q)) / k
         M_eq = k * Phi_eq
@@ -498,7 +500,7 @@ def _analyze(
         analysis = SmartAnalyze(analysis_type="Static", **userControl)
         segs = analysis.static_split(protocol, maxStep=incr_phi)
         for seg in segs:
-            ok = analysis.StaticAnalyze(2, dof, seg, print_info=False)
+            ok = analysis.StaticAnalyze(2, dof, seg)
             curr_M = ops.getLoadFactor(2)
             curr_Phi = ops.nodeDisp(2, dof)
             cond1 = False
@@ -510,9 +512,11 @@ def _analyze(
             M.append(curr_M)
             FIBER_RESPONSES.append(_get_fiber_sec_data(ele_tag=1))
             if cond1 or cond2:
+                analysis.close()
                 break
             if ok < 0:
                 raise RuntimeError("Analysis failed!")
+        analysis.close()
     else:
         if cycle:
             protocol = []
