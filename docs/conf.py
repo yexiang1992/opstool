@@ -80,6 +80,7 @@ html_theme = "furo"
 html_static_path = ["_static"]
 html_css_files = ["_css/shared.css"]
 html_css_files += ["_css/furo.css"]
+# html_css_files += ["_css/collapse_output.css"]
 html_favicon = "_static/logo.png"
 html_theme_options = {
     "light_logo": "logo-light.png",  # add light mode logo
