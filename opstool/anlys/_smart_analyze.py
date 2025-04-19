@@ -350,6 +350,14 @@ class SmartAnalyze:
         self.progress.start()
         self.task = self.progress.add_task(self.logo_analysis_type, total=npts)
 
+    def _stop_progress_bar(self):
+        if self.progress is not None:
+            self.progress.update(self.task, completed=self.current_args["progress"])
+            time.sleep(0.1)  # flush
+            self.progress.stop()
+        self.progress = None
+        self.task = None
+
     def transient_split(self, npts: int):
         """Step Segmentation for Transient Analysis.
         The main purpose of this function is to tell the program the total number of analysis steps to show progress.
@@ -545,12 +553,12 @@ class SmartAnalyze:
                     value1 = f"[bold {color}]{100 * self.current_args['progress'] / self.current_args['npts']:.3f}[/bold {color}]"
                     value2 = f"[bold {color}]{self._get_time():.3f}[/bold {color}]"
                     print(
-                        f">>> :hourglass: {self.logo} progress {value1} %. Time consumption: {value2} s."
+                        f">>> ✅ {self.logo} progress {value1} %. Time consumption: {value2} s."
                     )
                 else:
                     value1 = self.current_args["progress"]
                     value2 = f"[bold {color}]{self._get_time():.3f}[/bold {color}]"
-                    print(f">>> :hourglass: {self.logo} progress {value1} steps. Time consumption: {value2} s.")
+                    print(f">>> ✅ {self.logo} progress {value1} steps. Time consumption: {value2} s.")
                 self.current_args["counter"] = 0
 
         if self.progress is not None:
@@ -562,10 +570,7 @@ class SmartAnalyze:
         ):
             color = get_random_color()
 
-            if self.progress is not None:
-                self.progress.update(self.task, completed=self.current_args["npts"])
-                time.sleep(0.1)  # flush
-                self.progress.stop()
+            self._stop_progress_bar()
 
             value = f"[bold {color}]{self._get_time():.3f}[/bold {color}]"
             print(
@@ -573,11 +578,13 @@ class SmartAnalyze:
             )
         return 0
 
-    # def close(self):
-    #     if not self.debug_mode:
-    #         self.progress.update(self.task, completed=self.current_args["progress"])
-    #         time.sleep(0.05)  # flush
-    #         self.progress.stop()
+    def close(self):
+        """Close the class.
+
+        Returns:
+            None
+        """
+        self._stop_progress_bar()
 
     def _analyze_one_step(self, step: float, verbose):
         if self.analysis_type == "Static":
@@ -614,7 +621,7 @@ class SmartAnalyze:
                 if verbose:
                     color = get_random_color()
                     print(
-                        f">>> :gear: {self.logo} Adding test times to [bold {color}]{num}[/bold {color}]."
+                        f">>> ▶️ {self.logo} Adding test times to [bold {color}]{num}[/bold {color}]."
                     )
                 ops.test(
                     self.control_args["testType"],
@@ -631,7 +638,7 @@ class SmartAnalyze:
                 if verbose:
                     color = get_random_color()
                     print(
-                        f">>> :gear: {self.logo} Not adding test times for norm [bold {color}]%.3e[/bold {color}]."
+                        f">>> ▶️ {self.logo} Not adding test times for norm [bold {color}]%.3e[/bold {color}]."
                         % (norm[-1])
                     )
         # goback
@@ -650,7 +657,7 @@ class SmartAnalyze:
             color = get_random_color()
             if verbose:
                 print(
-                    f">>> :gear: {self.logo} Setting algorithm to "
+                    f">>> ▶️ {self.logo} Setting algorithm to "
                     f"[bold {color}]{algo_flag}[/bold {color}]."
                 )
             self._setAlgorithm(
@@ -678,7 +685,7 @@ class SmartAnalyze:
         if verbose:
             color = get_random_color()
             print(
-                f">>> :gear: {self.logo} Dividing the current step [bold {color}]{step:.3e}[/bold {color}] "
+                f">>> ▶️ {self.logo} Dividing the current step [bold {color}]{step:.3e}[/bold {color}] "
                 f"into [bold {color}]{step_try:.3e}[/bold {color}] and [bold {color}]{step-step_try:.3e}[/bold {color}]"
             )
 
@@ -687,7 +694,7 @@ class SmartAnalyze:
             if step_try < min_step:
                 color = get_random_color()
                 print(
-                    f">>> :gear: {self.logo} Current step [bold {color}]%.3e[/bold {color}] beyond the min step!"
+                    f">>> ▶️ {self.logo} Current step [bold {color}]%.3e[/bold {color}] beyond the min step!"
                     % step_try
                 )
                 return -1
@@ -705,7 +712,7 @@ class SmartAnalyze:
                 if verbose:
                     color = get_random_color()
                     print(
-                        f">>> :gear: {self.logo} Current total step size [bold {color}]{step}[/bold {color}], "
+                        f">>> ▶️ {self.logo} Current total step size [bold {color}]{step}[/bold {color}], "
                         f"completed sub-step size [bold {color}]{step-step_remaining}[/bold {color}], "
                         f"remaining sub-step size [bold {color}]{step_remaining}[/bold {color}]"
                     )
@@ -714,7 +721,7 @@ class SmartAnalyze:
                 if verbose:
                     color = get_random_color()
                     print(
-                        f">>> :gear: {self.logo} Dividing the current step [bold {color}]{step_try/alpha:.3e}[/bold {color}] "
+                        f">>> ▶️ {self.logo} Dividing the current step [bold {color}]{step_try/alpha:.3e}[/bold {color}] "
                         f"into [bold {color}]{step_try:.3e}[/bold {color}] and "
                         f"[bold {color}]{step_try/alpha-step_try:.3e}[/bold {color}]"
                     )
@@ -726,7 +733,7 @@ class SmartAnalyze:
         if verbose:
             color = get_random_color()
             print(
-                f">>> :warning: {self.logo} Warning: [bold {color}]Loosing test tolerance to "
+                f">>> ⚠️ {self.logo} Warning: [bold {color}]Loosing test tolerance to "
                 f"{self.control_args["looseTestTolTo"]}[/bold {color}]"
             )
         ops.test(
@@ -752,7 +759,7 @@ class SmartAnalyze:
 
     def _setAlgorithm(self, algotype, user_algo_args: list = None, verbose=True):
         color = get_random_color()
-        prefix = ">>> :gear:"
+        prefix = ">>> ▶️"
 
         def case0():
             if verbose:
