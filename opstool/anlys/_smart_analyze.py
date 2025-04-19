@@ -12,8 +12,19 @@ from rich.progress import (
     ProgressColumn,
 )
 from rich.console import RenderableType
+from contextlib import contextmanager
 
 from ..utils import get_random_color
+
+
+LOG_FILE = '.SmartAnalyze-OpenSees.log'
+@contextmanager
+def suppress_ops_print(verbose=False):
+    if not verbose:
+        ops.logFile(LOG_FILE, '-noEcho')
+    # else:
+    #     ops.logFile(LOG_FILE)
+    yield
 
 
 class HHMMSSMSColumn(ProgressColumn):
@@ -24,7 +35,7 @@ class HHMMSSMSColumn(ProgressColumn):
         minutes = (total_ms // (60 * 1000)) % 60
         seconds = (total_ms // 1000) % 60
         millis = total_ms % 1000
-        return f"{hours:02} h:{minutes:02} m:{seconds:02} s:{millis:03} ms"
+        return f"[#037ef3]{hours:02} h : [#f85a40]{minutes:02} m : [#00c16e]{seconds:02} s : [#7552cc]{millis:03} ms"
 
 
 class SmartAnalyze:
@@ -201,6 +212,8 @@ class SmartAnalyze:
     debugMode: bool, default=False
         If True, print as much information as possible.
         If False, the progress bar will be used.
+        If False, a log file named '.SmartAnalyze-OpenSees.log'
+        will be generated to store the information printed by OpenSees.
     printPer: int, default=50
         Print to the console every several trials.
         This is only useful when debugMode = True.
@@ -323,7 +336,7 @@ class SmartAnalyze:
     def _set_progress_bar(self, npts):
         self.progress = Progress(
             # TextColumn(f"{self.logo_progress} • {{task.description}}"),
-            TextColumn(f"🚀 {self.logo_progress}"),
+            TextColumn(f":rocket: {self.logo_progress}"),
             BarColumn(
                 bar_width=40,
                 style="#44475a",
@@ -331,8 +344,8 @@ class SmartAnalyze:
                 finished_style="#6fc276",
             ),
             TextColumn("{task.percentage:>3.0f}%", style="bold #6a79f7"),
-            TextColumn("⌛"),
-            HHMMSSMSColumn()
+            TextColumn(":hourglass:"),
+            HHMMSSMSColumn(),
         )
         self.progress.start()
         self.task = self.progress.add_task(self.logo_analysis_type, total=npts)
@@ -495,7 +508,7 @@ class SmartAnalyze:
         initial_step = self.control_args["initialStep"]
         verbose = True if self.debug_mode else False
 
-        ok = self._analyze_one_step(initial_step)
+        ok = self._analyze_one_step(initial_step, verbose=verbose)
 
         if ok < 0:
             ok = self._try_add_test_times(initial_step, verbose)
@@ -509,7 +522,7 @@ class SmartAnalyze:
         if ok < 0:
             color = get_random_color()
             value = f"[bold {color}]{self._get_time():.3f}[/bold {color}]"
-            print(f">>> {self.logo} Analyze failed. Time consumption: {value} s.")
+            print(f":x: {self.logo} Analyze failed. Time consumption: {value} s.")
 
             if self.progress is not None:
                 self.progress.stop()
@@ -532,12 +545,12 @@ class SmartAnalyze:
                     value1 = f"[bold {color}]{100 * self.current_args['progress'] / self.current_args['npts']:.3f}[/bold {color}]"
                     value2 = f"[bold {color}]{self._get_time():.3f}[/bold {color}]"
                     print(
-                        f"* {self.logo} progress {value1} %. Time consumption: {value2} s."
+                        f">>> :hourglass: {self.logo} progress {value1} %. Time consumption: {value2} s."
                     )
                 else:
                     value1 = self.current_args["progress"]
                     value2 = f"[bold {color}]{self._get_time():.3f}[/bold {color}]"
-                    print(f"* {self.logo} progress {value1} steps. Time consumption: {value2} s.")
+                    print(f">>> :hourglass: {self.logo} progress {value1} steps. Time consumption: {value2} s.")
                 self.current_args["counter"] = 0
 
         if self.progress is not None:
@@ -548,15 +561,16 @@ class SmartAnalyze:
                 self.current_args["progress"] >= self.current_args["npts"]
         ):
             color = get_random_color()
-            value = f"[bold {color}]{self._get_time():.3f}[/bold {color}]"
-            print(
-                f">>> {self.logo} [{color}]Successfully finished[/{color}]! Time consumption: {value} s."
-            )
 
             if self.progress is not None:
                 self.progress.update(self.task, completed=self.current_args["npts"])
                 time.sleep(0.1)  # flush
                 self.progress.stop()
+
+            value = f"[bold {color}]{self._get_time():.3f}[/bold {color}]"
+            print(
+                f":tada: {self.logo} [{color}]Successfully finished[/{color}]! Time consumption: {value} s. :tada:"
+            )
         return 0
 
     # def close(self):
@@ -565,7 +579,7 @@ class SmartAnalyze:
     #         time.sleep(0.05)  # flush
     #         self.progress.stop()
 
-    def _analyze_one_step(self, step: float):
+    def _analyze_one_step(self, step: float, verbose):
         if self.analysis_type == "Static":
             ops.integrator(
                 "DisplacementControl",
@@ -576,10 +590,11 @@ class SmartAnalyze:
 
             # reset sensitivity analysis algorithm
             self._run_sensitivity_algorithm()
-
-            ok = ops.analyze(1)
+            with suppress_ops_print(verbose=verbose):
+                ok = ops.analyze(1)
         else:
-            ok = ops.analyze(1, step)
+            with suppress_ops_print(verbose=verbose):
+                ok = ops.analyze(1, step)
 
         self.current_args["step"] = step
 
@@ -599,7 +614,7 @@ class SmartAnalyze:
                 if verbose:
                     color = get_random_color()
                     print(
-                        f">>> {self.logo} Adding test times to [bold {color}]{num}[/bold {color}].\n"
+                        f">>> :gear: {self.logo} Adding test times to [bold {color}]{num}[/bold {color}]."
                     )
                 ops.test(
                     self.control_args["testType"],
@@ -607,7 +622,7 @@ class SmartAnalyze:
                     num,
                     self.control_args["testPrintFlag"]
                 )
-                ok = self._analyze_one_step(step)
+                ok = self._analyze_one_step(step, verbose=verbose)
 
                 if ok == 0:
                     self._set_init_test()
@@ -616,7 +631,7 @@ class SmartAnalyze:
                 if verbose:
                     color = get_random_color()
                     print(
-                        f">>> {self.logo} Not adding test times for norm [bold {color}]%.3e[/bold {color}].\n"
+                        f">>> :gear: {self.logo} Not adding test times for norm [bold {color}]%.3e[/bold {color}]."
                         % (norm[-1])
                     )
         # goback
@@ -635,15 +650,15 @@ class SmartAnalyze:
             color = get_random_color()
             if verbose:
                 print(
-                    f">>> {self.logo} Setting algorithm to "
-                    f"[bold {color}]{algo_flag}[/bold {color}].\n"
+                    f">>> :gear: {self.logo} Setting algorithm to "
+                    f"[bold {color}]{algo_flag}[/bold {color}]."
                 )
             self._setAlgorithm(
                 algo_flag,
                 self.control_args["UserAlgoArgs"],
                 verbose=self.debug_mode
             )
-            ok = self._analyze_one_step(step)
+            ok = self._analyze_one_step(step, verbose=verbose)
             if ok == 0:
                 return ok
         if ok < 0:  # goback
@@ -663,8 +678,8 @@ class SmartAnalyze:
         if verbose:
             color = get_random_color()
             print(
-                f">>> {self.logo} Dividing the current step [bold {color}]%.3e into %.3e and %.3e[/bold {color}]\n"
-                % (step, step_try, step_remaining)
+                f">>> :gear: {self.logo} Dividing the current step [bold {color}]{step:.3e}[/bold {color}] "
+                f"into [bold {color}]{step_try:.3e}[/bold {color}] and [bold {color}]{step-step_try:.3e}[/bold {color}]"
             )
 
         ok = -1
@@ -672,7 +687,7 @@ class SmartAnalyze:
             if step_try < min_step:
                 color = get_random_color()
                 print(
-                    f">>> {self.logo} current step [bold {color}]%.3e[/bold {color}] beyond the min step!\n"
+                    f">>> :gear: {self.logo} Current step [bold {color}]%.3e[/bold {color}] beyond the min step!"
                     % step_try
                 )
                 return -1
@@ -681,19 +696,27 @@ class SmartAnalyze:
                 step_try = step_remaining  # avoid overshooting
 
             # Try to run one substep
-            ok = self._analyze_one_step(step_try)
+            ok = self._analyze_one_step(step_try, verbose=verbose)
 
             if ok == 0:
                 step_remaining -= step_try
                 # Try to increase next step size by relaxing alpha
                 step_try = step_remaining
+                if verbose:
+                    color = get_random_color()
+                    print(
+                        f">>> :gear: {self.logo} Current total step size [bold {color}]{step}[/bold {color}], "
+                        f"completed sub-step size [bold {color}]{step-step_remaining}[/bold {color}], "
+                        f"remaining sub-step size [bold {color}]{step_remaining}[/bold {color}]"
+                    )
             else:
                 step_try *= alpha
                 if verbose:
                     color = get_random_color()
                     print(
-                        f">>> {self.logo} Dividing the current step [bold {color}]%.3e into %.3e and %.3e[/bold {color}]\n"
-                        % (step, step_try, step_remaining)
+                        f">>> :gear: {self.logo} Dividing the current step [bold {color}]{step_try/alpha:.3e}[/bold {color}] "
+                        f"into [bold {color}]{step_try:.3e}[/bold {color}] and "
+                        f"[bold {color}]{step_try/alpha-step_try:.3e}[/bold {color}]"
                     )
         return ok
 
@@ -703,8 +726,8 @@ class SmartAnalyze:
         if verbose:
             color = get_random_color()
             print(
-                f"!!! {self.logo} Warning: [bold {color}]Loosing test tolerance to "
-                f"{self.control_args["looseTestTolTo"]}[/bold {color}]\n"
+                f">>> :warning: {self.logo} Warning: [bold {color}]Loosing test tolerance to "
+                f"{self.control_args["looseTestTolTo"]}[/bold {color}]"
             )
         ops.test(
             self.control_args["testType"],
@@ -712,7 +735,7 @@ class SmartAnalyze:
             self.control_args["testIterTimes"],
             self.control_args["testPrintFlag"]
         )
-        ok =  self._analyze_one_step(step)
+        ok =  self._analyze_one_step(step, verbose=verbose)
 
         # goback whenever
         self._set_init_test()
@@ -729,88 +752,89 @@ class SmartAnalyze:
 
     def _setAlgorithm(self, algotype, user_algo_args: list = None, verbose=True):
         color = get_random_color()
+        prefix = ">>> :gear:"
 
         def case0():
             if verbose:
                 print(
-                    f"> {self.logo} Setting algorithm to  [bold {color}]Linear ...[/bold {color}]"
+                    f"{prefix} {self.logo} Setting algorithm to  [bold {color}]Linear ...[/bold {color}]"
                 )
             ops.algorithm("Linear")
 
         def case1():
             if verbose:
                 print(
-                    f"> {self.logo} Setting algorithm to  [bold {color}]Linear -initial ...[/bold {color}]"
+                    f"{prefix} {self.logo} Setting algorithm to  [bold {color}]Linear -initial ...[/bold {color}]"
                 )
             ops.algorithm("Linear", "-Initial")
 
         def case2():
             if verbose:
                 print(
-                    f"> {self.logo} Setting algorithm to  [bold {color}]Linear -secant ...[/bold {color}]"
+                    f"{prefix} {self.logo} Setting algorithm to  [bold {color}]Linear -secant ...[/bold {color}]"
                 )
             ops.algorithm("Linear", "-Secant")
 
         def case3():
             if verbose:
                 print(
-                    f"> {self.logo} Setting algorithm to  [bold {color}]Linear -factorOnce ...[/bold {color}]"
+                    f"{prefix} {self.logo} Setting algorithm to  [bold {color}]Linear -factorOnce ...[/bold {color}]"
                 )
             ops.algorithm("Linear", "-FactorOnce")
 
         def case4():
             if verbose:
                 print(
-                    f"> {self.logo} Setting algorithm to  [bold {color}]Linear -initial -factorOnce ...[/bold {color}]"
+                    f"{prefix} {self.logo} Setting algorithm to  [bold {color}]Linear -initial -factorOnce ...[/bold {color}]"
                 )
             ops.algorithm("Linear", "-Initial", "-FactorOnce")
 
         def case5():
             if verbose:
                 print(
-                    f"> {self.logo} Setting algorithm to  [bold {color}]Linear -secant -factorOnce ...[/bold {color}]"
+                    f"{prefix} {self.logo} Setting algorithm to  [bold {color}]Linear -secant -factorOnce ...[/bold {color}]"
                 )
             ops.algorithm("Linear", "-Secant", "-FactorOnce")
 
         def case10():
             if verbose:
                 print(
-                    f"> {self.logo} Setting algorithm to  [bold {color}]Newton ...[/bold {color}]"
+                    f"{prefix} {self.logo} Setting algorithm to  [bold {color}]Newton ...[/bold {color}]"
                 )
             ops.algorithm("Newton")
 
         def case11():
             if verbose:
                 print(
-                    f"> {self.logo} Setting algorithm to  [bold {color}]Newton -initial ...[/bold {color}]"
+                    f"{prefix} {self.logo} Setting algorithm to  [bold {color}]Newton -initial ...[/bold {color}]"
                 )
             ops.algorithm("Newton", "-Initial")
 
         def case12():
             if verbose:
                 print(
-                    f"> {self.logo} Setting algorithm to  [bold {color}]Newton -initialThenCurrent ...[/bold {color}]"
+                    f"{prefix} {self.logo} Setting algorithm to  [bold {color}]Newton -initialThenCurrent ...[/bold {color}]"
                 )
             ops.algorithm("Newton", "-intialThenCurrent")
 
         def case13():
             if verbose:
                 print(
-                    f"> {self.logo} Setting algorithm to  [bold {color}]Newton -Secant ...[/bold {color}]"
+                    f"{prefix} {self.logo} Setting algorithm to  [bold {color}]Newton -Secant ...[/bold {color}]"
                 )
             ops.algorithm("Newton", "-Secant")
 
         def case20():
             if verbose:
                 print(
-                    f"> {self.logo} Setting algorithm to  [bold {color}]NewtonLineSearch ...[/bold {color}]"
+                    f"{prefix} {self.logo} Setting algorithm to  [bold {color}]NewtonLineSearch ...[/bold {color}]"
                 )
             ops.algorithm("NewtonLineSearch")
 
         def case21():
             if verbose:
                 print(
-                    f"> {self.logo} Setting algorithm to "
+                    f"{prefix} {self.logo} Setting algorithm to "
                     f"[bold {color}]NewtonLineSearch -type Bisection ...[/bold {color}]"
                 )
             ops.algorithm("NewtonLineSearch", "-type", "Bisection")
@@ -818,7 +842,7 @@ class SmartAnalyze:
         def case22():
             if verbose:
                 print(
-                    f"> {self.logo} Setting algorithm to "
+                    f"{prefix} {self.logo} Setting algorithm to "
                     f"[bold {color}]NewtonLineSearch -type Secant ...[/bold {color}]"
                 )
             ops.algorithm("NewtonLineSearch", "-type", "Secant")
@@ -826,7 +850,7 @@ class SmartAnalyze:
         def case23():
             if verbose:
                 print(
-                    f"> {self.logo} Setting algorithm to "
+                    f"{prefix} {self.logo} Setting algorithm to "
                     f"[bold {color}]NewtonLineSearch -type RegulaFalsi ...[/bold {color}]"
                 )
             ops.algorithm("NewtonLineSearch", "-type", "RegulaFalsi")
@@ -834,7 +858,7 @@ class SmartAnalyze:
         def case24():
             if verbose:
                 print(
-                    f"> {self.logo} Setting algorithm to "
+                    f"{prefix} {self.logo} Setting algorithm to "
                     f"[bold {color}]NewtonLineSearch -type LinearInterpolated ...[/bold {color}]"
                 )
             ops.algorithm("NewtonLineSearch", "-type", "LinearInterpolated")
@@ -842,7 +866,7 @@ class SmartAnalyze:
         def case25():
             if verbose:
                 print(
-                    f"> {self.logo} Setting algorithm to "
+                    f"{prefix} {self.logo} Setting algorithm to "
                     f"[bold {color}]NewtonLineSearch -type InitialInterpolated ...[/bold {color}]"
                 )
             ops.algorithm("NewtonLineSearch", "-type", "InitialInterpolated")
@@ -850,35 +874,35 @@ class SmartAnalyze:
         def case30():
             if verbose:
                 print(
-                    f"> {self.logo} Setting algorithm to  [bold {color}]Modified Newton ...[/bold {color}]"
+                    f"{prefix} {self.logo} Setting algorithm to  [bold {color}]Modified Newton ...[/bold {color}]"
                 )
             ops.algorithm("ModifiedNewton")
 
         def case31():
             if verbose:
                 print(
-                    f"> {self.logo} Setting algorithm to  [bold {color}]ModifiedNewton -initial ...[/bold {color}]"
+                    f"{prefix} {self.logo} Setting algorithm to  [bold {color}]ModifiedNewton -initial ...[/bold {color}]"
                 )
             ops.algorithm("ModifiedNewton", "-initial")
 
         def case32():
             if verbose:
                 print(
-                    f"> {self.logo} Setting algorithm to  [bold {color}]ModifiedNewton -secant ...[/bold {color}]"
+                    f"{prefix} {self.logo} Setting algorithm to  [bold {color}]ModifiedNewton -secant ...[/bold {color}]"
                 )
             ops.algorithm("ModifiedNewton", "-secant")
 
         def case40():
             if verbose:
                 print(
-                    f"> {self.logo} Setting algorithm to  [bold {color}]KrylovNewton ...[/bold {color}]"
+                    f"{prefix} {self.logo} Setting algorithm to  [bold {color}]KrylovNewton ...[/bold {color}]"
                 )
             ops.algorithm("KrylovNewton")
 
         def case41():
             if verbose:
                 print(
-                    f"> {self.logo} Setting algorithm to "
+                    f"{prefix} {self.logo} Setting algorithm to "
                     f"[bold {color}]KrylovNewton -iterate initial ...[/bold {color}]"
                 )
             ops.algorithm("KrylovNewton", "-iterate", "initial")
@@ -886,7 +910,7 @@ class SmartAnalyze:
         def case42():
             if verbose:
                 print(
-                    f"> {self.logo} Setting algorithm to "
+                    f"{prefix} {self.logo} Setting algorithm to "
                     f"[bold {color}]KrylovNewton -increment initial ...[/bold {color}]"
                 )
             ops.algorithm("KrylovNewton", "-increment", "initial")
@@ -894,7 +918,7 @@ class SmartAnalyze:
         def case43():
             if verbose:
                 print(
-                    f"> {self.logo} Setting algorithm to "
+                    f"{prefix} {self.logo} Setting algorithm to "
                     f"[bold {color}]KrylovNewton -iterate initial -increment initial ...[/bold {color}]"
                 )
             ops.algorithm(
@@ -904,14 +928,14 @@ class SmartAnalyze:
         def case44():
             if verbose:
                 print(
-                    f"> {self.logo} Setting algorithm to  [bold {color}]KrylovNewton -maxDim 10[/bold {color}]"
+                    f"{prefix} {self.logo} Setting algorithm to  [bold {color}]KrylovNewton -maxDim 10[/bold {color}]"
                 )
             ops.algorithm("KrylovNewton", "-maxDim", 10)
 
         def case45():
             if verbose:
                 print(
-                    f"> {self.logo} Setting algorithm to "
+                    f"{prefix} {self.logo} Setting algorithm to "
                     f"[bold {color}]KrylovNewton -iterate initial -increment initial -maxDim 10[/bold {color}]"
                 )
             ops.algorithm(
@@ -927,14 +951,14 @@ class SmartAnalyze:
         def case50():
             if verbose:
                 print(
-                    f"> {self.logo} Setting algorithm to  [bold {color}]SecantNewton ...[/bold {color}]"
+                    f"{prefix} {self.logo} Setting algorithm to  [bold {color}]SecantNewton ...[/bold {color}]"
                 )
             ops.algorithm("SecantNewton")
 
         def case51():
             if verbose:
                 print(
-                    f"> {self.logo} Setting algorithm to "
+                    f"{prefix} {self.logo} Setting algorithm to "
                     f"[bold {color}]SecantNewton -iterate initial ...[/bold {color}]"
                 )
             ops.algorithm("SecantNewton", "-iterate", "initial")
@@ -942,7 +966,7 @@ class SmartAnalyze:
         def case52():
             if verbose:
                 print(
-                    f"> {self.logo} Setting algorithm to "
+                    f"{prefix} {self.logo} Setting algorithm to "
                     f"[bold {color}]SecantNewton -increment initial  ...[/bold {color}]"
                 )
             ops.algorithm("SecantNewton", "-increment", "initial")
@@ -950,7 +974,7 @@ class SmartAnalyze:
         def case53():
             if verbose:
                 print(
-                    f"> {self.logo} Setting algorithm to "
+                    f"{prefix} {self.logo} Setting algorithm to "
                     f"[bold {color}]SecantNewton -iterate initial -increment initial ...[/bold {color}]"
                 )
             ops.algorithm(
@@ -960,70 +984,70 @@ class SmartAnalyze:
         def case60():
             if verbose:
                 print(
-                    f"> {self.logo} Setting algorithm to  [bold {color}]BFGS ...[/bold {color}]"
+                    f"{prefix} {self.logo} Setting algorithm to  [bold {color}]BFGS ...[/bold {color}]"
                 )
             ops.algorithm("BFGS")
 
         def case61():
             if verbose:
                 print(
-                    f"> {self.logo} Setting algorithm to  [bold {color}]BFGS -initial...[/bold {color}]"
+                    f"{prefix} {self.logo} Setting algorithm to  [bold {color}]BFGS -initial...[/bold {color}]"
                 )
             ops.algorithm("BFGS", "-initial")
 
         def case62():
             if verbose:
                 print(
-                    f"> {self.logo} Setting algorithm to  [bold {color}]BFGS -secant ...[/bold {color}]"
+                    f"{prefix} {self.logo} Setting algorithm to  [bold {color}]BFGS -secant ...[/bold {color}]"
                 )
             ops.algorithm("BFGS", "-secant")
 
         def case70():
             if verbose:
                 print(
-                    f"> {self.logo} Setting algorithm to  [bold {color}]Broyden ...[/bold {color}]"
+                    f"{prefix} {self.logo} Setting algorithm to  [bold {color}]Broyden ...[/bold {color}]"
                 )
             ops.algorithm("Broyden")
 
         def case71():
             if verbose:
                 print(
-                    f"> {self.logo} Setting algorithm to  [bold {color}]Broyden -initial ...[/bold {color}]"
+                    f"{prefix} {self.logo} Setting algorithm to  [bold {color}]Broyden -initial ...[/bold {color}]"
                 )
             ops.algorithm("Broyden", "-initial")
 
         def case72():
             if verbose:
                 print(
-                    f"> {self.logo} Setting algorithm to  [bold {color}]Broyden -secant ...[/bold {color}]"
+                    f"{prefix} {self.logo} Setting algorithm to  [bold {color}]Broyden -secant ...[/bold {color}]"
                 )
             ops.algorithm("Broyden", "-secant")
 
         def case80():
             if verbose:
                 print(
-                    f"> {self.logo} Setting algorithm to  [bold {color}]PeriodicNewton ...[/bold {color}]"
+                    f"{prefix} {self.logo} Setting algorithm to  [bold {color}]PeriodicNewton ...[/bold {color}]"
                 )
             ops.algorithm("PeriodicNewton")
 
         def case81():
             if verbose:
                 print(
-                    f"> {self.logo} Setting algorithm to  [bold {color}]PeriodicNewton -maxDim, 10 ...[/bold {color}]"
+                    f"{prefix} {self.logo} Setting algorithm to  [bold {color}]PeriodicNewton -maxDim, 10 ...[/bold {color}]"
                 )
             ops.algorithm("PeriodicNewton", "-maxDim", 10)
 
         def case90():
             if verbose:
                 print(
-                    f"> {self.logo} Setting algorithm to  [bold {color}]ExpressNewton ...[/bold {color}]"
+                    f"{prefix} {self.logo} Setting algorithm to  [bold {color}]ExpressNewton ...[/bold {color}]"
                 )
             ops.algorithm("ExpressNewton")
 
         def case91():
             if verbose:
                 print(
-                    f"> {self.logo} Setting algorithm to  [bold {color}]ExpressNewton -InitialTangent ...[/bold {color}]"
+                    f"{prefix} {self.logo} Setting algorithm to  [bold {color}]ExpressNewton -InitialTangent ...[/bold {color}]"
                 )
             ops.algorithm("ExpressNewton", "-InitialTangent")
 
@@ -1031,13 +1055,13 @@ class SmartAnalyze:
             # User algorithm0
             if verbose:
                 print(
-                    f"> {self.logo} Setting algorithm to User Algorithm: [bold {color}]{user_algo_args} ...[/bold {color}]"
+                    f"{prefix} {self.logo} Setting algorithm to User Algorithm: [bold {color}]{user_algo_args} ...[/bold {color}]"
                 )
             if user_algo_args is not None:
                 ops.algorithm(*user_algo_args)
 
         def default():
-            raise ValueError("!!! SmartAnalyze: ERROR! WRONG Algorithm Type!")
+            raise ValueError(">>> :warning: SmartAnalyze: ERROR! WRONG Algorithm Type!")
 
         switch = {
             0: case0,
