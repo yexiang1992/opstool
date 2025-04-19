@@ -33,27 +33,27 @@ POST_ARGS = SimpleNamespace(
     elastic_frame_sec_points=7,
     compute_mechanical_measures=True,
     # ------------------------------
-    save_nodal_resp= True,
-    save_frame_resp= True,
-    save_truss_resp= True,
-    save_link_resp= True,
-    save_shell_resp= True,
-    save_fiber_sec_resp= True,
-    save_plane_resp= True,
-    save_brick_resp= True,
-    save_contact_resp= True,
-    save_sensitivity_resp= True,
+    save_nodal_resp=True,
+    save_frame_resp=True,
+    save_truss_resp=True,
+    save_link_resp=True,
+    save_shell_resp=True,
+    save_fiber_sec_resp=True,
+    save_plane_resp=True,
+    save_brick_resp=True,
+    save_contact_resp=True,
+    save_sensitivity_resp=False,
     # ----------------------------------
-    node_tags = None,
-    frame_tags= None,
-    truss_tags= None,
-    link_tags= None,
-    shell_tags = None,
-    fiber_ele_tags = None,
-    plane_tags= None,
-    brick_tags = None,
-    contact_tags= None,
-    sensitivity_para_tags = None,
+    node_tags=None,
+    frame_tags=None,
+    truss_tags=None,
+    link_tags=None,
+    shell_tags=None,
+    fiber_ele_tags=None,
+    plane_tags=None,
+    brick_tags=None,
+    contact_tags=None,
+    sensitivity_para_tags=None,
 )
 
 
@@ -99,7 +99,7 @@ class CreateODB:
                 Whether to save brick element responses.
             * save_contact_resp: bool, default: True
                 Whether to save contact element responses.
-            * save_sensitivity_resp: bool, default: True
+            * save_sensitivity_resp: bool, default: False
                 Whether to save sensitivity analysis responses.
         * Nodes or elements that need to be saved:
             * node_tags: Union[list, tuple, int], default: None
