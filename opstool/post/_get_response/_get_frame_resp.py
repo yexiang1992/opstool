@@ -60,7 +60,15 @@ class FrameRespStepData(ResponseBase):
         data_vars["plasticDeformation"] = (["eleTags", "basicDofs"], plastic_defos)
         data_vars["sectionForces"] = (["eleTags", "secPoints", "secDofs"], sec_f)
         data_vars["sectionDeformations"] = (["eleTags", "secPoints", "secDofs"], sec_d)
-        data_vars["sectionLocs"] = (["eleTags", "secPoints"], sec_locs)
+        data_vars["sectionLocs"] = (["eleTags", "secPoints", "locs"], sec_locs)
+        if sec_locs.shape[-1] == 2:
+            loc_dofs = ["alpha", "X"]
+        elif sec_locs.shape[-1] == 3:
+            loc_dofs = ["alpha", "X", "Y"]
+        elif sec_locs.shape[-1] == 4:
+            loc_dofs = ["alpha", "X", "Y", "Z"]
+        else:
+            loc_dofs = [f"loc{i+1}" for i in range(sec_locs.shape[-1])]
         ds = xr.Dataset(
             data_vars=data_vars,
             coords={
@@ -82,6 +90,7 @@ class FrameRespStepData(ResponseBase):
                 "basicDofs": ["N", "MZ1", "MZ2", "MY1", "MY2", "T"],
                 "secPoints": np.arange(sec_locs.shape[1])+1,
                 "secDofs": ["N", "MZ", "VY", "MY", "VZ", "T"],
+                "locs": loc_dofs,
             },
             attrs={
                 "localDofs": "local coord system dofs at end 1 and end 2",
@@ -203,7 +212,7 @@ def _get_beam_sec_resp(beam_tags, ele_load_data, local_forces, n_secs_elastic_be
     load_eletags = np.array(load_eletags)
     # -----------------------------------------------------
     beam_secF, beam_secD, beam_locs = [], [], []
-    beam_lengths = _get_ele_length(beam_tags)
+    beam_lengths, start_coords, end_coords = _get_ele_length(beam_tags)
     for eletag, length, local_f in zip(beam_tags, beam_lengths, local_forces):
         eletag = int(eletag)
         if ops.getEleClassTags(eletag)[0] in ELASTIC_BEAM_CLASSES:  # elastic beam
@@ -251,7 +260,8 @@ def _get_beam_sec_resp(beam_tags, ele_load_data, local_forces, n_secs_elastic_be
     beam_locs = _expand_to_uniform_array(beam_locs)
     beam_secF = _expand_to_uniform_array(beam_secF)
     beam_secD = _expand_to_uniform_array(beam_secD)
-    return beam_secF, beam_secD, beam_locs
+    beam_sec_locs = _get_ele_sec_coords(start_coords, end_coords, beam_locs)
+    return beam_secF, beam_secD, beam_sec_locs
 
 
 def _get_sec_forces(ele_tag, length, ele_load_data, pattern_tags, load_eletags, local_force, xlocs):
@@ -318,8 +328,14 @@ def _get_ele_length(ele_tags):
         nodes = ops.eleNodes(ele_tag)
         coords1.append(ops.nodeCoord(nodes[0]))
         coords2.append(ops.nodeCoord(nodes[1]))
-    diff = np.array(coords1) - np.array(coords2)
-    return np.linalg.norm(diff, axis=1)
+    start = np.array(coords1)
+    end = np.array(coords2)
+    return np.linalg.norm(end-start, axis=1), start, end
+
+def _get_ele_sec_coords(start, end, sec_locs):
+    coords = start[:, None, :] + (end - start)[:, None, :] * sec_locs[..., None]
+    locs_expanded = sec_locs[..., None]
+    return np.concatenate([locs_expanded, coords], axis=-1)
 
 
 
