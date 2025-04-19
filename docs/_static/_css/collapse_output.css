@@ -1,0 +1,26 @@
+/* 限制每个输出区域最大高度，超出部分隐藏 */
+div.nboutput {
+    max-height: 15em;         /* 根据需要调整“折叠高度” */
+    overflow: hidden;
+    position: relative;
+    transition: max-height 0.3s ease;
+  }
+  
+  /* 在底部添加渐变，以示有更多内容 */
+  div.nboutput::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 3em;
+    background: linear-gradient(to top, white, rgba(255,255,255,0));
+    pointer-events: none;
+  }
+  
+  /* 鼠标悬停时展开完整输出 */
+  div.nboutput:hover {
+    max-height: none;
+    overflow: auto;
+  }
+  
