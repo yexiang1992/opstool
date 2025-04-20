@@ -1,5 +1,4 @@
 import re
-import rich
 from typing import Literal, TypeAlias, get_args
 import difflib
 
@@ -54,7 +53,24 @@ ratio_force = dict(
     mn2tonf=101.9716212978,
     kgf2tonf=0.001,
 )
-ratio_time = dict(sec2msec=0.001)
+ratio_time = dict(
+    sec2msec=1000,
+    sec2min=1/60,
+    sec2hour=1/3600,
+    sec2day=1/24/3600,
+    sec2year=1/365/24/3600,
+    min2msec=1000*60,
+    min2hour=1/60,
+    min2day=1/24/60,
+    min2year=1/365/24/60,
+    hour2msec=60*60*1000,
+    hour2day=1/24,
+    hour2year=1/365/24,
+    day2msec=24*60*60*1000,
+    day2hour=1/24,
+    day2year=1/365/24,
+    year2msec=365*24*60*60*1000,
+)
 
 
 def ratio_update(ratio_dict):
@@ -74,7 +90,7 @@ ratio_update(ratio_time)
 
 unit_length: TypeAlias = Literal["inch", "ft", "mm", "cm", "m", "km"]
 unit_force: TypeAlias = Literal["lb", "lbf", "kip", "N", "kN", "MN", "kgf", "tonf"]
-unit_time: TypeAlias = Literal["sec", "msec"]
+unit_time: TypeAlias = Literal["msec", "sec", "min", "hour", "day", "year"]
 unit_mass: TypeAlias = Literal["mg", "g", "kg", "ton", "t", "slug"]
 unit_stress: TypeAlias = Literal["Pa", "kPa", "MPa", "GPa", "bar", "psi", "ksi", "psf", "ksf"]
 
@@ -89,7 +105,7 @@ class UnitSystem:
     force: str, default="kN"
         Force unit base. Optional ["lb"("lbf"), "kip", "n", "kn", "mn", "kgf", "tonf"].
     time: str, default="sec"
-        Time unit base. Optional ["sec", "msec"].
+        Time unit base. Optional ["sec"].
 
     .. note::
         * `Mass` and `stress` units can be automatically determined based on `length` and `force` units,
@@ -99,7 +115,7 @@ class UnitSystem:
         * You can enter any uppercase and lowercase forms, such as ``kn`` and ``kN``, ``mpa`` and ``MPa``
           are equivalent.
 
-        * You can add a number after the unit to indicate a power, such as ``m3`` for ``m*m*m``.
+        * You can add a number (int) after the unit to indicate a power, such as ``m3`` for ``m*m*m``.
     """
 
     def __init__(
@@ -118,7 +134,7 @@ class UnitSystem:
         for unit in get_args(unit_time):
             setattr(self, unit, ratio_time[unit.lower() + "2" + self._time])
         # mass
-        self.kg = self.N * self.sec**2 / self.m
+        self.kg = self.N / self.m
         self.mg, self.g, self.ton = 1e-6 * self.kg, 1e-3 * self.kg, 1e3 * self.kg
         self.t, self.slug, self.slinch = (
             1e3 * self.kg,
@@ -144,15 +160,15 @@ class UnitSystem:
     def time(self):
         return self._time
 
-    def __getattr__(self, item):
-        v = re.findall(r"-?\d+\.?\d*e?E?-?\d*?", item)
-        if v:
-            v = float(v[0])
-        else:
-            return getattr(self, item.lower())
-        s = "".join([x for x in item if x.isalpha()])
-        base = getattr(self, s)
-        return base**v
+    # def __getattr__(self, item):
+    #     v = re.findall(r"-?\d+\.?\d*e?E?-?\d*?", item)
+    #     if v:
+    #         v = float(v[0])
+    #     else:
+    #         return getattr(self, item.lower())
+    #     s = "".join([x for x in item if x.isalpha()])
+    #     base = getattr(self, s)
+    #     return base**v
 
     def __getattr__(self, name: str):
         # Uniformly convert to lowercase (preserve the numeric part)
@@ -180,23 +196,17 @@ class UnitSystem:
         
         # Build a dictionary for attribute lookup (lowercase keys)
         attr_map = {k.lower(): v for k, v in self.__dict__.items() if isinstance(v, (int, float))}
-        
-        # Find the closest match
-        candidates = [k for k in attr_map if k.startswith(base_part)]
-        if not candidates:
+
+        if base_part.lower() in attr_map:
+            exponent = int(exponent_part) if exponent_part else 1
+            base_value = attr_map[base_part.lower()]
+            return base_value ** exponent
+        else:
             suggestions = difflib.get_close_matches(base_part, attr_map.keys(), n=3)
             err_msg = f"'{self.__class__.__name__}' has no attribute '{name}'"
             if suggestions:
                 err_msg += f". Did you mean: {', '.join(suggestions)}?"
             raise AttributeError(err_msg)
-        
-        # Take the longest match (e.g., prioritize 'mm' over 'm')
-        best_match = max(candidates, key=len)
-        base_value = attr_map[best_match]
-        
-        # Handle the exponent
-        exponent = int(exponent_part) if exponent_part else 1
-        return base_value ** exponent
 
     def __repr__(self) -> str:
         return (
@@ -225,21 +235,22 @@ class UnitSystem:
         txt += "\n\n[bold #7d3f98]Pressure unit:[/bold #7d3f98]\n"
         for i, unit in enumerate(get_args(unit_stress)):
             txt += f"{unit}={getattr(self, unit):.3g}; "
-        rich.print(txt)
+        rprint(txt)
 
 
 if __name__ == "__main__":
-    UNIT = UnitSystem(length="m", force="kN")
+    UNIT = UnitSystem(length="m", force="kN", time="min")
     # Call the __repr__ method, print the UnitSystem object information
     print(UNIT)
     # Call the print method, print all common units
     UNIT.print()
 
     # Show some unit conversion effects
-    print("Length:", UNIT.mm, UNIT.mm2, UNIT.cm, UNIT.m, UNIT.inch, UNIT.ft)
-    print("Force", UNIT.n, UNIT.kN, UNIT.lbf, UNIT.kip)
+    print("Length:", UNIT.mm, UNIT.Mm2, UNIT.cm, UNIT.m, UNIT.M2, UNIT.inch, UNIT.Ft)
+    print("Force", UNIT.n, UNIT.kN, UNIT.kN2, UNIT.lbf, UNIT.kip)
     print("Stress", UNIT.mpa, UNIT.kpa, UNIT.pa, UNIT.psi, UNIT.ksi)
     print("Mass", UNIT.g, UNIT.kg, UNIT.ton, UNIT.slug)
+    print("Time", UNIT.msec, UNIT.min, UNIT.hour, UNIT.day, UNIT.year)
 
     # When inputting invalid unit, it will give smart suggestions
     print(UNIT.mmm)
