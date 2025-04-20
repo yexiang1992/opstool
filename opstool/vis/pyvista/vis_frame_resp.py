@@ -190,7 +190,7 @@ class PlotFrameResponse(PlotResponseBase):
         return beam_tags, beam_node_coords, beam_cells, yaxis, zaxis
 
     def _get_sec_loc(self, step):
-        sec_loc = self._get_resp_data(step, "sectionLocs", None)
+        sec_loc = self._get_resp_data(step, "sectionLocs", "alpha")
         return sec_loc
 
     def refactor_resp_data(self, ele_tags, resp_type, component):
@@ -214,17 +214,32 @@ class PlotFrameResponse(PlotResponseBase):
         self.resp_step = resps
         self.sec_locs = sec_locs
 
-    def _get_resp_scale_factor(self):
-        maxv = [np.max(np.abs(data)) for data in self.resp_step]
-        maxstep = np.argmax(maxv)
-        resp_max = self.resp_step[maxstep]
-        cmin, cmax = self._get_resp_clim()
-        maxv = np.amax(np.abs(resp_max))
+    def _get_resp_scale_factor(self, idx="absMax"):
+        if isinstance(idx, str):
+            if idx.lower() == "absmax":
+                resp = [np.max(np.abs(data)) for data in self.resp_step]
+                step = np.argmax(resp)
+            elif idx.lower() == "max":
+                resp = [np.max(data) for data in self.resp_step]
+                step = np.argmax(resp)
+            elif idx.lower() == "absmin":
+                resp = [np.min(np.abs(data)) for data in self.resp_step]
+                step = np.argmin(resp)
+            elif idx.lower() == "min":
+                resp = [np.min(data) for data in self.resp_step]
+                step = np.argmin(resp)
+            else:
+                raise ValueError("Invalid argument, one of [absMax, absMin, Max, Min]")
+        else:
+            step = int(idx)
+        resp = self.resp_step[step]
+        maxv = np.amax(np.abs(resp))
         if maxv == 0:
             alpha_ = 0.0
         else:
             alpha_ = self.max_bound_size * self.pargs.scale_factor / maxv
-        return alpha_, maxstep, (cmin, cmax)
+        cmin, cmax = self._get_resp_clim()
+        return float(alpha_), step, (cmin, cmax)
 
     def _get_resp_clim(self):
         maxv = [np.max(data) for data in self.resp_step]
@@ -425,6 +440,7 @@ class PlotFrameResponse(PlotResponseBase):
         self,
         plotter,
         ele_tags=None,
+        step="absMax",
         alpha=1.0,
         resp_type=None,
         component=None,
@@ -434,10 +450,10 @@ class PlotFrameResponse(PlotResponseBase):
     ):
         plot_all_mesh = True if ele_tags is None else False
         self.refactor_resp_data(ele_tags, resp_type, component)
-        alpha_, maxstep, clim = self._get_resp_scale_factor()
+        alpha_, step, clim = self._get_resp_scale_factor(idx=step)
         self._create_mesh(
             plotter=plotter,
-            value=maxstep,
+            value=step,
             alpha=alpha * alpha_,
             ele_tags=ele_tags,
             show_values=show_values,
@@ -507,6 +523,7 @@ def plot_frame_responses(
     resp_type: str = "sectionForces",
     resp_dof: str = "MZ",
     slides: bool = False,
+    step: Union[int, str] = "absMax",
     scale: float = 1.0,
     show_values: bool = False,
     cpos: str = "iso",
@@ -541,7 +558,11 @@ def plot_frame_responses(
 
     slides: bool, default: False
         Display the response for each step in the form of a slideshow.
-        Otherwise, show the step with the largest response.
+        Otherwise, show the step with the following ``step`` parameter.
+    step: Union[int, str], default: "absMax"
+        If slides = False, this parameter will be used as the step to plot.
+        If str, Optional: [absMax, absMin, Max, Min].
+        If int, this step will be demonstrated (counting from 0).
     show_values: bool, default: True
         Whether to display the response value.
     scale: float, default: 1.0
@@ -594,6 +615,7 @@ def plot_frame_responses(
         plotbase.plot_peak_step(
             plotter,
             ele_tags=ele_tags,
+            step=step,
             alpha=scale,
             show_values=show_values,
             resp_type=resp_type,

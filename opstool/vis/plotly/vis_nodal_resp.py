@@ -56,19 +56,37 @@ class PlotNodalResponse(PlotResponseBase):
         else:
             self.component = list(component)
 
-    def _get_resp_clim_peak(self):
+    def _get_resp_clim_peak(self, idx="absMax"):
         resps = []
+        resps_norm = []
         for i in range(self.num_steps):
             da = self._get_resp_data(i, self.resp_type, self.component)
+            resps.append(da)
             if da.ndim == 1:
-                resps.append(da)
+                resps_norm.append(da)
             else:
-                resps.append(np.linalg.norm(da, axis=1))
-        max_resps = [np.max(resp) for resp in resps]
-        min_resps = [np.min(resp) for resp in resps]
+                resps_norm.append(np.linalg.norm(da, axis=1))
+        if isinstance(idx, str):
+            if idx.lower() == "absmax":
+                resp = [np.max(np.abs(data)) for data in resps]
+                step = np.argmax(resp)
+            elif idx.lower() == "max":
+                resp = [np.max(data) for data in resps]
+                step = np.argmax(resp)
+            elif idx.lower() == "absmin":
+                resp = [np.min(np.abs(data)) for data in resps]
+                step = np.argmin(resp)
+            elif idx.lower() == "min":
+                resp = [np.min(data) for data in resps]
+                step = np.argmin(resp)
+            else:
+                raise ValueError("Invalid argument, one of [absMax, absMin, Max, Min]")
+        else:
+            step = int(idx)
+        max_resps = [np.max(resp) for resp in resps_norm]
+        min_resps = [np.min(resp) for resp in resps_norm]
         cmin, cmax = np.min(min_resps), np.max(max_resps)
-        max_step = np.argmax(max_resps)
-        return cmin, cmax, max_step
+        return cmin, cmax, step
 
     def _get_deformation_data(self, idx):
         data = self._get_resp_data(idx, "disp", ["UX", "UY", "UZ"])
@@ -84,7 +102,7 @@ class PlotNodalResponse(PlotResponseBase):
             alpha_ = 0.0
         else:
             alpha_ = self.max_bound_size * self.pargs.scale_factor / maxv
-        return alpha_
+        return float(alpha_)
 
     def _make_txt(self, step):
         resp = self._get_resp_data(step, self.resp_type, self.component)
@@ -346,6 +364,7 @@ class PlotNodalResponse(PlotResponseBase):
 
     def plot_peak_step(
         self,
+        step="absMax",
         alpha=1.0,
         show_defo=True,
         show_bc: bool = True,
@@ -354,7 +373,7 @@ class PlotNodalResponse(PlotResponseBase):
         style="surface",
         show_origin=False,
     ):
-        cmin, cmax, max_step = self._get_resp_clim_peak()
+        cmin, cmax, step = self._get_resp_clim_peak(idx=step)
         clim = (cmin, cmax)
         if show_defo:
             alpha_ = self._get_defo_scale_factor()
@@ -364,7 +383,7 @@ class PlotNodalResponse(PlotResponseBase):
         plotter = []
         self._create_mesh(
             plotter=plotter,
-            value=max_step,
+            value=step,
             alpha=alpha_,
             clim=clim,
             coloraxis="coloraxis",
@@ -375,7 +394,7 @@ class PlotNodalResponse(PlotResponseBase):
             show_origin=show_origin,
         )
         self.FIGURE.add_traces(plotter)
-        txt = self._make_txt(max_step)
+        txt = self._make_txt(step)
         self.FIGURE.update_layout(
             coloraxis=dict(
                 colorscale=self.pargs.cmap,
@@ -521,6 +540,7 @@ class PlotNodalResponse(PlotResponseBase):
 def plot_nodal_responses(
     odb_tag: Union[int, str] = 1,
     slides: bool = False,
+    step: Union[int, str] = "absMax",
     scale: float = 1.0,
     show_defo: bool = True,
     resp_type: str = "disp",
@@ -540,7 +560,11 @@ def plot_nodal_responses(
         Tag of output databases (ODB) to be visualized.
     slides: bool, default: False
         Display the response for each step in the form of a slideshow.
-        Otherwise, show the step with the largest response.
+        Otherwise, show the step with the following ``step`` parameter.
+    step: Union[int, str], default: "absMax"
+        If slides = False, this parameter will be used as the step to plot.
+        If str, Optional: [absMax, absMin, Max, Min].
+        If int, this step will be demonstrated (counting from 0).
     scale: float, default: 1.0
         Scales the size of the deformation presentation.
     show_defo: bool, default: True
@@ -598,6 +622,7 @@ def plot_nodal_responses(
         )
     else:
         plotbase.plot_peak_step(
+            step=step,
             alpha=scale,
             show_defo=show_defo,
             show_bc=show_bc,

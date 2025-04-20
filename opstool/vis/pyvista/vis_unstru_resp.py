@@ -82,12 +82,26 @@ class PlotUnstruResponse(PlotResponseBase):
                 resps.append(da.mean(dim="GaussPoints", skipna=True))
         self.resp_step = resps
 
-    def _get_resp_peak(self):
-        resp_step = self.resp_step
-        maxv = [np.max(np.abs(data)) for data in resp_step]
-        maxstep = np.argmax(maxv)
+    def _get_resp_peak(self, idx="absMax"):
+        if isinstance(idx, str):
+            if idx.lower() == "absmax":
+                resp = [np.max(np.abs(data)) for data in self.resp_step]
+                step = np.argmax(resp)
+            elif idx.lower() == "max":
+                resp = [np.max(data) for data in self.resp_step]
+                step = np.argmax(resp)
+            elif idx.lower() == "absmin":
+                resp = [np.min(np.abs(data)) for data in self.resp_step]
+                step = np.argmin(resp)
+            elif idx.lower() == "min":
+                resp = [np.min(data) for data in self.resp_step]
+                step = np.argmin(resp)
+            else:
+                raise ValueError("Invalid argument, one of [absMax, absMin, Max, Min]")
+        else:
+            step = int(idx)
         cmin, cmax = self._get_resp_clim()
-        return maxstep, (cmin, cmax)
+        return step, (cmin, cmax)
 
     def _get_resp_clim(self):
         maxv = [np.max(data) for data in self.resp_step]
@@ -188,15 +202,16 @@ class PlotUnstruResponse(PlotResponseBase):
     def plot_peak_step(
         self,
         plotter,
+        step="absMax",
         ele_tags=None,
         style="surface",
         cpos="iso"
     ):
         plot_all_mesh = True if ele_tags is None else False
-        max_step, clim = self._get_resp_peak()
+        step, clim = self._get_resp_peak(idx=step)
         self._create_mesh(
             plotter=plotter,
-            value=max_step,
+            value=step,
             ele_tags=ele_tags,
             clim=clim,
             plot_all_mesh=plot_all_mesh,
@@ -256,6 +271,7 @@ def plot_unstruct_responses(
     ele_type: str = "Shell",
     ele_tags: Union[int, list] = None,
     slides: bool = False,
+    step: Union[int, str] = "absMax",
     resp_type: str = "sectionForces",
     resp_dof: str = "MXX",
     style: str = "surface",
@@ -275,7 +291,11 @@ def plot_unstruct_responses(
         If None, all elements are selected.
     slides: bool, default: False
         Display the response for each step in the form of a slideshow.
-        Otherwise, show the step with the largest response.
+        Otherwise, show the step with the following ``step`` parameter.
+    step: Union[int, str], default: "absMax"
+        If slides = False, this parameter will be used as the step to plot.
+        If str, Optional: [absMax, absMin, Max, Min].
+        If int, this step will be demonstrated (counting from 0).
     ele_type: str, default: "Shell"
         Element type, optional, one of ["Shell", "Plane", "Solid"].
     resp_type: str, default: None
@@ -363,6 +383,7 @@ def plot_unstruct_responses(
         plotbase.plot_peak_step(
             plotter,
             ele_tags=ele_tags,
+            step=step,
             style=style,
             cpos=cpos
         )

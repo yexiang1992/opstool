@@ -98,17 +98,32 @@ class PlotTrussResponse(PlotResponseBase):
                 resps.append(da)
         self.resp_step = resps  # update
 
-    def _get_resp_peak(self):
-        resp_step = self.resp_step
-        maxv = [np.max(np.abs(data)) for data in resp_step]
-        maxstep = np.argmax(maxv)
-        maxv = np.max(maxv)
-        cmin, cmax = self._get_truss_resp_clim()
+    def _get_resp_peak(self, idx="absMax"):
+        if isinstance(idx, str):
+            if idx.lower() == "absmax":
+                resp = [np.max(np.abs(data)) for data in self.resp_step]
+                step = np.argmax(resp)
+            elif idx.lower() == "max":
+                resp = [np.max(data) for data in self.resp_step]
+                step = np.argmax(resp)
+            elif idx.lower() == "absmin":
+                resp = [np.min(np.abs(data)) for data in self.resp_step]
+                step = np.argmin(resp)
+            elif idx.lower() == "min":
+                resp = [np.min(data) for data in self.resp_step]
+                step = np.argmin(resp)
+            else:
+                raise ValueError("Invalid argument, one of [absMax, absMin, Max, Min]")
+        else:
+            step = int(idx)
+        resp = self.resp_step[step]
+        maxv = np.amax(np.abs(resp))
         if maxv == 0:
             alpha_ = 0.0
         else:
             alpha_ = self.max_bound_size * self.pargs.scale_factor / maxv
-        return maxstep, (cmin, cmax), alpha_
+        cmin, cmax = self._get_truss_resp_clim()
+        return step, (cmin, cmax), float(alpha_)
 
     def _get_truss_resp_clim(self):
         maxv = [np.max(data) for data in self.resp_step]
@@ -134,8 +149,8 @@ class PlotTrussResponse(PlotResponseBase):
         resp_points, resp_cells = [], []
         scalars = []
         for cell, resp in zip(truss_cells, resps):
-            coord1 = np.array(truss_coords[cell[1]])
-            coord2 = np.array(truss_coords[cell[2]])
+            coord1 = truss_coords[cell[1]]
+            coord2 = truss_coords[cell[2]]
             xaxis = coord2 - coord1
             length = np.linalg.norm(xaxis)
             xaxis = xaxis / length
@@ -292,12 +307,13 @@ class PlotTrussResponse(PlotResponseBase):
     def plot_peak_step(
         self,
         ele_tags=None,
+        step="absMax",
         show_values=True,
         alpha=1.0,
         line_width=1.5,
     ):
         plot_all_mesh = True if ele_tags is None else False
-        max_step, clim, alpha_ = self._get_resp_peak()
+        max_step, clim, alpha_ = self._get_resp_peak(idx=step)
 
         plotter = []
         self._create_mesh(
@@ -450,6 +466,7 @@ def plot_truss_responses(
     odb_tag: Union[int, str] = 1,
     ele_tags: Union[int, list] = None,
     slides: bool = False,
+    step: Union[int, str] = "absMax",
     show_values: bool = True,
     resp_type: str = "axialForce",
     alpha: float = 1.0,
@@ -466,7 +483,11 @@ def plot_truss_responses(
         The tags of truss elements to be visualized. If None, all truss elements are selected.
     slides: bool, default: False
         Display the response for each step in the form of a slideshow.
-        Otherwise, show the step with the largest response.
+        Otherwise, show the step with the following ``step`` parameter.
+    step: Union[int, str], default: "absMax"
+        If slides = False, this parameter will be used as the step to plot.
+        If str, Optional: [absMax, absMin, Max, Min].
+        If int, this step will be demonstrated (counting from 0).
     show_values: bool, default: True
         Whether to display the response value.
     resp_type: str, default: "axialForce"
@@ -504,6 +525,7 @@ def plot_truss_responses(
         )
     else:
         plotbase.plot_peak_step(
+            step=step,
             show_values=show_values,
             alpha=alpha,
             line_width=line_width,
