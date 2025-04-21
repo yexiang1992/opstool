@@ -682,6 +682,8 @@ def get_element_responses(
         #. For `Shell`:
             * "sectionForces": Sectional forces at Gauss points (per unit length).
             * "sectionDeformations": Sectional deformation at Gauss points (per unit length).
+            * "Stresses": The stresses of each fiber layer at each Gauss point.
+            * "Strains": The strains of each fiber layer at each Gauss point.
         #. For `Plane`:
             * "stresses": Stresses at Gauss points.
             * "strains": Strains at Gauss points.
