@@ -250,6 +250,15 @@ ELE_TYPE_TAGS = {
     260: "ELE_TAG_PML2D_5",
     261: "ELE_TAG_PML2D_12",
     262: "ELE_TAG_PML2DVISCOUS",
+    # Sensitivity element
+    100000011: "ELE_TAG_FourNodeQuadWithSensitivity",
+    1984587234: "ELE_TAG_BbarBrickWithSensitivity",
+    102030: "ELE_TAG_DispBeamColumn2dWithSensitivity",
+    1110000: "ELE_TAG_DispBeamColumn3dWithSensitivity",
+    100003: "ELE_TAG_VS3D4QuadWithSensitivity",
+    100009: "ELE_TAG_AV3D4QuadWithSensitivity",
+    100001: "ELE_TAG_AC3D8HexWithSensitivity",
+    100002: "ELE_TAG_ASI3D8QuadWithSensitivity",
 }
 # ELE_TAG_TYPE = {value: key for key, value in ELE_TYPE_TAGS.items()}
 
@@ -373,6 +382,8 @@ ELE_TAG_Beam = [
     79,
     128,
     257,
+    102030,  # ELE_TAG_DispBeamColumn2dWithSensitivity
+    1110000,  # ELE_TAG_DispBeamColumn3dWithSensitivity
 ]
 ELE_TAG_Plane = [
     31,
@@ -394,6 +405,10 @@ ELE_TAG_Plane = [
     208,
     209,
     219,
+    100000011, # FourNodeQuadWithSensitivity
+    100003,  # ELE_TAG_VS3D4QuadWithSensitivity
+    100009,  # ELE_TAG_AV3D4QuadWithSensitivity
+    100002,  # ELE_TAG_ASI3D8QuadWithSensitivity
 ]
 ELE_TAG_SURFACE_LOAD = [116, 180]
 ELE_TAG_Shell = [
@@ -438,6 +453,8 @@ ELE_TAG_Brick = [
     122,
     127,
     220,
+    1984587234,  # ELE_TAG_BbarBrickWithSensitivity
+    100001,  # ELE_TAG_AC3D8HexWithSensitivity
 ]
 ELE_TAG_PFEM = [133, 141, 142, 143, 144, 164, 187, 189, 199, 200, 255]
 ELE_TAG_UP = [40, 46, 47, 48, 50, 51, 120, 122]
