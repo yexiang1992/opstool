@@ -81,23 +81,26 @@ def _get_truss_resp(truss_tags):
     forces, defos, stressss, strains = [], [], [], []
     for etag in truss_tags:
         etag = int(etag)
-        force = ops.eleResponse(etag, "axialForce")[0]
-        defo = ops.eleResponse(etag, "basicDeformation")[0]
+        force = ops.eleResponse(etag, "axialForce")
+        force = _reshape_resp(force)
+        defo = ops.eleResponse(etag, "basicDeformation")
+        defo = _reshape_resp(defo)
         stress = ops.eleResponse(etag, "material", "1", "stress")
+        stress = _reshape_resp(stress)
 
-        if len(stress) == 0:
-            stress = 0.0
-        else:
-            stress = stress[0]
         strain = ops.eleResponse(etag, "material", "1", "strain")
         if len(strain) == 0:
             strain = ops.eleResponse(etag, "section", "1", "deformation")
-        if len(strain) == 0:
-            strain = 0.0
-        else:
-            strain = strain[0]
+        strain = _reshape_resp(strain)
+
         forces.append(force)
         defos.append(defo)
         stressss.append(stress)
         strains.append(strain)
     return forces, defos, stressss, strains
+
+def _reshape_resp(data):
+    if len(data) == 0:
+        return 0.0
+    else:
+        return data[0]

@@ -151,8 +151,13 @@ def _get_gauss_resp(ele_tags):
         for i in range(100000000):  # Ugly but useful
             # loop for integrPoint
             stress_ = ops.eleResponse(etag, "material", f"{i+1}", "stresses")
+            if len(stress_) == 0:
+                stress_ = ops.eleResponse(etag, "integrPoint", f"{i+1}", "stresses")
             stress_ = _reshape_stress(stress_)
             strain_ = ops.eleResponse(etag, "material", f"{i+1}", "strains")
+            if len(strain_) == 0:
+                strain_ = ops.eleResponse(etag, "integrPoint", f"{i+1}", "strains")
+
             if len(stress_) == 0 or len(strain_) == 0:
                 break
             integr_point_stress.append(stress_)
@@ -162,8 +167,15 @@ def _get_gauss_resp(ele_tags):
             stress = ops.eleResponse(etag, "stresses")
             stress = _reshape_stress(stress)
             strain = ops.eleResponse(etag, "strains")
-            integr_point_stress.append(stress)
-            integr_point_strain.append(strain)
+            if len(stress) > 0:
+                integr_point_stress.append(stress)
+            if len(strain) > 0:
+                integr_point_strain.append(strain)
+        # Finally, if void set to 0.0
+        if len(integr_point_stress) == 0:
+            integr_point_stress.append([np.nan, np.nan, np.nan])
+        if len(integr_point_strain) == 0:
+            integr_point_strain.append([np.nan, np.nan, np.nan])
         all_stresses.append(np.array(integr_point_stress))
         all_strains.append(np.array(integr_point_strain))
     stresses = _expand_to_uniform_array(all_stresses)

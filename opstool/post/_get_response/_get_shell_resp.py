@@ -114,13 +114,17 @@ def _get_shell_resp_one_step(ele_tags):
         num_sec = int(len(forces) / 8)
         sec_stress, sec_strain = [], []
         for j in range(num_sec):
-            for k in range(100000000000000000):  # ugly but useful
-                stress = ops.eleResponse(etag, "Material", f"{j+1}", "fiber", f"{k+1}", "stresses")
+            for k in range(100000000000000000):  # ugly but useful, loop for fiber layers
+                stress = ops.eleResponse(etag, "Material", f"{j + 1}", "fiber", f"{k + 1}", "stresses")
                 strain = ops.eleResponse(etag, "Material", f"{j + 1}", "fiber", f"{k + 1}", "strains")
                 if len(stress) == 0 or len(strain) == 0:
                     break
                 sec_stress.extend(stress)
                 sec_strain.extend(strain)
+        if len(sec_stress) == 0:
+            sec_stress.extend([np.nan, np.nan, np.nan, np.nan, np.nan] * num_sec)
+        if len(sec_strain) == 0:
+            sec_strain.extend([np.nan, np.nan, np.nan, np.nan, np.nan] * num_sec)
         sec_stress = np.reshape(sec_stress, (num_sec, -1, 5))
         sec_strain = np.reshape(sec_strain, (num_sec, -1, 5))
         stresses.append(sec_stress)
