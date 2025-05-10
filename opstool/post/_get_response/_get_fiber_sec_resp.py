@@ -50,7 +50,7 @@ class FiberSecRespStepData(ResponseBase):
         if isinstance(dtype, dict):
             self.dtype.update(dtype)
 
-        self.secPoints  = None
+        self.secPoints = None
         self.fiberPoints = None
         self.DOFs = ["P", "Mz", "My", "T"]
 
