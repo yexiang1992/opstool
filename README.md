@@ -6,7 +6,7 @@
 [![Documentation Status](https://readthedocs.org/projects/opstool/badge/?version=latest)](https://opstool.readthedocs.io/en/latest/?badge=latest)
 [![github stars](https://img.shields.io/github/stars/yexiang1992/opstool?style=social)](https://github.com/yexiang1992/opstool)
 [![GitHub License](https://img.shields.io/github/license/yexiang1992/opstool?style=flat)](https://img.shields.io/github/license/yexiang1992/opstool?style=flat)
-[![code grade](https://img.shields.io/codefactor/grade/github/yexiang1992/opstool)](https://www.codefactor.io/repository/github/yexiang1992/opstool)
+[![CodeFactor](https://www.codefactor.io/repository/github/yexiang92/opstool/badge)](https://www.codefactor.io/repository/github/yexiang92/opstool)
 
 ``opstool`` is a powerful and user-friendly package designed to simplify and enhance structural analysis workflows 
 with [OpenSees](https://opensees.berkeley.edu/) and [OpenSeesPy](https://openseespydoc.readthedocs.io/en/latest/). 
