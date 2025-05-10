@@ -33,7 +33,7 @@ class ResponseBase(ABC):
         """Read response data from a file."""
 
 
-def _expand_to_uniform_array(array_list):
+def _expand_to_uniform_array(array_list, dtype=None):
     """
     Convert a list of NumPy arrays with varying shapes into a single 2D/3D NumPy array,
     padding with NaN where dimensions do not match.
@@ -54,5 +54,6 @@ def _expand_to_uniform_array(array_list):
     for i, arr in enumerate(array_list):
         slices = tuple(slice(0, dim) for dim in arr.shape)
         result[i][slices] = arr
-
+    if dtype is not None:
+        result = result.astype(dtype)
     return result

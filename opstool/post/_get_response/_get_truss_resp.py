@@ -1,3 +1,4 @@
+import numpy as np
 import xarray as xr
 import openseespy.opensees as ops
 
@@ -6,16 +7,27 @@ from ._response_base import ResponseBase
 
 class TrussRespStepData(ResponseBase):
 
-    def __init__(self, ele_tags=None):
+    def __init__(self, ele_tags=None, model_update: bool = False, dtype: dict = None):
         self.resp_names = ["axialForce", "axialDefo", "Stress", "Strain"]
         self.resp_steps = None
+        self.resp_steps_list = []  # for model update
+        self.resp_steps_dict = dict()  # for non-update
         self.step_track = 0
         self.ele_tags = ele_tags
         self.times = []
+
+        self.model_update = model_update
+        self.dtype = dict(int=np.int32, float=np.float32)
+        if isinstance(dtype, dict):
+            self.dtype.update(dtype)
+
         self.initialize()
 
     def initialize(self):
-        self.resp_steps = []
+        self.resp_steps = None
+        self.resp_steps_list = []
+        for name in self.resp_names:
+            self.resp_steps_dict[name] = []
         self.add_data_one_step(self.ele_tags)
         self.times = [0.0]
         self.step_track = 0
@@ -24,23 +36,38 @@ class TrussRespStepData(ResponseBase):
         self.initialize()
 
     def add_data_one_step(self, ele_tags):
-        data = _get_truss_resp(ele_tags)
-        data_vars = {}
-        if len(ele_tags) > 0:
-            for name, data_ in zip(self.resp_names, data):
-                data_vars[name] = (["eleTags"], data_)
-            ds = xr.Dataset(data_vars=data_vars, coords={"eleTags": ele_tags})
+        data = _get_truss_resp(ele_tags, dtype=self.dtype)
+
+        if self.model_update:
+            data_vars = {}
+            if len(ele_tags) > 0:
+                for name, data_ in zip(self.resp_names, data):
+                    data_vars[name] = (["eleTags"], data_)
+                ds = xr.Dataset(data_vars=data_vars, coords={"eleTags": ele_tags})
+            else:
+                for name, data_ in zip(self.resp_names, data):
+                    data_vars[name] = xr.DataArray([])
+                ds = xr.Dataset(data_vars=data_vars)
+            self.resp_steps_list.append(ds)
         else:
             for name, data_ in zip(self.resp_names, data):
-                data_vars[name] = xr.DataArray([])
-            ds = xr.Dataset(data_vars=data_vars)
-        self.resp_steps.append(ds)
+                self.resp_steps_dict[name].append(data_)
+
         self.times.append(ops.getTime())
         self.step_track += 1
 
     def _to_xarray(self):
-        self.resp_steps = xr.concat(self.resp_steps, dim="time", join="outer")
-        self.resp_steps.coords["time"] = self.times
+        if self.model_update:
+            self.resp_steps = xr.concat(self.resp_steps_list, dim="time", join="outer")
+            self.resp_steps.coords["time"] = self.times
+        else:
+            data_vars = {}
+            for name, data in self.resp_steps_dict.items():
+                data_vars[name] = (["time", "eleTags"], data)
+            self.resp_steps = xr.Dataset(
+                data_vars=data_vars,
+                coords={"time": self.times, "eleTags": self.ele_tags},
+            )
 
     def get_data(self):
         return self.resp_steps
@@ -77,7 +104,7 @@ class TrussRespStepData(ResponseBase):
                 return ds[resp_type]
 
 
-def _get_truss_resp(truss_tags):
+def _get_truss_resp(truss_tags, dtype: dict):
     forces, defos, stressss, strains = [], [], [], []
     for etag in truss_tags:
         etag = int(etag)
@@ -97,6 +124,11 @@ def _get_truss_resp(truss_tags):
         defos.append(defo)
         stressss.append(stress)
         strains.append(strain)
+
+    forces = np.array(forces, dtype=dtype["float"])
+    defos = np.array(defos, dtype=dtype["float"])
+    stressss = np.array(stressss, dtype=dtype["float"])
+    strains = np.array(strains, dtype=dtype["float"])
     return forces, defos, stressss, strains
 
 def _reshape_resp(data):

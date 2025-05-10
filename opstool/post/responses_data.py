@@ -32,6 +32,7 @@ MODEL_FILE_NAME = CONSTANTS.get_model_filename()
 POST_ARGS = SimpleNamespace(
     elastic_frame_sec_points=7,
     compute_mechanical_measures=True,
+    dtype=dict(int=np.int32, float=np.float32),
     # ------------------------------
     save_nodal_resp=True,
     save_frame_resp=True,
@@ -80,6 +81,8 @@ class CreateODB:
         * compute_mechanical_measures: bool, default: True
             Whether to compute mechanical measures for ``solid and planar elements``,
             including principal stresses, principal strains, von Mises stresses, etc.
+        * dtype: dict, default: dict(int=np.int32, float=np.float32)
+            Set integer and floating point precision types.
         * Whether to save the responses:
             * save_nodal_resp: bool, default: True
                 Whether to save nodal responses.
@@ -212,7 +215,20 @@ class CreateODB:
         self._ContactResp = None
         self._SensitivityResp = None
 
-        self._initialize()
+        self._set_resp()
+
+    def _set_resp(self):
+        self._set_model_info()
+        self._set_node_resp()
+        self._set_frame_resp()
+        self._set_truss_resp()
+        self._set_link_resp()
+        self._set_shell_resp()
+        self._set_fiber_sec_resp()
+        self._set_plane_resp()
+        self._set_brick_resp()
+        self._set_contact_resp()
+        self._set_sensitivity_resp()
 
     def _get_resp(self):
         output = [
@@ -222,83 +238,168 @@ class CreateODB:
         ]
         return output
 
-    def _initialize(self):
-        self._ModelInfo = ModelInfoStepData(model_update=self._model_update)
+    def _set_model_info(self):
+        if self._ModelInfo is None:
+            self._ModelInfo = ModelInfoStepData(model_update=self._model_update)
+        else:
+            self._ModelInfo.add_data_one_step()
+
+    def _set_node_resp(self):
         if self._node_tags is not None:
             node_tags = self._node_tags
         else:
             node_tags = self._ModelInfo.get_current_node_tags()
         if len(node_tags) > 0 and self._save_nodal_resp:
-            self._NodalResp = NodalRespStepData(node_tags)
-        # -----------------------------------------------------------------
+            if self._NodalResp is None:
+                self._NodalResp = NodalRespStepData(
+                    node_tags,
+                    model_update=self._model_update,
+                    dtype=POST_ARGS.dtype
+                )
+            else:
+                self._NodalResp.add_data_one_step(node_tags)
+
+    def _set_frame_resp(self):
         if self._frame_tags is not None:
             frame_tags = self._frame_tags
         else:
             frame_tags = self._ModelInfo.get_current_frame_tags()
         frame_load_data = self._ModelInfo.get_current_frame_load_data()
         if len(frame_tags) > 0 and self._save_frame_resp:
-            self._FrameResp = FrameRespStepData(
-                frame_tags,
-                frame_load_data,
-                elastic_frame_sec_points=POST_ARGS.elastic_frame_sec_points
-            )
-        # -----------------------------------------------------------------
+            if self._FrameResp is None:
+                self._FrameResp = FrameRespStepData(
+                    frame_tags,
+                    frame_load_data,
+                    elastic_frame_sec_points=POST_ARGS.elastic_frame_sec_points,
+                    model_update=self._model_update,
+                    dtype=POST_ARGS.dtype
+                )
+            else:
+                self._FrameResp.add_data_one_step(frame_tags, frame_load_data)
+
+    def _set_truss_resp(self):
         if self._truss_tags is not None:
             truss_tags = self._truss_tags
         else:
             truss_tags = self._ModelInfo.get_current_truss_tags()
         if len(truss_tags) > 0 and self._save_truss_resp:
-            self._TrussResp = TrussRespStepData(truss_tags)
-        # -----------------------------------------------------------------
+            if self._TrussResp is None:
+                self._TrussResp = TrussRespStepData(
+                    truss_tags,
+                    model_update=self._model_update,
+                    dtype=POST_ARGS.dtype
+                )
+            else:
+                self._TrussResp.add_data_one_step(truss_tags)
+
+    def _set_link_resp(self):
         if self._link_tags is not None:
             link_tags = self._link_tags
         else:
             link_tags = self._ModelInfo.get_current_link_tags()
         if len(link_tags) > 0 and self._save_link_resp:
-            self._LinkResp = LinkRespStepData(link_tags)
-        # -----------------------------------------------------------------
+            if self._LinkResp is None:
+                self._LinkResp = LinkRespStepData(
+                    link_tags,
+                    model_update=self._model_update,
+                    dtype=POST_ARGS.dtype
+                )
+            else:
+                self._LinkResp.add_data_one_step(link_tags)
+
+    def _set_shell_resp(self):
         if self._shell_tags is not None:
             shell_tags = self._shell_tags
         else:
             shell_tags = self._ModelInfo.get_current_shell_tags()
         if len(shell_tags) > 0 and self._save_shell_resp:
-            self._ShellResp = ShellRespStepData(shell_tags)
-        # -----------------------------------------------------------------
+            if self._ShellResp is None:
+                self._ShellResp = ShellRespStepData(
+                    shell_tags,
+                    model_update=self._model_update,
+                    dtype=POST_ARGS.dtype
+                )
+            else:
+                self._ShellResp.add_data_one_step(shell_tags)
+
+    def _set_fiber_sec_resp(self):
         if self._fiber_ele_tags is not None and self._save_fiber_sec_resp:
-            self._FiberSecResp = FiberSecRespStepData(self._fiber_ele_tags)
-        # -----------------------------------------------------------------
+            if self._FiberSecResp is None:
+                self._FiberSecResp = FiberSecRespStepData(
+                    self._fiber_ele_tags,
+                    model_update=self._model_update,
+                    dtype=POST_ARGS.dtype
+                )
+            else:
+                self._FiberSecResp.add_data_one_step()
+
+    def _set_plane_resp(self):
         if self._plane_tags is not None:
             plane_tags = self._plane_tags
         else:
             plane_tags = self._ModelInfo.get_current_plane_tags()
         if len(plane_tags) > 0 and self._save_plane_resp:
-            self._PlaneResp = PlaneRespStepData(plane_tags)
-        # -----------------------------------------------------------------
+            if self._PlaneResp is None:
+                self._PlaneResp = PlaneRespStepData(
+                    plane_tags,
+                    compute_measures=POST_ARGS.compute_mechanical_measures,
+                    model_update=self._model_update,
+                    dtype=POST_ARGS.dtype
+                )
+            else:
+                self._PlaneResp.add_data_one_step(plane_tags)
+
+    def _set_brick_resp(self):
         if self._brick_tags is not None:
             brick_tags = self._brick_tags
         else:
             brick_tags = self._ModelInfo.get_current_brick_tags()
         if len(brick_tags) > 0 and self._save_brick_resp:
-            self._BrickResp = BrickRespStepData(
-                brick_tags,
-                compute_measures=POST_ARGS.compute_mechanical_measures,
-            )
-        # -----------------------------------------------------------------
+            if self._BrickResp is None:
+                self._BrickResp = BrickRespStepData(
+                    brick_tags,
+                    compute_measures=POST_ARGS.compute_mechanical_measures,
+                    model_update=self._model_update,
+                    dtype=POST_ARGS.dtype
+                )
+            else:
+                self._BrickResp.add_data_one_step(brick_tags)
+
+    def _set_contact_resp(self):
         if self._contact_tags is not None:
             contact_tags = self._contact_tags
         else:
             contact_tags = self._ModelInfo.get_current_contact_tags()
         if len(contact_tags) > 0 and self._save_contact_resp:
-            self._ContactResp = ContactRespStepData(contact_tags)
-        # ------------------------------------------------------------------
+            if self._ContactResp is None:
+                self._ContactResp = ContactRespStepData(
+                    contact_tags,
+                    model_update=self._model_update,
+                    dtype=POST_ARGS.dtype
+                )
+            else:
+                self._ContactResp.add_data_one_step(contact_tags)
+
+    def _set_sensitivity_resp(self):
         if self._sensitivity_para_tags is not None:
             sens_para_tags = self._sensitivity_para_tags
         else:
             sens_para_tags = ops.getParamTags()
+        if self._node_tags is not None:
+            node_tags = self._node_tags
+        else:
+            node_tags = self._ModelInfo.get_current_node_tags()
         if len(node_tags) > 0 and len(sens_para_tags) > 0 and self._save_sensitivity_resp:
-            self._SensitivityResp = SensitivityRespStepData(
-                node_tags=node_tags, ele_tags=None, sens_para_tags=sens_para_tags
-            )
+            if self._SensitivityResp is None:
+                self._SensitivityResp = SensitivityRespStepData(
+                    node_tags=node_tags,
+                    ele_tags=None,
+                    sens_para_tags=sens_para_tags,
+                    model_update=self._model_update,
+                    dtype=POST_ARGS.dtype
+                )
+            else:
+                self._SensitivityResp.add_data_one_step(node_tags=node_tags, sens_para_tags=sens_para_tags)
 
     def reset(self):
         """Reset the ODB model.
@@ -315,74 +416,7 @@ class CreateODB:
         print_info: bool, optional
             print information, by default, False
         """
-        self._ModelInfo.add_data_one_step()
-        if self._node_tags is not None:
-            node_tags = self._node_tags
-        else:
-            node_tags = self._ModelInfo.get_current_node_tags()
-        if len(node_tags) > 0 and self._save_nodal_resp:
-            self._NodalResp.add_data_one_step(node_tags)
-        # -----------------------------------------------------------------
-        if self._frame_tags is not None:
-            frame_tags = self._frame_tags
-        else:
-            frame_tags = self._ModelInfo.get_current_frame_tags()
-        frame_load_data = self._ModelInfo.get_current_frame_load_data()
-        if len(frame_tags) > 0 and self._save_frame_resp:
-            self._FrameResp.add_data_one_step(frame_tags, frame_load_data)
-        # -----------------------------------------------------------------
-        if self._truss_tags is not None:
-            truss_tags = self._truss_tags
-        else:
-            truss_tags = self._ModelInfo.get_current_truss_tags()
-        if len(truss_tags) > 0 and self._save_truss_resp:
-            self._TrussResp.add_data_one_step(truss_tags)
-        # -----------------------------------------------------------------
-        if self._link_tags is not None:
-            link_tags = self._link_tags
-        else:
-            link_tags = self._ModelInfo.get_current_link_tags()
-        if len(link_tags) > 0 and self._save_link_resp:
-            self._LinkResp.add_data_one_step(link_tags)
-        # -----------------------------------------------------------------
-        if self._shell_tags is not None:
-            shell_tags = self._shell_tags
-        else:
-            shell_tags = self._ModelInfo.get_current_shell_tags()
-        if len(shell_tags) > 0 and self._save_shell_resp:
-            self._ShellResp.add_data_one_step(shell_tags)
-        # -----------------------------------------------------------------
-        if self._fiber_ele_tags is not None and self._save_fiber_sec_resp:
-            self._FiberSecResp.add_data_one_step()
-        # -----------------------------------------------------------------
-        if self._plane_tags is not None:
-            plane_tags = self._plane_tags
-        else:
-            plane_tags = self._ModelInfo.get_current_plane_tags()
-        # -----------------------------------------------------------------
-        if len(plane_tags) > 0 and self._save_plane_resp:
-            self._PlaneResp.add_data_one_step(plane_tags)
-        # -----------------------------------------------------------------
-        if self._brick_tags is not None:
-            brick_tags = self._brick_tags
-        else:
-            brick_tags = self._ModelInfo.get_current_brick_tags()
-        if len(brick_tags) > 0 and self._save_brick_resp:
-            self._BrickResp.add_data_one_step(brick_tags)
-        # -----------------------------------------------------------------
-        if self._contact_tags is not None:
-            contact_tags = self._contact_tags
-        else:
-            contact_tags = self._ModelInfo.get_current_contact_tags()
-        if len(contact_tags) > 0 and self._save_contact_resp:
-            self._ContactResp.add_data_one_step(contact_tags)
-        # -------------------------------------------------------------------
-        if self._sensitivity_para_tags is not None:
-            sens_para_tags = self._sensitivity_para_tags
-        else:
-            sens_para_tags = ops.getParamTags()
-        if len(node_tags) > 0 and len(sens_para_tags) > 0 and self._save_sensitivity_resp:
-            self._SensitivityResp.add_data_one_step(node_tags=node_tags, sens_para_tags=sens_para_tags)
+        self._set_resp()
 
         if print_info:
             time = ops.getTime()

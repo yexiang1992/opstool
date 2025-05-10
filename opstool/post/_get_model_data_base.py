@@ -22,6 +22,8 @@ LINE_CELL_TYPE_VTK = {2: 3, 3: 21}  # KEY : NUM.VERTEX; VALUE: VTK CELL TYPE
 PLANE_CELL_TYPE_VTK = {3: 5, 4: 9, 6: 22, 7: 34, 8: 23, 9: 28}
 SOLID_CELL_TYPE_VTK = {4: 10, 8: 12, 10: 24, 20: 25, 24: 33, 27: 29}
 
+INT_TYPE = np.int32
+FLOAT_TYPE = np.float32
 
 class FEMData:
     """
@@ -130,7 +132,7 @@ class FEMData:
             self.node_ndofs.append(ndof)
             self.node_coords.append(coord)
             self.node_index[tag] = i
-        self.node_coords = np.array(self.node_coords)
+        self.node_coords = np.array(self.node_coords, dtype=FLOAT_TYPE)
 
     def _make_node_fixed(self):
         for tag in self.fixed_node_tags:

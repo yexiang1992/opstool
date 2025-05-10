@@ -6,7 +6,7 @@ from ._response_base import ResponseBase
 
 
 class NodalRespStepData(ResponseBase):
-    def __init__(self, node_tags=None):
+    def __init__(self, node_tags=None, model_update: bool = False, dtype: dict = None):
         self.nodal_resp_names = [
             "disp",
             "vel",
@@ -15,19 +15,35 @@ class NodalRespStepData(ResponseBase):
             "reactionIncInertia",
             "rayleighForces",
             "pressure",
-            # sensitivity
-            # "dispSensitivity",
-            # "velSensitivity",
-            # "accSensitivity",
         ]
         self.node_tags = node_tags if node_tags is not None else ops.getNodeTags()
         self.resp_steps = None
+        self.resp_steps_list = []  # for model update
+        self.resp_steps_dict = dict()  # for non-update
         self.times = []
         self.step_track = 0
+
+        self.model_update = model_update
+        self.dtype = dict(int=np.int32, float=np.float32)
+        if isinstance(dtype, dict):
+            self.dtype.update(dtype)
+
+        self.attrs = {
+            "UX": "Displacement in X direction",
+            "UY": "Displacement in Y direction",
+            "UZ": "Displacement in Z direction",
+            "RX": "Rotation about X axis",
+            "RY": "Rotation about Y axis",
+            "RZ": "Rotation about Z axis",
+        }
+
         self.initialize()
 
     def initialize(self):
-        self.resp_steps = []
+        self.resp_steps = None
+        self.resp_steps_list = []
+        for name in self.nodal_resp_names:
+            self.resp_steps_dict[name] = []
         self.add_data_one_step(self.node_tags)
         self.times = [0.0]
         self.step_track = 0
@@ -37,30 +53,28 @@ class NodalRespStepData(ResponseBase):
 
     def add_data_one_step(self, node_tags):
         # node_tags = ops.getNodeTags()
-        disp, vel, accel, pressure = _get_nodal_resp(node_tags)
-        reacts, reacts_inertia, rayleigh_forces = _get_nodal_react(node_tags)
-        datas = [disp, vel, accel, reacts, reacts_inertia, rayleigh_forces]
-        data_vars = {}
-        for name, data_ in zip(self.nodal_resp_names, datas):
-            data_vars[name] = (["nodeTags", "DOFs"], data_)
-        data_vars["pressure"] = (["nodeTags"], pressure)
-        # can have different dimensions and coordinates
-        ds = xr.Dataset(
-            data_vars=data_vars,
-            coords={
-                "nodeTags": node_tags,
-                "DOFs": ["UX", "UY", "UZ", "RX", "RY", "RZ"],
-            },
-            attrs={
-                "UX": "Displacement in X direction",
-                "UY": "Displacement in Y direction",
-                "UZ": "Displacement in Z direction",
-                "RX": "Rotation about X axis",
-                "RY": "Rotation about Y axis",
-                "RZ": "Rotation about Z axis",
-            },
-        )
-        self.resp_steps.append(ds)
+        disp, vel, accel, pressure = _get_nodal_resp(node_tags, dtype=self.dtype)
+        reacts, reacts_inertia, rayleigh_forces = _get_nodal_react(node_tags, dtype=self.dtype)
+        if self.model_update:
+            datas = [disp, vel, accel, reacts, reacts_inertia, rayleigh_forces]
+            data_vars = {}
+            for name, data_ in zip(self.nodal_resp_names, datas):
+                data_vars[name] = (["nodeTags", "DOFs"], data_)
+            data_vars["pressure"] = (["nodeTags"], pressure)
+            # can have different dimensions and coordinates
+            ds = xr.Dataset(
+                data_vars=data_vars,
+                coords={
+                    "nodeTags": node_tags,
+                    "DOFs": ["UX", "UY", "UZ", "RX", "RY", "RZ"],
+                },
+                attrs=self.attrs,
+            )
+            self.resp_steps_list.append(ds)
+        else:  # non-update
+            datas = [disp, vel, accel, reacts, reacts_inertia, rayleigh_forces, pressure]
+            for name, data_ in zip(self.nodal_resp_names, datas):
+                self.resp_steps_dict[name].append(data_)
         self.times.append(ops.getTime())
         self.step_track += 1
 
@@ -71,8 +85,23 @@ class NodalRespStepData(ResponseBase):
         return self.step_track
 
     def _to_xarray(self):
-        self.resp_steps = xr.concat(self.resp_steps, dim="time", join="outer")
-        self.resp_steps.coords["time"] = self.times
+        if self.model_update:
+            self.resp_steps = xr.concat(self.resp_steps_list, dim="time", join="outer")
+            self.resp_steps.coords["time"] = self.times
+        else:
+            data_vars = {}
+            for name in self.nodal_resp_names[:-1]:
+                data_vars[name] = (["time", "nodeTags", "DOFs"], self.resp_steps_dict[name])
+            data_vars["pressure"] = (["time", "nodeTags"], self.resp_steps_dict["pressure"])
+            self.resp_steps = xr.Dataset(
+                data_vars=data_vars,
+                coords={
+                    "time": self.times,
+                    "nodeTags": self.node_tags,
+                    "DOFs": ["UX", "UY", "UZ", "RX", "RY", "RZ"],
+                },
+                attrs=self.attrs,
+            )
 
     def save_file(self, dt: xr.DataTree):
         self._to_xarray()
@@ -104,7 +133,7 @@ class NodalRespStepData(ResponseBase):
                 return ds[resp_type]
 
 
-def _get_nodal_resp(node_tags):
+def _get_nodal_resp(node_tags, dtype: dict):
     node_disp = []  # 6 data each row, Ux, Uy, Uz, Rx, Ry, Rz
     node_vel = []  # 6 data each row, Ux, Uy, Uz, Rx, Ry, Rz
     node_accel = []  # 6 data each row, Ux, Uy, Uz, Rx, Ry, Rz
@@ -155,14 +184,14 @@ def _get_nodal_resp(node_tags):
         node_vel.append(vel)
         node_accel.append(accel)
         node_pressure.append(ops.nodePressure(tag))
-    node_disp = np.array(node_disp, dtype=float)
-    node_vel = np.array(node_vel, dtype=float)
-    node_accel = np.array(node_accel, dtype=float)
-    node_pressure = np.array(node_pressure, dtype=float)
+    node_disp = np.array(node_disp, dtype=dtype["float"])
+    node_vel = np.array(node_vel, dtype=dtype["float"])
+    node_accel = np.array(node_accel, dtype=dtype["float"])
+    node_pressure = np.array(node_pressure, dtype=dtype["float"])
     return node_disp, node_vel, node_accel, node_pressure
 
 
-def _get_nodal_react(node_tags):
+def _get_nodal_react(node_tags, dtype: dict):
     def get_react(tags):
         forces = []  # 6 data each row, Ux, Uy, Uz, Rx, Ry, Rz
         for tag in tags:
@@ -190,11 +219,11 @@ def _get_nodal_react(node_tags):
         return forces
 
     ops.reactions()
-    reacts = np.array(get_react(node_tags), dtype=float)
+    reacts = np.array(get_react(node_tags), dtype=dtype["float"])
     # rayleighForces
     ops.reactions("-rayleigh")
-    rayleigh_forces = np.array(get_react(node_tags), dtype=float)
+    rayleigh_forces = np.array(get_react(node_tags), dtype=dtype["float"])
     # Include Inertia
     ops.reactions("-dynamic")
-    reacts_inertia = np.array(get_react(node_tags), dtype=float)
+    reacts_inertia = np.array(get_react(node_tags), dtype=dtype["float"])
     return reacts, reacts_inertia, rayleigh_forces
