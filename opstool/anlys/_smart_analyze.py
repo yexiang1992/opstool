@@ -742,7 +742,7 @@ class SmartAnalyze:
             self.control_args["testIterTimes"],
             self.control_args["testPrintFlag"]
         )
-        ok =  self._analyze_one_step(step, verbose=verbose)
+        ok = self._analyze_one_step(step, verbose=verbose)
 
         # goback whenever
         self._set_init_test()
