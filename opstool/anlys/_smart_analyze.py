@@ -734,7 +734,7 @@ class SmartAnalyze:
             color = get_random_color()
             print(
                 f">>> ⚠️ {self.logo} Warning: [bold {color}]Loosing test tolerance to "
-                f"{self.control_args["looseTestTolTo"]}[/bold {color}]"
+                f"{self.control_args['looseTestTolTo']}[/bold {color}]"
             )
         ops.test(
             self.control_args["testType"],
