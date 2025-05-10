@@ -3,7 +3,9 @@ import xarray as xr
 import openseespy.opensees as ops
 
 from ._response_base import ResponseBase, _expand_to_uniform_array
-from ...utils import OPS_ELE_TAGS
+
+
+# from ...utils import OPS_ELE_TAGS
 
 
 # from ._response_extrapolation import resp_extrap_tri3, resp_extrap_tri6
@@ -16,20 +18,48 @@ from ...utils import OPS_ELE_TAGS
 
 class PlaneRespStepData(ResponseBase):
 
-    def __init__(self, ele_tags=None, compute_measures: bool = True):
+    def __init__(
+            self,
+            ele_tags=None,
+            compute_measures: bool = True,
+            model_update: bool = False,
+            dtype: dict = None
+    ):
         self.resp_names = [
             "Stresses",
             "Strains",
         ]
         self.resp_steps = None
+        self.resp_steps_list = []  # for model update
+        self.resp_steps_dict = dict()  # for non-update
         self.step_track = 0
         self.ele_tags = ele_tags
         self.times = []
+
         self.compute_measures = compute_measures
+        self.model_update = model_update
+        self.dtype = dict(int=np.int32, float=np.float32)
+        if isinstance(dtype, dict):
+            self.dtype.update(dtype)
+
+        self.attrs = {
+            "sigma11, sigma22, sigma12": "Normal stress and shear stress (strain) in the x-y plane.",
+            "eta_r": "Ratio between the shear (deviatoric) stress and peak shear strength at the current confinement",
+            "p1, p2": "Principal stresses (strains).",
+            "sigma_vm": "Von Mises stress.",
+            "tau_max": "Maximum shear stress (strains).",
+        }
+        self.GaussPoints = None
+        self.stressDOFs = None
+        self.strainDOFs = ["eps11", "eps22", "eps12"]
+
         self.initialize()
 
     def initialize(self):
-        self.resp_steps = []
+        self.resp_steps = None
+        self.resp_steps_list = []
+        for name in self.resp_names:
+            self.resp_steps_dict[name] = []
         self.add_data_one_step(self.ele_tags)
         self.times = [0.0]
         self.step_track = 0
@@ -38,43 +68,67 @@ class PlaneRespStepData(ResponseBase):
         self.initialize()
 
     def add_data_one_step(self, ele_tags):
-        stresses, strains = _get_gauss_resp(ele_tags)
-        data_vars = dict()
-        data_vars["Stresses"] = (["eleTags", "GaussPoints", "stressDOFs"], stresses)
-        data_vars["Strains"] = (["eleTags", "GaussPoints", "strainDOFs"], strains)
-        ndofs = stresses.shape[-1]
-        if ndofs == 3:
-            stressDOFs = ["sigma11", "sigma22", "sigma12"]
-        elif ndofs == 5:
-            stressDOFs = ["sigma11", "sigma22", "sigma12", "sigma33", "eta_r"]
-        elif ndofs == 4:
-            stressDOFs = ["sigma11", "sigma22", "sigma12", "sigma33"]
+        stresses, strains = _get_gauss_resp(ele_tags, dtype=self.dtype)
+
+        if self.stressDOFs is None:
+            ndofs = stresses.shape[-1]
+            if ndofs == 3:
+                self.stressDOFs = ["sigma11", "sigma22", "sigma12"]
+            elif ndofs == 5:
+                self.stressDOFs = ["sigma11", "sigma22", "sigma12", "sigma33", "eta_r"]
+            elif ndofs == 4:
+                self.stressDOFs = ["sigma11", "sigma22", "sigma12", "sigma33"]
+            else:
+                self.stressDOFs = [f"sigma{i + 1}" for i in range(ndofs)]
+        if self.GaussPoints is None:
+            self.GaussPoints = np.arange(strains.shape[1]) + 1
+
+        if self.model_update:
+            data_vars = dict()
+            data_vars["Stresses"] = (["eleTags", "GaussPoints", "stressDOFs"], stresses)
+            data_vars["Strains"] = (["eleTags", "GaussPoints", "strainDOFs"], strains)
+
+            ds = xr.Dataset(
+                data_vars=data_vars,
+                coords={
+                    "eleTags": ele_tags,
+                    "GaussPoints": self.GaussPoints,
+                    "stressDOFs": self.stressDOFs,
+                    "strainDOFs": self.strainDOFs
+                },
+                attrs=self.attrs,
+            )
+            self.resp_steps_list.append(ds)
         else:
-            stressDOFs = [f"sigma{i+1}" for i in range(ndofs)]
-        strainDOFs = ["eps11", "eps22", "eps12"]
-        ds = xr.Dataset(
-            data_vars=data_vars,
-            coords={
-                "eleTags": ele_tags,
-                "GaussPoints": np.arange(strains.shape[1])+1,
-                "stressDOFs": stressDOFs,
-                "strainDOFs": strainDOFs
-            },
-            attrs={
-                "sigma11, sigma22, sigma12": "Normal stress and shear stress (strain) in the x-y plane.",
-                "eta_r": "Ratio between the shear (deviatoric) stress and peak shear strength at the current confinement",
-                "p1, p2": "Principal stresses (strains).",
-                "sigma_vm": "Von Mises stress.",
-                "tau_max": "Maximum shear stress (strains).",
-            },
-        )
-        self.resp_steps.append(ds)
+            self.resp_steps_dict["Stresses"].append(stresses)
+            self.resp_steps_dict["Strains"].append(strains)
+
         self.times.append(ops.getTime())
         self.step_track += 1
 
     def _to_xarray(self):
-        self.resp_steps = xr.concat(self.resp_steps, dim="time", join="outer")
-        self.resp_steps.coords["time"] = self.times
+        if self.model_update:
+            self.resp_steps = xr.concat(self.resp_steps_list, dim="time", join="outer")
+            self.resp_steps.coords["time"] = self.times
+        else:
+            data_vars = dict()
+            data_vars["Stresses"] = (
+                ["time", "eleTags", "GaussPoints", "stressDOFs"], self.resp_steps_dict["Stresses"]
+            )
+            data_vars["Strains"] = (
+                ["time", "eleTags", "GaussPoints", "strainDOFs"], self.resp_steps_dict["Strains"]
+            )
+            self.resp_steps = xr.Dataset(
+                data_vars=data_vars,
+                coords={
+                    "time": self.times,
+                    "eleTags": self.ele_tags,
+                    "GaussPoints": self.GaussPoints,
+                    "stressDOFs": self.stressDOFs,
+                    "strainDOFs": self.strainDOFs
+                },
+                attrs=self.attrs,
+            )
 
         if self.compute_measures:
             self._compute_measures_()
@@ -83,8 +137,8 @@ class PlaneRespStepData(ResponseBase):
         stresses = self.resp_steps["Stresses"]
         strains = self.resp_steps["Strains"]
 
-        stress_measures = _calculate_stresses_measures(stresses.data)
-        strain_measures = _calculate_stresses_measures(strains.data)
+        stress_measures = _calculate_stresses_measures(stresses.data, dtype=self.dtype)
+        strain_measures = _calculate_stresses_measures(strains.data, dtype=self.dtype)
 
         dims = ["time", "eleTags", "GaussPoints", "measures"]
         coords = {
@@ -142,7 +196,7 @@ class PlaneRespStepData(ResponseBase):
                 return ds[resp_type]
 
 
-def _get_gauss_resp(ele_tags):
+def _get_gauss_resp(ele_tags, dtype):
     all_stresses, all_strains = [], []
     for etag in ele_tags:
         etag = int(etag)
@@ -150,13 +204,13 @@ def _get_gauss_resp(ele_tags):
         integr_point_strain = []
         for i in range(100000000):  # Ugly but useful
             # loop for integrPoint
-            stress_ = ops.eleResponse(etag, "material", f"{i+1}", "stresses")
+            stress_ = ops.eleResponse(etag, "material", f"{i + 1}", "stresses")
             if len(stress_) == 0:
-                stress_ = ops.eleResponse(etag, "integrPoint", f"{i+1}", "stresses")
+                stress_ = ops.eleResponse(etag, "integrPoint", f"{i + 1}", "stresses")
             stress_ = _reshape_stress(stress_)
-            strain_ = ops.eleResponse(etag, "material", f"{i+1}", "strains")
+            strain_ = ops.eleResponse(etag, "material", f"{i + 1}", "strains")
             if len(strain_) == 0:
-                strain_ = ops.eleResponse(etag, "integrPoint", f"{i+1}", "strains")
+                strain_ = ops.eleResponse(etag, "integrPoint", f"{i + 1}", "strains")
 
             if len(stress_) == 0 or len(strain_) == 0:
                 break
@@ -178,8 +232,8 @@ def _get_gauss_resp(ele_tags):
             integr_point_strain.append([np.nan, np.nan, np.nan])
         all_stresses.append(np.array(integr_point_stress))
         all_strains.append(np.array(integr_point_strain))
-    stresses = _expand_to_uniform_array(all_stresses)
-    strains = _expand_to_uniform_array(all_strains)
+    stresses = _expand_to_uniform_array(all_stresses, dtype=dtype["float"])
+    strains = _expand_to_uniform_array(all_strains, dtype=dtype["float"])
     return stresses, strains
 
 
@@ -193,7 +247,7 @@ def _reshape_stress(stress):
     return stress
 
 
-def _calculate_stresses_measures(stress_array):
+def _calculate_stresses_measures(stress_array, dtype):
     """
     Calculate various stresses from the stress values at Gaussian points.
 
@@ -220,7 +274,7 @@ def _calculate_stresses_measures(stress_array):
 
     data = np.stack([p1, p2, sig_vm, tau_max], axis=-1)
 
-    return data
+    return data.astype(dtype["float"])
 
 # ----------------------------------------------------------------------------------------------
 #

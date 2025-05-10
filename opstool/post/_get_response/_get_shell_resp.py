@@ -3,6 +3,8 @@ import xarray as xr
 import openseespy.opensees as ops
 
 from ._response_base import ResponseBase, _expand_to_uniform_array
+
+
 # from ._response_extrapolation import (
 #     resp_extrap_tri3,
 #     resp_extrap_quad4,
@@ -13,7 +15,7 @@ from ._response_base import ResponseBase, _expand_to_uniform_array
 
 class ShellRespStepData(ResponseBase):
 
-    def __init__(self, ele_tags=None):
+    def __init__(self, ele_tags=None, model_update: bool = False, dtype: dict = None):
         self.resp_names = [
             "sectionForces",
             "sectionDeformations",
@@ -21,13 +23,36 @@ class ShellRespStepData(ResponseBase):
             "Strains",
         ]
         self.resp_steps = None
+        self.resp_steps_list = []  # for model update
+        self.resp_steps_dict = dict()  # for non-update
         self.step_track = 0
         self.ele_tags = ele_tags
         self.times = []
+
+        self.model_update = model_update
+        self.dtype = dict(int=np.int32, float=np.float32)
+        if isinstance(dtype, dict):
+            self.dtype.update(dtype)
+
+        self.attrs = {
+            "FXX,FYY,FXY": "Membrane (in-plane) forces or deformations.",
+            "MXX,MYY,MXY": "Bending moments or rotations (out-plane) of plate.",
+            "VXZ,VYZ": "Shear forces or deformations.",
+            "sigma11, sigma22": "Normal stress (strain) along local x, y",
+            "sigma12, sigma23, sigma13": "Shear stress (strain).",
+        }
+        self.GaussPoints = None
+        self.secDOFs = ["FXX", "FYY", "FXY", "MXX", "MYY", "MXY", "VXZ", "VYZ"]
+        self.fiberPoints = None
+        self.stressDOFs = ["sigma11", "sigma22", "sigma12", "sigma23", "sigma13"]
+
         self.initialize()
 
     def initialize(self):
-        self.resp_steps = []
+        self.resp_steps = None
+        self.resp_steps_list = []
+        for name in self.resp_names:
+            self.resp_steps_dict[name] = []
         self.add_data_one_step(self.ele_tags)
         self.times = [0.0]
         self.step_track = 0
@@ -36,36 +61,70 @@ class ShellRespStepData(ResponseBase):
         self.initialize()
 
     def add_data_one_step(self, ele_tags):
-        sec_forces, sec_defos, stresses, strains = _get_shell_resp_one_step(ele_tags)
-        data_vars = dict()
-        data_vars["sectionForces"] = (["eleTags", "GaussPoints", "secDOFs"], sec_forces)
-        data_vars["sectionDeformations"] = (["eleTags", "GaussPoints", "secDOFs"], sec_defos)
-        data_vars["Stresses"] = (["eleTags", "GaussPoints", "fiberPoints", "stressDOFs"], stresses)
-        data_vars["Strains"] = (["eleTags", "GaussPoints", "fiberPoints", "stressDOFs"], strains)
-        ds = xr.Dataset(
-            data_vars=data_vars,
-            coords={
-                "eleTags": ele_tags,
-                "GaussPoints": np.arange(sec_forces.shape[1])+1,
-                "secDOFs": ["FXX", "FYY", "FXY", "MXX", "MYY", "MXY", "VXZ", "VYZ"],
-                "fiberPoints": np.arange(stresses.shape[2])+1,
-                "stressDOFs": ["sigma11", "sigma22", "sigma12", "sigma23", "sigma13"],
-            },
-            attrs={
-                "FXX,FYY,FXY": "Membrane (in-plane) forces or deformations.",
-                "MXX,MYY,MXY": "Bending moments or rotations (out-plane) of plate.",
-                "VXZ,VYZ": "Shear forces or deformations.",
-                "sigma11, sigma22": "Normal stress (strain) along local x, y",
-                "sigma12, sigma23, sigma13": "Shear stress (strain).",
-            },
-        )
-        self.resp_steps.append(ds)
+        sec_forces, sec_defos, stresses, strains = _get_shell_resp_one_step(ele_tags, dtype=self.dtype)
+
+        if self.GaussPoints is None:
+            self.GaussPoints = np.arange(sec_forces.shape[1]) + 1
+        if self.fiberPoints is None:
+            self.fiberPoints = np.arange(stresses.shape[2]) + 1
+
+        if self.model_update:
+            data_vars = dict()
+            data_vars["sectionForces"] = (["eleTags", "GaussPoints", "secDOFs"], sec_forces)
+            data_vars["sectionDeformations"] = (["eleTags", "GaussPoints", "secDOFs"], sec_defos)
+            data_vars["Stresses"] = (["eleTags", "GaussPoints", "fiberPoints", "stressDOFs"], stresses)
+            data_vars["Strains"] = (["eleTags", "GaussPoints", "fiberPoints", "stressDOFs"], strains)
+            ds = xr.Dataset(
+                data_vars=data_vars,
+                coords={
+                    "eleTags": ele_tags,
+                    "GaussPoints": self.GaussPoints,
+                    "secDOFs": self.secDOFs,
+                    "fiberPoints": self.fiberPoints,
+                    "stressDOFs": self.stressDOFs,
+                },
+                attrs=self.attrs,
+            )
+            self.resp_steps_list.append(ds)
+        else:
+            self.resp_steps_dict["sectionForces"].append(sec_forces)
+            self.resp_steps_dict["sectionDeformations"].append(sec_defos)
+            self.resp_steps_dict["Stresses"].append(stresses)
+            self.resp_steps_dict["Strains"].append(strains)
+
         self.times.append(ops.getTime())
         self.step_track += 1
 
     def _to_xarray(self):
-        self.resp_steps = xr.concat(self.resp_steps, dim="time", join="outer")
-        self.resp_steps.coords["time"] = self.times
+        if self.model_update:
+            self.resp_steps = xr.concat(self.resp_steps_list, dim="time", join="outer")
+            self.resp_steps.coords["time"] = self.times
+        else:
+            data_vars = dict()
+            data_vars["sectionForces"] = (
+                ["time", "eleTags", "GaussPoints", "secDOFs"], self.resp_steps_dict["sectionForces"]
+            )
+            data_vars["sectionDeformations"] = (
+                ["time", "eleTags", "GaussPoints", "secDOFs"], self.resp_steps_dict["sectionDeformations"]
+            )
+            data_vars["Stresses"] = (
+                ["time", "eleTags", "GaussPoints", "fiberPoints", "stressDOFs"], self.resp_steps_dict["Stresses"]
+            )
+            data_vars["Strains"] = (
+                ["time", "eleTags", "GaussPoints", "fiberPoints", "stressDOFs"], self.resp_steps_dict["Strains"]
+            )
+            self.resp_steps = xr.Dataset(
+                data_vars=data_vars,
+                coords={
+                    "time": self.times,
+                    "eleTags": self.ele_tags,
+                    "GaussPoints": self.GaussPoints,
+                    "secDOFs": self.secDOFs,
+                    "fiberPoints": self.fiberPoints,
+                    "stressDOFs": self.stressDOFs,
+                },
+                attrs=self.attrs,
+            )
 
     def get_data(self):
         return self.resp_steps
@@ -101,7 +160,8 @@ class ShellRespStepData(ResponseBase):
             else:
                 return ds[resp_type]
 
-def _get_shell_resp_one_step(ele_tags):
+
+def _get_shell_resp_one_step(ele_tags, dtype):
     sec_forces, sec_defos = [], []
     stresses, strains = [], []
     for i, etag in enumerate(ele_tags):
@@ -129,13 +189,11 @@ def _get_shell_resp_one_step(ele_tags):
         sec_strain = np.reshape(sec_strain, (num_sec, -1, 5))
         stresses.append(sec_stress)
         strains.append(sec_strain)
-    sec_forces = _expand_to_uniform_array(sec_forces)
-    sec_defos = _expand_to_uniform_array(sec_defos)
-    stresses = _expand_to_uniform_array(stresses)
-    strains = _expand_to_uniform_array(strains)
+    sec_forces = _expand_to_uniform_array(sec_forces, dtype=dtype["float"])
+    sec_defos = _expand_to_uniform_array(sec_defos, dtype=dtype["float"])
+    stresses = _expand_to_uniform_array(stresses, dtype=dtype["float"])
+    strains = _expand_to_uniform_array(strains, dtype=dtype["float"])
     return sec_forces, sec_defos, stresses, strains
-
-
 
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------

@@ -327,7 +327,6 @@ class CreateODB:
             if self._FiberSecResp is None:
                 self._FiberSecResp = FiberSecRespStepData(
                     self._fiber_ele_tags,
-                    model_update=self._model_update,
                     dtype=POST_ARGS.dtype
                 )
             else:

@@ -1,5 +1,6 @@
 import openseespy.opensees as ops
 import xarray as xr
+import numpy as np
 
 from ._response_base import ResponseBase
 from ...utils import suppress_ops_print
@@ -7,18 +8,38 @@ from ...utils import suppress_ops_print
 
 class ContactRespStepData(ResponseBase):
 
-    def __init__(self, ele_tags=None):
+    def __init__(self, ele_tags=None, model_update: bool = False, dtype: dict = None):
         self.resp_names = [
             "globalForces", "localForces", "localDisp", "slips"
         ]
         self.resp_steps = None
+        self.resp_steps_list = []  # for model update
+        self.resp_steps_dict = dict()  # for non-update
         self.step_track = 0
         self.ele_tags = ele_tags
         self.times = []
+
+        self.model_update = model_update
+        self.dtype = dict(int=np.int32, float=np.float32)
+        if isinstance(dtype, dict):
+            self.dtype.update(dtype)
+
+        self.attrs = {
+            "Px": "Global force in the x-direction on the constrained node",
+            "Py": "Global force in the y-direction on the constrained node",
+            "Pz": "Global force in the z-direction on the constrained node",
+            "N": "Normal force or deformation",
+            "Tx": "Tangential force or deformation in the x-direction",
+            "Ty": "Tangential force or deformation in the y-direction",
+        }
+
         self.initialize()
 
     def initialize(self):
-        self.resp_steps = []
+        self.resp_steps = None
+        self.resp_steps_list = []
+        for name in self.resp_names:
+            self.resp_steps_dict[name] = []
         self.add_data_one_step(self.ele_tags)
         self.step_track = 0
         self.times = [0.0]
@@ -28,43 +49,61 @@ class ContactRespStepData(ResponseBase):
 
     def add_data_one_step(self, ele_tags):
         with suppress_ops_print():
-            global_forces, forces, defos, slips = _get_contact_resp(ele_tags)
-        data_vars = {}
-        if len(ele_tags) > 0:
-            data_vars["globalForces"] = (["eleTags", "globalDOFs"], global_forces)
-            data_vars["localForces"] = (["eleTags", "localDOFs"], forces)
-            data_vars["localDisp"] = (["eleTags", "localDOFs"], defos)
-            data_vars["slips"] = (["eleTags", "slipDOFs"], slips)
-            ds = xr.Dataset(
-                data_vars=data_vars,
-                coords={
-                    "eleTags": ele_tags,
-                    "globalDOFs": ["Px", "Py", "Pz"],
-                    "localDOFs": ["N", "Tx", "Ty"],
-                    "slipDOFs": ["Tx", "Ty"],
-                },
-                attrs={
-                    "Px": "Global force in the x-direction on the constrained node",
-                    "Py": "Global force in the y-direction on the constrained node",
-                    "Pz": "Global force in the z-direction on the constrained node",
-                    "N": "Normal force or deformation",
-                    "Tx": "Tangential force or deformation in the x-direction",
-                    "Ty": "Tangential force or deformation in the y-direction",
-                }
-            )
+            global_forces, forces, defos, slips = _get_contact_resp(ele_tags, dtype=self.dtype)
+
+        if self.model_update:
+            data_vars = dict()
+            if len(ele_tags) > 0:
+                data_vars["globalForces"] = (["eleTags", "globalDOFs"], global_forces)
+                data_vars["localForces"] = (["eleTags", "localDOFs"], forces)
+                data_vars["localDisp"] = (["eleTags", "localDOFs"], defos)
+                data_vars["slips"] = (["eleTags", "slipDOFs"], slips)
+                ds = xr.Dataset(
+                    data_vars=data_vars,
+                    coords={
+                        "eleTags": ele_tags,
+                        "globalDOFs": ["Px", "Py", "Pz"],
+                        "localDOFs": ["N", "Tx", "Ty"],
+                        "slipDOFs": ["Tx", "Ty"],
+                    },
+                    attrs=self.attrs,
+                )
+            else:
+                data_vars["globalForces"] = xr.DataArray([])
+                data_vars["localForces"] = xr.DataArray([])
+                data_vars["localDisp"] = xr.DataArray([])
+                data_vars["slips"] = xr.DataArray([])
+                ds = xr.Dataset(data_vars=data_vars)
+            self.resp_steps_list.append(ds)
         else:
-            data_vars["globalForces"] = xr.DataArray([])
-            data_vars["localForces"] = xr.DataArray([])
-            data_vars["localDisp"] = xr.DataArray([])
-            data_vars["slips"] = xr.DataArray([])
-            ds = xr.Dataset(data_vars=data_vars)
-        self.resp_steps.append(ds)
+            datas = [global_forces, forces, defos, slips]
+            for name, da in zip(self.resp_names, datas):
+                self.resp_steps_dict[name].append(da)
+
         self.times.append(ops.getTime())
         self.step_track += 1
 
     def _to_xarray(self):
-        self.resp_steps = xr.concat(self.resp_steps, dim="time", join="outer")
-        self.resp_steps.coords["time"] = self.times
+        if self.model_update:
+            self.resp_steps = xr.concat(self.resp_steps_list, dim="time", join="outer")
+            self.resp_steps.coords["time"] = self.times
+        else:
+            data_vars = dict()
+            data_vars["globalForces"] = (["time", "eleTags", "globalDOFs"], self.resp_steps_dict["globalForces"])
+            data_vars["localForces"] = (["time", "eleTags", "localDOFs"], self.resp_steps_dict["localForces"])
+            data_vars["localDisp"] = (["time", "eleTags", "localDOFs"], self.resp_steps_dict["localDisp"])
+            data_vars["slips"] = (["time", "eleTags", "slipDOFs"], self.resp_steps_dict["slips"])
+            self.resp_steps = xr.Dataset(
+                data_vars=data_vars,
+                coords={
+                    "time": self.times,
+                    "eleTags": self.ele_tags,
+                    "globalDOFs": ["Px", "Py", "Pz"],
+                    "localDOFs": ["N", "Tx", "Ty"],
+                    "slipDOFs": ["Tx", "Ty"],
+                },
+                attrs=self.attrs,
+            )
 
     def get_data(self):
         return self.resp_steps
@@ -101,7 +140,7 @@ class ContactRespStepData(ResponseBase):
                 return ds[resp_type]
 
 
-def _get_contact_resp(link_tags):
+def _get_contact_resp(link_tags, dtype):
     defos, forces, slips, global_forces = [], [], [], []
     for etag in link_tags:
         etag = int(etag)
@@ -120,6 +159,10 @@ def _get_contact_resp(link_tags):
         defos.append(defo)
         forces.append(force)
         slips.append(slip)
+    defos = np.array(defos, dtype=dtype["float"])
+    forces = np.array(forces, dtype=dtype["float"])
+    slips = np.array(slips, dtype=dtype["float"])
+    global_forces = np.array(global_forces, dtype=dtype["float"])
     return global_forces, forces, defos, slips
 
 

@@ -7,7 +7,7 @@ from ._response_base import ResponseBase
 
 class NodalRespStepData(ResponseBase):
     def __init__(self, node_tags=None, model_update: bool = False, dtype: dict = None):
-        self.nodal_resp_names = [
+        self.resp_names = [
             "disp",
             "vel",
             "accel",
@@ -42,7 +42,7 @@ class NodalRespStepData(ResponseBase):
     def initialize(self):
         self.resp_steps = None
         self.resp_steps_list = []
-        for name in self.nodal_resp_names:
+        for name in self.resp_names:
             self.resp_steps_dict[name] = []
         self.add_data_one_step(self.node_tags)
         self.times = [0.0]
@@ -58,7 +58,7 @@ class NodalRespStepData(ResponseBase):
         if self.model_update:
             datas = [disp, vel, accel, reacts, reacts_inertia, rayleigh_forces]
             data_vars = {}
-            for name, data_ in zip(self.nodal_resp_names, datas):
+            for name, data_ in zip(self.resp_names, datas):
                 data_vars[name] = (["nodeTags", "DOFs"], data_)
             data_vars["pressure"] = (["nodeTags"], pressure)
             # can have different dimensions and coordinates
@@ -73,7 +73,7 @@ class NodalRespStepData(ResponseBase):
             self.resp_steps_list.append(ds)
         else:  # non-update
             datas = [disp, vel, accel, reacts, reacts_inertia, rayleigh_forces, pressure]
-            for name, data_ in zip(self.nodal_resp_names, datas):
+            for name, data_ in zip(self.resp_names, datas):
                 self.resp_steps_dict[name].append(data_)
         self.times.append(ops.getTime())
         self.step_track += 1
@@ -90,7 +90,7 @@ class NodalRespStepData(ResponseBase):
             self.resp_steps.coords["time"] = self.times
         else:
             data_vars = {}
-            for name in self.nodal_resp_names[:-1]:
+            for name in self.resp_names[:-1]:
                 data_vars[name] = (["time", "nodeTags", "DOFs"], self.resp_steps_dict[name])
             data_vars["pressure"] = (["time", "nodeTags"], self.resp_steps_dict["pressure"])
             self.resp_steps = xr.Dataset(
