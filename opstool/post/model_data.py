@@ -483,7 +483,7 @@ def save_model_data(
 
 def load_model_data(
         odb_tag: Union[str, int] = 1,
-        resave: bool = True,
+        resave: bool = False,
 ) -> tuple[dict[str, xr.DataArray], dict[str, xr.DataArray]]:
     """Get the model data from the saved file.
 
@@ -499,22 +499,26 @@ def load_model_data(
     model_info: dict[xarray.DataArray]
     cells: dict[xarray.DataArray]
     """
-    filename = f"{RESULTS_DIR}/" + f"{MODEL_FILE_NAME}-{odb_tag}.nc"
-    if not os.path.exists(filename):
-        resave = True
-    if resave:
-        save_model_data(odb_tag=odb_tag)
+    if odb_tag is None:
+        model_data = GetFEMData()
+        model_info, cells = model_data.get_model_info()
     else:
-        color = get_random_color()
-        CONSOLE.print(
-            f"{PKG_PREFIX} Loading model data from [bold {color}]{filename}[/] ..."
-        )
-    model_info, cells = dict(), dict()
-    with xr.open_datatree(filename, engine="netcdf4").load() as dt:
-        for key, value in dt["ModelInfo"].items():
-            model_info[key] = value[key]
-        for key, value in dt["Cells"].items():
-            cells[key] = value[key]
+        filename = f"{RESULTS_DIR}/" + f"{MODEL_FILE_NAME}-{odb_tag}.nc"
+        if not os.path.exists(filename):
+            resave = True
+        if resave:
+            save_model_data(odb_tag=odb_tag)
+        else:
+            color = get_random_color()
+            CONSOLE.print(
+                f"{PKG_PREFIX} Loading model data from [bold {color}]{filename}[/] ..."
+            )
+        model_info, cells = dict(), dict()
+        with xr.open_datatree(filename, engine="netcdf4").load() as dt:
+            for key, value in dt["ModelInfo"].items():
+                model_info[key] = value[key]
+            for key, value in dt["Cells"].items():
+                cells[key] = value[key]
     return model_info, cells
 
 #

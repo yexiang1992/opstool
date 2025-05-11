@@ -624,7 +624,7 @@ def plot_model(
     ----------
     odb_tag: Union[int, str], default: None
         Tag of output databases (ODB) to be visualized.
-        If None, data will be saved automatically.
+        If None, data will be extracted from the current running memory.
     show_node_numbering: bool, default: False
         Whether to display node tag labels.
     show_ele_numbering: bool, default: False
