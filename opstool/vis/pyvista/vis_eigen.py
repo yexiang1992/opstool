@@ -322,6 +322,7 @@ def plot_eigen(
     if isinstance(mode_tags, int):
         mode_tags = [1, mode_tags]
     resave = True if odb_tag is None else False
+    odb_tag = "Auto" if odb_tag is None else odb_tag
     modalProps, eigenvectors, MODEL_INFO = load_eigen_data(
         odb_tag=odb_tag, mode_tag=mode_tags[-1], solver=solver, resave=resave
     )
