@@ -78,7 +78,6 @@ class PlotResponseBase:
         return self._get_model_data("MPForceData", idx)
 
     def _get_resp_data(self, time_idx, resp_type, component=None):
-        # dataset
         dims = self.RespSteps[resp_type].dims
         da = self.RespSteps[resp_type].isel(time=time_idx)
         if self.ModelUpdate:
@@ -89,3 +88,4 @@ class PlotResponseBase:
             return da.loc[:, component]
         elif da.ndim == 3:
             return da.loc[:, :, component]
+        return None
