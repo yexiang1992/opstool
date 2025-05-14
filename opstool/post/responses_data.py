@@ -896,6 +896,13 @@ def update_unit_system(
     setattr(POST_ARGS, "unit_symbols", unit_syms)
 
 
+def reset_unit_system():
+    """Reset unit system for post-processing.
+    """
+    setattr(POST_ARGS, "unit_factors", None)
+    setattr(POST_ARGS, "unit_symbols", None)
+
+
 def _parse_unit_factors(analysis_unit_system, post_unit_system):
     if analysis_unit_system is None or post_unit_system is None:
         unit_factors = None
