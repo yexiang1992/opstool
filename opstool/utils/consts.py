@@ -7,7 +7,7 @@ class CONSTANTS:
     CONSOLE = Console()
 
     PKG_NAME = "OPSTOOL"
-    RESULTS_DIR = "_OPSTOOL_ODB"
+    RESULTS_DIR = ".opstool.output"   # _OPSTOOL_ODB
     PKG_PREFIX = f"[bold #cf6275]{PKG_NAME}[/bold #cf6275] [bold #12e193]::[/bold #12e193] "
 
     MODEL_FILE_NAME = "ModelData"

@@ -1,5 +1,6 @@
 import os
 import sys
+import shutil
 import numpy as np
 from pathlib import Path
 from typing import Union
@@ -9,6 +10,29 @@ from .consts import CONSTANTS
 
 CONSOLE = CONSTANTS.get_console()
 PKG_PREFIX = CONSTANTS.get_pkg_prefix()
+
+
+RESULTS_DIR = CONSTANTS.get_output_dir()
+
+def _check_odb_path():
+    if not os.path.exists(RESULTS_DIR):
+        os.mkdir(RESULTS_DIR)
+
+def set_odb_path(path: str):
+    """Set the output directory for the results saving.
+
+    Parameters:
+    ------------
+    path: str
+        The path to the output directory.
+    """
+    CONSTANTS.set_output_dir(path)
+    if os.path.exists(RESULTS_DIR):
+        for item in os.listdir(RESULTS_DIR):
+            source_path = os.path.join(RESULTS_DIR, item)
+            target_path = os.path.join(path, item)
+            shutil.move(source_path, target_path)
+        shutil.rmtree(RESULTS_DIR)
 
 
 def check_file_type(file_name: str, file_type: Union[str, list, tuple]):
