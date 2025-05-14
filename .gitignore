@@ -3,6 +3,8 @@ docs/source
 # From https://raw.githubusercontent.com/github/gitignore/main/Python.gitignore
 
 _OPSTOOL_ODB/
+.opstool.output/
+
 .idea/
 
 # Byte-compiled / optimized / DLL files

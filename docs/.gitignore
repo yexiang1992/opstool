@@ -1,4 +1,5 @@
 _OPSTOOL_ODB/
+.opstool.output/
 .ipynb_checkpoints/
 _build/
 .idea/
