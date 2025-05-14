@@ -64,7 +64,7 @@ class BrickRespStepData(ResponseBase):
 
         if self.stressDOFs is None:
             if stresses.shape[-1] == 6:
-                self.stressDOFs = ["sigma11", "sigma22", "sigma33", "sigma12", "sigma23", "sigma13", ]
+                self.stressDOFs = ["sigma11", "sigma22", "sigma33", "sigma12", "sigma23", "sigma13"]
             elif stresses.shape[-1] == 7:
                 self.stressDOFs = ["sigma11", "sigma22", "sigma33", "sigma12", "sigma23", "sigma13", "eta_r"]
             else:
@@ -161,13 +161,25 @@ class BrickRespStepData(ResponseBase):
         return dt
 
     @staticmethod
-    def read_file(dt: xr.DataTree):
+    def read_file(dt: xr.DataTree, unit_factors: dict = None):
         resp_steps = dt["/SolidResponses"].to_dataset()
         return resp_steps
 
     @staticmethod
-    def read_response(dt: xr.DataTree, resp_type: str = None, ele_tags=None):
-        ds = BrickRespStepData.read_file(dt)
+    def _unit_transform(resp_steps, unit_factors):
+        stress_factor = unit_factors["stress"]
+
+        resp_steps["Stresses"].loc[
+            {"stressDOFs": ["sigma11", "sigma22", "sigma33", "sigma12", "sigma23", "sigma13"]}
+        ] *= stress_factor
+
+        resp_steps["stressMeasures"] *= stress_factor
+
+        return resp_steps
+
+    @staticmethod
+    def read_response(dt: xr.DataTree, resp_type: str = None, ele_tags=None, unit_factors: dict = None):
+        ds = BrickRespStepData.read_file(dt, unit_factors=unit_factors)
         if resp_type is None:
             if ele_tags is None:
                 return ds

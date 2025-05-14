@@ -173,13 +173,27 @@ class PlaneRespStepData(ResponseBase):
         return dt
 
     @staticmethod
-    def read_file(dt: xr.DataTree):
-        resp_steps = dt["/PlaneResponses"].to_dataset()
+    def _unit_transform(resp_steps, unit_factors):
+        stress_factor = unit_factors["stress"]
+
+        resp_steps["Stresses"].loc[{"stressDOFs": ["sigma11", "sigma22", "sigma12"]}] *= stress_factor
+        if "sigma33" in resp_steps["Stresses"].coords["stressDOFs"]:
+            resp_steps["Stresses"].loc[{"stressDOFs": ["sigma33"]}] *= stress_factor
+
+        resp_steps["stressMeasures"] *= stress_factor
+
         return resp_steps
 
     @staticmethod
-    def read_response(dt: xr.DataTree, resp_type: str = None, ele_tags=None):
-        ds = PlaneRespStepData.read_file(dt)
+    def read_file(dt: xr.DataTree, unit_factors: dict = None):
+        resp_steps = dt["/PlaneResponses"].to_dataset()
+        if unit_factors:
+            resp_steps = PlaneRespStepData._unit_transform(resp_steps, unit_factors)
+        return resp_steps
+
+    @staticmethod
+    def read_response(dt: xr.DataTree, resp_type: str = None, ele_tags=None, unit_factors: dict = None):
+        ds = PlaneRespStepData.read_file(dt, unit_factors=unit_factors)
         if resp_type is None:
             if ele_tags is None:
                 return ds

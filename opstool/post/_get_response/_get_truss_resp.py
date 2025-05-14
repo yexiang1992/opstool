@@ -81,13 +81,27 @@ class TrussRespStepData(ResponseBase):
         return dt
 
     @staticmethod
-    def read_file(dt: xr.DataTree):
+    def read_file(dt: xr.DataTree, unit_factors: dict = None):
         resp_steps = dt["/TrussResponses"].to_dataset()
+        if unit_factors is not None:
+            resp_steps = TrussRespStepData._unit_transform(resp_steps, unit_factors)
         return resp_steps
 
     @staticmethod
-    def read_response(dt: xr.DataTree, resp_type: str = None, ele_tags=None):
-        ds = TrussRespStepData.read_file(dt)
+    def _unit_transform(resp_steps, unit_factors):
+        force_factor = unit_factors["force"]
+        disp_factor = unit_factors["disp"]
+        stress_factor = unit_factors["stress"]
+
+        resp_steps["axialForce"] *= force_factor
+        resp_steps["axialDefo"] *= disp_factor
+        resp_steps["Stress"] *= stress_factor
+
+        return resp_steps
+
+    @staticmethod
+    def read_response(dt: xr.DataTree, resp_type: str = None, ele_tags=None, unit_factors: dict = None):
+        ds = TrussRespStepData.read_file(dt, unit_factors=unit_factors)
         if resp_type is None:
             if ele_tags is None:
                 return ds

@@ -138,13 +138,31 @@ class ShellRespStepData(ResponseBase):
         return dt
 
     @staticmethod
-    def read_file(dt: xr.DataTree):
+    def read_file(dt: xr.DataTree, unit_factors: dict = None):
         resp_steps = dt["/ShellResponses"].to_dataset()
+        if unit_factors is not None:
+            resp_steps = ShellRespStepData._unit_transform(resp_steps, unit_factors)
         return resp_steps
 
     @staticmethod
-    def read_response(dt: xr.DataTree, resp_type: str = None, ele_tags=None):
-        ds = ShellRespStepData.read_file(dt)
+    def _unit_transform(resp_steps, unit_factors):
+        force_per_length_factor = unit_factors["force_per_length"]
+        moment_per_length_factor = unit_factors["moment_per_length"]
+        stress_factor = unit_factors["stress"]
+
+        resp_steps["sectionForces"].loc[
+            {"secDOFs": ["FXX", "FYY", "FXY", "VXZ", "VYZ"]}
+        ] *= force_per_length_factor
+        resp_steps["sectionForces"].loc[
+            {"secDOFs": ["MXX", "MYY", "MXY"]}
+        ] *= moment_per_length_factor
+        resp_steps["Stresses"] *= stress_factor
+
+        return resp_steps
+
+    @staticmethod
+    def read_response(dt: xr.DataTree, resp_type: str = None, ele_tags=None, unit_factors: dict = None):
+        ds = ShellRespStepData.read_file(dt, unit_factors=unit_factors)
         if resp_type is None:
             if ele_tags is None:
                 return ds

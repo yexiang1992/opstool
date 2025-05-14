@@ -1,6 +1,7 @@
 import numpy as np
 import openseespy.opensees as ops
 import xarray as xr
+from tornado.gen import moment
 
 from ._response_base import ResponseBase
 
@@ -109,14 +110,43 @@ class NodalRespStepData(ResponseBase):
         return dt
 
     @staticmethod
-    def read_file(dt: xr.DataTree):
+    def read_file(dt: xr.DataTree, unit_factors: dict = None):
         # (eleTag, steps, resp_type)
-        node_resp_steps = dt["/NodalResponses"].to_dataset()
-        return node_resp_steps
+        resp_steps = dt["/NodalResponses"].to_dataset()
+        if unit_factors is not None:
+            resp_steps = NodalRespStepData._unit_transform(resp_steps, unit_factors)
+        return resp_steps
 
     @staticmethod
-    def read_response(dt: xr.DataTree, resp_type: str = None, node_tags=None):
-        ds = NodalRespStepData.read_file(dt)
+    def _unit_transform(resp_steps, unit_factors):
+        disp_factor = unit_factors["disp"]
+        vel_factor = unit_factors["vel"]
+        accel_factor = unit_factors["accel"]
+        angular_vel_fact = unit_factors["angular_vel"]
+        angular_accel_fact = unit_factors["angular_accel"]
+        force_factor = unit_factors["force"]
+        moment_factor = unit_factors["moment"]
+        stress_factor = unit_factors["stress"]
+
+        resp_steps["disp"].loc[{"DOFs": ["UX", "UY", "UZ"]}] *= disp_factor
+        resp_steps["vel"].loc[{"DOFs": ["UX", "UY", "UZ"]}] *= vel_factor
+        resp_steps["vel"].loc[{"DOFs": ["RX", "RY", "RZ"]}] *= angular_vel_fact
+        resp_steps["accel"].loc[{"DOFs": ["UX", "UY", "UZ"]}] *= accel_factor
+        resp_steps["accel"].loc[{"DOFs": ["RX", "RY", "RZ"]}] *= angular_accel_fact
+
+        resp_steps["reaction"].loc[{"DOFs": ["UX", "UY", "UZ"]}] *= force_factor
+        resp_steps["reaction"].loc[{"DOFs": ["RX", "RY", "RZ"]}] *= moment_factor
+        resp_steps["reactionIncInertia"].loc[{"DOFs": ["UX", "UY", "UZ"]}] *= force_factor
+        resp_steps["reactionIncInertia"].loc[{"DOFs": ["RX", "RY", "RZ"]}] *= moment_factor
+        resp_steps["rayleighForces"].loc[{"DOFs": ["UX", "UY", "UZ"]}] *= force_factor
+        resp_steps["rayleighForces"].loc[{"DOFs": ["RX", "RY", "RZ"]}] *= moment_factor
+        resp_steps["pressure"] *= stress_factor
+
+        return resp_steps
+
+    @staticmethod
+    def read_response(dt: xr.DataTree, resp_type: str = None, node_tags=None, unit_factors: dict = None):
+        ds = NodalRespStepData.read_file(dt, unit_factors=unit_factors)
         if resp_type is None:
             if node_tags is None:
                 return ds

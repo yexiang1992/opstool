@@ -140,13 +140,36 @@ class FiberSecRespStepData(ResponseBase):
         return dt
 
     @staticmethod
-    def read_file(dt: xr.DataTree):
+    def read_file(dt: xr.DataTree, unit_factors: dict = None):
         resp_steps = dt["/FiberSectionResponses"].to_dataset()
+        if unit_factors is not None:
+            resp_steps = FiberSecRespStepData._unit_transform(resp_steps, unit_factors)
         return resp_steps
 
     @staticmethod
-    def read_response(dt: xr.DataTree, resp_type: str = None, ele_tags=None):
-        ds = FiberSecRespStepData.read_file(dt)
+    def _unit_transform(resp_steps, unit_factors):
+        force_factor = unit_factors["force"]
+        moment_factor = unit_factors["moment"]
+        curvature_factor = unit_factors["curvature"]
+        disp_factor = unit_factors["disp"]
+        stress_factor = unit_factors["stress"]
+
+        # ---------------------------------------------------------
+        resp_steps["Stresses"] *= stress_factor
+        # ---------------------------------------------------------
+        resp_steps["secForce"].loc[{"DOFs": ["P"]}] *= force_factor
+        resp_steps["secForce"].loc[{"DOFs": ["Mz", "My", "T"]}] *= moment_factor
+        resp_steps["secDefo"].loc[{"DOFs": ["Mz", "My", "T"]}] *= curvature_factor
+        # --------------------------------------------------------
+        resp_steps["ys"] *= disp_factor
+        resp_steps["zs"] *= disp_factor
+        resp_steps["areas"] *= disp_factor ** 2
+
+        return resp_steps
+
+    @staticmethod
+    def read_response(dt: xr.DataTree, resp_type: str = None, ele_tags=None, unit_factors: dict = None):
+        ds = FiberSecRespStepData.read_file(dt, unit_factors=unit_factors)
         if resp_type is None:
             if ele_tags is None:
                 return ds

@@ -52,7 +52,9 @@ class FrameRespStepData(ResponseBase):
                        "Note that the section DOFs are only valid for <Elastic Section>, "
                        "<Elastic Shear Section>, and <Fiber Section>. "
                        "For <Aggregator Section>, you should carefully check the data, "
-                       "as it may not correspond directly to the DOFs."
+                       "as it may not correspond directly to the DOFs.",
+            "Notes": "Note that the deformations are displacements and rotations in the basicDofs;"
+                     "And strains and curvatures in the secDofs",
         }
 
         self.initialize()
@@ -183,13 +185,67 @@ class FrameRespStepData(ResponseBase):
         return dt
 
     @staticmethod
-    def read_file(dt: xr.DataTree):
+    def read_file(dt: xr.DataTree, unit_factors: dict = None):
         resp_steps = dt["/FrameResponses"].to_dataset()
+        if unit_factors is not None:
+            resp_steps = FrameRespStepData._unit_transform(resp_steps, unit_factors)
         return resp_steps
 
     @staticmethod
-    def read_response(dt: xr.DataTree, resp_type: str = None, ele_tags=None):
-        ds = FrameRespStepData.read_file(dt)
+    def _unit_transform(resp_steps, unit_factors):
+        force_factor = unit_factors["force"]
+        moment_factor = unit_factors["moment"]
+        curvature_factor = unit_factors["curvature"]
+        disp_factor = unit_factors["disp"]
+
+        # ---------------------------------------------------------
+        resp_steps["localForces"].loc[
+            {"localDofs": ["FX1", "FY1", "FZ1", "FX2", "FY2", "FZ2"]}
+        ] *= force_factor
+        resp_steps["localForces"].loc[
+            {"localDofs": ["MX1", "MY1", "MZ1", "MX2", "MY2", "MZ2"]}
+        ] *= moment_factor
+        # ---------------------------------------------------------
+        resp_steps["basicForces"].loc[
+            {"basicDofs": ["N"]}
+        ] *= force_factor
+        resp_steps["basicForces"].loc[
+            {"basicDofs": ["MZ1", "MZ2", "MY1", "MY2", "T"]}
+        ] *= moment_factor
+        resp_steps["basicDeformations"].loc[
+            {"basicDofs": ["N"]}
+        ] *= disp_factor
+        resp_steps["plasticDeformation"].loc[
+            {"basicDofs": ["N"]}
+        ] *= disp_factor
+        # ---------------------------------------------------------
+        resp_steps["sectionForces"].loc[
+            {"secDofs": ["N", "VY", "VZ"]}
+        ] *= force_factor
+        resp_steps["sectionForces"].loc[
+            {"secDofs": ["MZ", "MY", "T"]}
+        ] *= moment_factor
+        resp_steps["sectionDeformations"].loc[
+            {"secDofs": ["MZ", "MY", "T"]}
+        ] *= curvature_factor
+        # --------------------------------------------------------
+        resp_steps["sectionLocs"].loc[
+            {"locs": ["X"]}
+        ] *= disp_factor
+        if "Y" in resp_steps["sectionLocs"].coords["locs"]:
+            resp_steps["sectionLocs"].loc[
+                {"locs": ["Y"]}
+            ] *= disp_factor
+        if "Z" in resp_steps["sectionLocs"].coords["locs"]:
+            resp_steps["sectionLocs"].loc[
+                {"locs": ["Z"]}
+            ] *= disp_factor
+
+        return resp_steps
+
+    @staticmethod
+    def read_response(dt: xr.DataTree, resp_type: str = None, ele_tags=None, unit_factors: dict = None):
+        ds = FrameRespStepData.read_file(dt, unit_factors=unit_factors)
         if resp_type is None:
             if ele_tags is None:
                 return ds

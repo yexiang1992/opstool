@@ -117,13 +117,27 @@ class ContactRespStepData(ResponseBase):
         return dt
 
     @staticmethod
-    def read_file(dt: xr.DataTree):
+    def read_file(dt: xr.DataTree, unit_factors: dict = None):
         resp_steps = dt["/ContactResponses"].to_dataset()
+        if unit_factors is not None:
+            resp_steps = ContactRespStepData._unit_transform(resp_steps, unit_factors)
         return resp_steps
 
     @staticmethod
-    def read_response(dt: xr.DataTree, resp_type: str = None, ele_tags=None):
-        ds = ContactRespStepData.read_file(dt)
+    def _unit_transform(resp_steps, unit_factors):
+        force_factor = unit_factors["force"]
+        disp_factor = unit_factors["disp"]
+
+        resp_steps["globalForces"] *= force_factor
+        resp_steps["localForces"] *= force_factor
+        resp_steps["localDisp"] *= disp_factor
+        resp_steps["slips"] *= disp_factor
+
+        return resp_steps
+
+    @staticmethod
+    def read_response(dt: xr.DataTree, resp_type: str = None, ele_tags=None, unit_factors: dict = None):
+        ds = ContactRespStepData.read_file(dt, unit_factors=unit_factors)
         if resp_type is None:
             if ele_tags is None:
                 return ds

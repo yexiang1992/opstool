@@ -122,13 +122,39 @@ class ModelInfoStepData(ResponseBase):
         return dt
 
     @staticmethod
-    def read_file(dt: xr.DataTree):
+    def read_file(dt: xr.DataTree, unit_factors: dict = None):
         model_info = dict()
         for key, value in dt["ModelInfo"].items():
             model_info[key] = value[key]
         model_update = int(model_info["ModelUpdate"])
         model_update = True if model_update == 1 else False
+
+        if unit_factors:
+            model_info = ModelInfoStepData._unit_transform(model_info, unit_factors)
+
         return model_info, model_update
+
+    @staticmethod
+    def _unit_transform(model_info, unit_factors):
+        disp_factor = unit_factors["disp"]
+
+        model_info["NodalData"] *= disp_factor
+        model_info["NodalData"].attrs["minBoundSize"] *= disp_factor
+        model_info["NodalData"].attrs["maxBoundSize"] *= disp_factor
+        bounds = model_info["NodalData"].attrs["bounds"]
+        model_info["NodalData"].attrs["bounds"] = (data * disp_factor for data in bounds)
+
+        if "info" in model_info["FixedNodalData"].coords.keys():
+            model_info["FixedNodalData"].loc[
+                {"info": ["x", "y", "z"]}
+            ] *= disp_factor
+        if "info" in model_info["MPConstraintData"].coords.keys():
+            model_info["MPConstraintData"].loc[
+                {"info": ["xo", "yo", "zo"]}
+            ] *= disp_factor
+        model_info["eleCenters"] *= disp_factor
+
+        return model_info
 
     @staticmethod
     def read_data(dt: xr.DataTree, data_type: str):

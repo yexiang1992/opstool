@@ -20,6 +20,8 @@ from ._get_response import (
 )
 from .eigen_data import save_eigen_data
 from .model_data import save_model_data
+from ._unit_postprocess import get_post_unit_multiplier, get_post_unit_symbol
+
 from ..utils import get_random_color, CONSTANTS
 
 RESULTS_DIR = CONSTANTS.get_output_dir()
@@ -55,6 +57,9 @@ POST_ARGS = SimpleNamespace(
     brick_tags=None,
     contact_tags=None,
     sensitivity_para_tags=None,
+    # -----------------------------------
+    unit_factors = None,
+    unit_symbols = None
 )
 
 
@@ -498,11 +503,11 @@ class CreateODB:
         save_model_data(odb_tag=self._odb_tag)
 
 
-def loadODB(obd_tag, resp_type: str = "Nodal"):
+def loadODB(
+        obd_tag,
+        resp_type: str = "Nodal",
+):
     """Load saved response data.
-
-    Parameters
-    ----------
 
     Returns
     --------
@@ -514,25 +519,25 @@ def loadODB(obd_tag, resp_type: str = "Nodal"):
         CONSOLE.print(
             f"{PKG_PREFIX} Loading response data from [bold {color}]{filename}[/] ..."
         )
-        model_info_steps, model_update = ModelInfoStepData.read_file(dt)
+        model_info_steps, model_update = ModelInfoStepData.read_file(dt, unit_factors=POST_ARGS.unit_factors)
         if resp_type.lower() == "nodal":
-            resp_step = NodalRespStepData.read_file(dt)
+            resp_step = NodalRespStepData.read_file(dt, unit_factors=POST_ARGS.unit_factors)
         elif resp_type.lower() == "frame":
-            resp_step = FrameRespStepData.read_file(dt)
+            resp_step = FrameRespStepData.read_file(dt, unit_factors=POST_ARGS.unit_factors)
         elif resp_type.lower() == "fibersec":
-            resp_step = FiberSecRespStepData.read_file(dt)
+            resp_step = FiberSecRespStepData.read_file(dt, unit_factors=POST_ARGS.unit_factors)
         elif resp_type.lower() == "truss":
-            resp_step = TrussRespStepData.read_file(dt)
+            resp_step = TrussRespStepData.read_file(dt, unit_factors=POST_ARGS.unit_factors)
         elif resp_type.lower() == "link":
-            resp_step = LinkRespStepData.read_file(dt)
+            resp_step = LinkRespStepData.read_file(dt, unit_factors=POST_ARGS.unit_factors)
         elif resp_type.lower() == "shell":
-            resp_step = ShellRespStepData.read_file(dt)
+            resp_step = ShellRespStepData.read_file(dt, unit_factors=POST_ARGS.unit_factors)
         elif resp_type.lower() == "plane":
-            resp_step = PlaneRespStepData.read_file(dt)
+            resp_step = PlaneRespStepData.read_file(dt, unit_factors=POST_ARGS.unit_factors)
         elif resp_type.lower() in ["brick", "solid"]:
-            resp_step = BrickRespStepData.read_file(dt)
+            resp_step = BrickRespStepData.read_file(dt, unit_factors=POST_ARGS.unit_factors)
         elif resp_type.lower() == "contact":
-            resp_step = ContactRespStepData.read_file(dt)
+            resp_step = ContactRespStepData.read_file(dt, unit_factors=POST_ARGS.unit_factors)
         elif resp_type.lower() == "sensitivity":
             resp_step = SensitivityRespStepData.read_file(dt)
         else:
@@ -663,7 +668,12 @@ def get_nodal_responses(
                     f"{PKG_PREFIX} Loading {resp_type} response data from [bold {color}]{filename}[/] ..."
                 )
 
-        nodal_resp = NodalRespStepData.read_response(dt, resp_type=resp_type, node_tags=node_tags)
+        nodal_resp = NodalRespStepData.read_response(
+            dt,
+            resp_type=resp_type,
+            node_tags=node_tags,
+            unit_factors=POST_ARGS.unit_factors
+        )
     return nodal_resp
 
 
@@ -764,25 +774,40 @@ def get_element_responses(
                 )
 
         if ele_type.lower() == "frame":
-            ele_resp = FrameRespStepData.read_response(dt, resp_type=resp_type, ele_tags=ele_tags)
+            ele_resp = FrameRespStepData.read_response(
+                dt, resp_type=resp_type, ele_tags=ele_tags, unit_factors=POST_ARGS.unit_factors
+            )
         elif ele_type.lower() == "fibersection":
-            ele_resp = FiberSecRespStepData.read_response(dt, resp_type=resp_type, ele_tags=ele_tags)
+            ele_resp = FiberSecRespStepData.read_response(
+                dt, resp_type=resp_type, ele_tags=ele_tags, unit_factors=POST_ARGS.unit_factors
+            )
         elif ele_type.lower() == "truss":
-            ele_resp = TrussRespStepData.read_response(dt, resp_type=resp_type, ele_tags=ele_tags)
+            ele_resp = TrussRespStepData.read_response(
+                dt, resp_type=resp_type, ele_tags=ele_tags, unit_factors=POST_ARGS.unit_factors
+            )
         elif ele_type.lower() == "link":
-            ele_resp = LinkRespStepData.read_response(dt, resp_type=resp_type, ele_tags=ele_tags)
+            ele_resp = LinkRespStepData.read_response(
+                dt, resp_type=resp_type, ele_tags=ele_tags, unit_factors=POST_ARGS.unit_factors
+            )
         elif ele_type.lower() == "shell":
-            ele_resp = ShellRespStepData.read_response(dt, resp_type=resp_type, ele_tags=ele_tags)
+            ele_resp = ShellRespStepData.read_response(
+                dt, resp_type=resp_type, ele_tags=ele_tags, unit_factors=POST_ARGS.unit_factors
+            )
         elif ele_type.lower() == "plane":
-            ele_resp = PlaneRespStepData.read_response(dt, resp_type=resp_type, ele_tags=ele_tags)
+            ele_resp = PlaneRespStepData.read_response(
+                dt, resp_type=resp_type, ele_tags=ele_tags, unit_factors=POST_ARGS.unit_factors
+            )
         elif ele_type.lower() in ["brick", "solid"]:
-            ele_resp = BrickRespStepData.read_response(dt, resp_type=resp_type, ele_tags=ele_tags)
+            ele_resp = BrickRespStepData.read_response(
+                dt, resp_type=resp_type, ele_tags=ele_tags, unit_factors=POST_ARGS.unit_factors
+            )
         elif ele_type.lower() == "contact":
-            ele_resp = ContactRespStepData.read_response(dt, resp_type=resp_type, ele_tags=ele_tags)
+            ele_resp = ContactRespStepData.read_response(
+                dt, resp_type=resp_type, ele_tags=ele_tags, unit_factors=POST_ARGS.unit_factors)
         else:
             raise ValueError(
                 f"Unsupported element type {ele_type}, "
-                "must in [Frame, Truss, Link, Shell, Plane, Solid]!"
+                "must in [Frame, Truss, Link, Shell, Plane, Solid, Contact]!"
             )
 
     return ele_resp
@@ -834,3 +859,77 @@ def get_sensitivity_responses(
         resp = SensitivityRespStepData.read_response(dt, resp_type=resp_type)
 
     return resp
+
+
+def update_unit_system(
+        pre: dict[str, str] = None,
+        post: dict[str, str] = None,
+):
+    """Set the unit system will be used for post-processing.
+
+    Parameters
+    -----------
+    pre: dict, default: None.
+        Unit system used in pre-processing and analysis.
+
+        Style: dict(force=force_unit, length=length_unit, time=time_unit)
+
+        * force_unit: Optional ["lb"("lbf"), "kip", "n", "kn", "mn", "kgf", "tonf"].
+        * length_unit: Optional ["inch", "ft", "mm", "cm", "m", "km"].
+        * time_unit: Optional ["sec"].
+
+    post: dict, default: None.
+        Unit system will be used for post-processing.
+
+        Style: dict(force=force_unit, length=length_unit, time=time_unit)
+
+        When ``pre`` and ``post`` are specified together,
+        the response data will be transformed from the ``pre`` unit system to the ``post`` unit system.
+        This will affect its numerical size.
+
+    Returns
+    --------
+    None
+    """
+    unit_factors, unit_syms = _parse_unit_factors(analysis_unit_system=pre, post_unit_system=post)
+    setattr(POST_ARGS, "unit_factors", unit_factors)
+    setattr(POST_ARGS, "unit_symbols", unit_syms)
+
+
+def _parse_unit_factors(analysis_unit_system, post_unit_system):
+    if analysis_unit_system is None or post_unit_system is None:
+        unit_factors = None
+        unit_syms = None
+    else:
+        if not isinstance(analysis_unit_system, dict):
+            raise ValueError("analysis_unit_system must be of type dict!")
+        if not isinstance(post_unit_system, dict):
+            raise ValueError("post_unit_system must be of type dict!")
+        for key in analysis_unit_system.keys():
+            if key not in ["length", "force", "time"]:
+                raise ValueError("key must be one of [length, force, time]!")
+        for key in post_unit_system.keys():
+            if key not in ["length", "force", "time"]:
+                raise ValueError("key must be one of [length, force, time]!")
+
+        analysis_units_ = dict(force=None, length=None, time=None)
+        analysis_units_.update(analysis_unit_system)
+        post_units_ = dict(force=None, length=None, time=None)
+        post_units_.update(post_unit_system)
+        unit_factors = get_post_unit_multiplier(
+            analysis_length=analysis_units_["length"],
+            analysis_force=analysis_units_["force"],
+            analysis_time=analysis_units_["time"],
+            post_length=post_units_["length"],
+            post_force=post_units_["force"],
+            post_time=post_units_["time"],
+        )
+        unit_syms = get_post_unit_symbol(
+            analysis_length=analysis_units_["length"],
+            analysis_force=analysis_units_["force"],
+            analysis_time=analysis_units_["time"],
+            post_length=post_units_["length"],
+            post_force=post_units_["force"],
+            post_time=post_units_["time"],
+        )
+    return unit_factors, unit_syms

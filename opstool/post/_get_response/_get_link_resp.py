@@ -102,13 +102,29 @@ class LinkRespStepData(ResponseBase):
         return dt
 
     @staticmethod
-    def read_file(dt: xr.DataTree):
+    def read_file(dt: xr.DataTree, unit_factors: dict = None):
         resp_steps = dt["/LinkResponses"].to_dataset()
+        if unit_factors is not None:
+            resp_steps = LinkRespStepData._unit_transform(resp_steps, unit_factors)
         return resp_steps
 
     @staticmethod
-    def read_response(dt: xr.DataTree, resp_type: str = None, ele_tags=None):
-        ds = LinkRespStepData.read_file(dt)
+    def _unit_transform(resp_steps, unit_factors):
+        force_factor = unit_factors["force"]
+        moment_factor = unit_factors["moment"]
+        disp_factor = unit_factors["disp"]
+
+        # ---------------------------------------------------------
+        resp_steps["basicForce"].loc[{"DOFs": ["UX", "UY", "UZ"]}] *= force_factor
+        resp_steps["basicForce"].loc[{"DOFs": ["RX", "RY", "RZ"]}] *= moment_factor
+        # ---------------------------------------------------------
+        resp_steps["basicDeformation"].loc[{"DOFs": ["UX", "UY", "UZ"]}] *= disp_factor
+
+        return resp_steps
+
+    @staticmethod
+    def read_response(dt: xr.DataTree, resp_type: str = None, ele_tags=None, unit_factors: dict = None):
+        ds = LinkRespStepData.read_file(dt, unit_factors=unit_factors)
         if resp_type is None:
             if ele_tags is None:
                 return ds
