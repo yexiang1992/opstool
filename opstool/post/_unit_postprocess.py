@@ -1,7 +1,7 @@
 from typing import Union
 
-# from ..pre import UnitSystem
-from opstool.pre import UnitSystem
+from ..pre import UnitSystem
+# from opstool.pre import UnitSystem
 
 FORCE_MAP = {
     "lb": "lb", "lbf": "lbf", "kip": "kip", "n": "N", "kn": "kN", "mn": "MN", "kgf": "kgf", "tonf": "tonf"
