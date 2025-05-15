@@ -4,13 +4,11 @@ from pyvista.plotting.plotter import Plotter
 
 
 def test_set_plot_props():
-    output = opsvis.set_plot_props()
-    assert output is None
+    assert opsvis.set_plot_props() is None
 
 
 def test_set_plot_colors():
-    output = opsvis.set_plot_colors()
-    assert output is None
+    assert opsvis.set_plot_colors() is None
 
 
 def test_plot_model_link():
@@ -45,6 +43,6 @@ def test_plot_eigen_subplots():
 
 
 def test_plot_eigen_slides():
-    opst.load_ops_examples("ArchBridge-2")
+    opst.load_ops_examples("Pier-Brick")
     output = opsvis.plot_eigen(mode_tags=3, subplots=False)
     assert isinstance(output, Plotter)
