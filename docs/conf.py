@@ -104,5 +104,5 @@ html_sidebars = {
         "sidebar/variant-selector.html",
     ]
 }
-pygments_style = "gruvbox-light"
+pygments_style = "perldoc"
 pygments_dark_style = "paraiso-dark"
