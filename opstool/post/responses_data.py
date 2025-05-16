@@ -547,7 +547,7 @@ def loadODB(
 
 
 def get_model_data(
-        odb_tag: int = None,
+        odb_tag: Union[int, str] = None,
         data_type: str = "Nodal",
         from_responses: bool = False
 ):
