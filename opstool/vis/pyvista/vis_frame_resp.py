@@ -513,6 +513,8 @@ class PlotFrameResponse(PlotResponseBase):
         }
         if not self.show_zaxis and cpos not in ["xy", "yx"]:
             cpos = "xy"
+            plotter.enable_2d_style()
+            plotter.enable_parallel_projection()
         viewer[cpos]()
         return plotter
 
@@ -528,7 +530,7 @@ def plot_frame_responses(
     show_values: bool = False,
     cpos: str = "iso",
     line_width: float = 1.5,
-):
+) -> pv.Plotter:
     """Plot the responses of the frame element.
 
     Parameters
@@ -640,7 +642,7 @@ def plot_frame_responses_animation(
     savefig: str = "FrameForcesAnimation.gif",
     off_screen: bool = True,
     line_width: float = 1.5,
-):
+) -> pv.Plotter:
     """Animate the responses of frame elements.
 
     Parameters

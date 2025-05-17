@@ -340,6 +340,8 @@ class PlotTrussResponse(PlotResponseBase):
         }
         if not self.show_zaxis and cpos not in ["xy", "yx"]:
             cpos = "xy"
+            plotter.enable_2d_style()
+            plotter.enable_parallel_projection()
         viewer[cpos]()
         return plotter
 
@@ -354,7 +356,7 @@ def plot_truss_responses(
     alpha: float = 1.0,
     line_width: float = 1.5,
     cpos: str = "iso",
-):
+) -> pv.Plotter:
     """Visualizing Truss Response.
 
     Parameters
@@ -445,7 +447,7 @@ def plot_truss_responses_animation(
     alpha: float = 1.0,
     line_width: float = 1.5,
     cpos: str = "iso",
-):
+) -> pv.Plotter:
     """Truss response animation.
 
     Parameters

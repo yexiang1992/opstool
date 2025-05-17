@@ -514,6 +514,8 @@ class PlotNodalResponse(PlotResponseBase):
         }
         if not self.show_zaxis and cpos not in ["xy", "yx"]:
             cpos = "xy"
+            plotter.enable_2d_style()
+            plotter.enable_parallel_projection()
         viewer[cpos]()
         return plotter
 
@@ -533,7 +535,7 @@ def plot_nodal_responses(
     show_undeformed: bool = False,
     style: str = "surface",
     show_outline: bool = False,
-):
+) -> pv.Plotter:
     """Visualizing Node Responses.
 
     Parameters
@@ -655,7 +657,7 @@ def plot_nodal_responses_animation(
     show_undeformed: bool = False,
     style: str = "surface",
     show_outline: bool = False,
-):
+) -> pv.Plotter:
     """Visualize node response animation.
 
     Parameters

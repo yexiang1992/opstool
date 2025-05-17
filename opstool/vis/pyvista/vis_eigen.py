@@ -251,6 +251,8 @@ class PlotEigenBase:
         }
         if not self.show_zaxis:
             cpos = "xy"
+            plotter.enable_2d_style()
+            plotter.enable_parallel_projection()
         viewer[cpos]()
         return plotter
 
@@ -269,7 +271,7 @@ def plot_eigen(
     bc_scale: float = 1.0,
     show_mp_constraint: bool = True,
     solver: str = "-genBandArpack",
-):
+) -> pv.Plotter:
     """Modal visualization.
 
     Parameters
@@ -383,7 +385,7 @@ def plot_eigen_animation(
     cpos: str = "iso",
     solver: str = "-genBandArpack",
     **kargs,
-):
+) -> pv.Plotter:
     """Modal animation visualization.
 
     Parameters

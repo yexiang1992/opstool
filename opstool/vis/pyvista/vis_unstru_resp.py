@@ -262,6 +262,8 @@ class PlotUnstruResponse(PlotResponseBase):
         }
         if not self.show_zaxis and cpos not in ["xy", "yx"]:
             cpos = "xy"
+            plotter.enable_2d_style()
+            plotter.enable_parallel_projection()
         viewer[cpos]()
         return plotter
 
@@ -276,7 +278,7 @@ def plot_unstruct_responses(
     resp_dof: str = "MXX",
     style: str = "surface",
     cpos: str = "iso",
-):
+) -> pv.Plotter:
     """Visualizing unstructured element (Shell, Plane, Brick) Response.
 
     .. Note::
@@ -403,7 +405,7 @@ def plot_unstruct_responses_animation(
     off_screen: bool = True,
     style: str = "surface",
     cpos: str = "iso",
-):
+) -> pv.Plotter:
     """Unstructured element (Shell, Plane, Brick) response animation.
 
     .. Note::
