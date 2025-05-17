@@ -51,7 +51,9 @@ PLOT_ARGS = SimpleNamespace(
     cmap="jet",
     cmap_model=None,
     n_colors=256,
-    color_map = "jet",
+    color_map="jet",
+    color_nodal_label="#048243",
+    color_ele_label="#650021"
 )
 
 
@@ -262,7 +264,7 @@ def set_plot_colors(
             Color for constraint.
         - bc : str, list[int, int, int], optional
             Color for boundary conditions.
-        cmap : str, list, optional
+        - cmap : str, list, optional
             Name of the Matplotlib colormap to us when mapping the
             scalars.  See available Matplotlib colormaps.  Only
             applicable for when displaying ``scalars``. Requires Matplotlib
@@ -274,7 +276,7 @@ def set_plot_colors(
             existing colormap with a custom one.  For example, to
             create a three color colormap you might specify
             ``['green', 'red', 'blue']``.
-        cmap_model : str, list, optional, default=None
+        - cmap_model : str, list, optional, default=None
             Matplotlib colormap used for geometry model visualization.
             Same as ``cmap``, except that this parameter will be used
             for geometry model visualization and will be automatically mapped
@@ -284,6 +286,10 @@ def set_plot_colors(
 
             Available color maps are shown in
             `Colormaps in Matplotlib <https://matplotlib.org/stable/users/explain/colors/colormaps.html>`_
+        - nodal_label: str, default="#048243"
+            Color for nodal label.
+        - ele_label: str, default="#650021"
+            Color for element label.
 
     Returns
     -------
@@ -358,8 +364,7 @@ def _plot_points_cmap(
     render_points_as_spheres=True,
 ):
     point_plot = pv.PolyData(pos)
-    point_plot.point_data["data0"] = scalars
-    point_plot["scalars"] = scalars
+    point_plot["scalars"] = scalars   # auto to point_data or cell_data
     if clim is None:
         clim = (np.min(scalars), np.max(scalars))
     plotter.add_mesh(
@@ -409,7 +414,6 @@ def _plot_lines_cmap(
     line_plot = pv.PolyData()
     line_plot.points = pos
     line_plot.lines = cells
-    line_plot.point_data["data0"] = scalars
     line_plot["scalars"] = scalars
     if clim is None:
         clim = (np.min(scalars), np.max(scalars))
