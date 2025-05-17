@@ -98,7 +98,7 @@ class PlotNodalResponse(PlotResponseBase):
             alpha_ = self.max_bound_size * self.pargs.scale_factor / maxv
         return float(alpha_)
 
-    def _make_txt(self, resp):
+    def _make_title(self, resp, step, time):
         if resp.ndim == 1:
             # max_resp = np.max(resp)
             # min_resp = np.min(resp)
@@ -109,11 +109,42 @@ class PlotNodalResponse(PlotResponseBase):
             # min_resp = np.min(resp, axis=0)
             norm = np.linalg.norm(resp, axis=1)
             max_norm, min_norm = np.max(norm), np.min(norm)
-        # txt = f"{self.comp}:: Max: {max_resp}\n"
-        # txt += f"{self.comp}:: Min: {min_resp}\n"
-        txt = f"{self.component}\n"
-        txt += f"Norm.Max: {max_norm:.3E}\nNorm.Min: {min_norm:.3E}\n"
-        return txt
+        if self.resp_type == "disp":
+            title = "Displacement"
+        elif self.resp_type == "vel":
+            title = "Velocity"
+        elif self.resp_type == "accel":
+            title = "Acceleration"
+        else:
+            title = f"{self.resp_type.capitalize()}"
+        if isinstance(self.component, (list, tuple)):
+            dof = ",".join(self.component)
+        else:
+            dof = self.component
+        info = {
+            "title": title,
+            "dof": dof,
+            "min": min_norm,
+            "max": max_norm,
+            "step": step,
+            "time": time
+        }
+        lines = [
+            f"* {info['title']}",
+            f"* {info['dof']} (DOF)",
+            f"{info['min']:.3E} (norm.min)",
+            f"{info['max']:.3E} (norm.max)",
+            f"{info['step']} (step)",
+            f"{info['time']:.3f} (time)",
+        ]
+        if self.unit:
+            info["unit"] = self.unit
+            lines.insert(1, f"{info['unit']} (unit)")
+
+        max_len = max(len(line) for line in lines)
+        padded_lines = [line.rjust(max_len) for line in lines]
+        text = "\n".join(padded_lines)
+        return text + "\n"
 
     def _create_mesh(
         self,
@@ -186,25 +217,20 @@ class PlotNodalResponse(PlotResponseBase):
             show_origin=show_origin,
             pos_origin=node_nodeform_coords,
         )
-        title = f"{self.resp_type.capitalize()}\n"
-        title += self._make_txt(node_resp)
-        title += f"step: {step};" + f" time: {t_:.3f}\n"
-        text = plotter.add_text(
-            title,
-            position="upper_right",
-            font_size=self.pargs.title_font_size,
-            font="courier",
+        title = self._make_title(node_resp, step, t_)
+        # text = plotter.add_text(
+        #     title,
+        #     position="upper_right",
+        #     font_size=self.pargs.title_font_size/2,
+        #     font="courier",
+        # )
+        scalar_bar = plotter.add_scalar_bar(
+            title=title,
+            **self.pargs.scalar_bar_kargs
         )
-        _ = plotter.add_scalar_bar(
-            fmt="%.3e",
-            n_labels=10,
-            bold=True,
-            vertical=True,
-            font_family="courier",
-            label_font_size=self.pargs.font_size,
-            title_font_size=self.pargs.title_font_size,
-            position_x=0.875,
-        )
+        # scalar_bar.SetTitle(title)
+        title_prop = scalar_bar.GetTitleTextProperty()
+        title_prop.SetJustificationToRight()
         self.show_zaxis = False if np.max(model_dims) <= 2 else True
         if show_outline:
             plotter.show_bounds(
@@ -252,7 +278,7 @@ class PlotNodalResponse(PlotResponseBase):
                     show_dofs=False,
                 )
         self.update(plotter, cpos=cpos)
-        return point_plot, line_plot, solid_plot, text, bc_plot, mp_plot
+        return point_plot, line_plot, solid_plot, scalar_bar, bc_plot, mp_plot
 
     def _update_mesh(
         self,
@@ -260,7 +286,7 @@ class PlotNodalResponse(PlotResponseBase):
         point_plot=None,
         line_plot=None,
         solid_plot=None,
-        text=None,
+        scalar_bar=None,
         bc_plot=None,
         mp_plot=None,
         alpha=1.0,
@@ -289,12 +315,10 @@ class PlotNodalResponse(PlotResponseBase):
             solid_plot["scalars"] = scalars
             solid_plot.points = points
         # plotter.update_scalar_bar_range(clim=[np.min(scalars), np.max(scalars)])
-        if text:
-            title = f"{self.resp_type.capitalize()}\n"
-            title += self._make_txt(node_resp)
-            title += f" step: {step};" + f" time: {t_:.3f}\n"
+        if scalar_bar:
+            title = self._make_title(node_resp, step, t_)
             # cbar.SetTitle(title)
-            text.SetText(3, title)
+            scalar_bar.SetTitle(title)
         if mp_plot:
             bc_plot.points = points
         if bc_plot:
@@ -349,7 +373,7 @@ class PlotNodalResponse(PlotResponseBase):
                 cpos=cpos
             )
         else:
-            point_plot, line_plot, solid_plot, text, bc_plot, mp_plot = (
+            point_plot, line_plot, solid_plot, cbar, bc_plot, mp_plot = (
                 self._create_mesh(
                     plotter,
                     self.num_steps - 1,
@@ -369,7 +393,7 @@ class PlotNodalResponse(PlotResponseBase):
                 point_plot=point_plot,
                 line_plot=line_plot,
                 solid_plot=solid_plot,
-                text=text,
+                scalar_bar=cbar,
                 bc_plot=bc_plot,
                 mp_plot=mp_plot,
                 alpha=alpha_,
@@ -528,6 +552,7 @@ def plot_nodal_responses(
     show_defo: bool = True,
     resp_type: str = "disp",
     resp_dof: Union[list, tuple, str] = ("UX", "UY", "UZ"),
+    unit_symbol: str = None,
     cpos: str = "iso",
     show_bc: bool = True,
     bc_scale: float = 1.0,
@@ -567,6 +592,8 @@ def plot_nodal_responses(
             such as those used for ...UP elements, the pore pressure should be extracted using ``resp_type="vel"``,
             and ``resp_dof="UZ"``.
 
+    unit_symbol: str, default: None
+        Unit symbol to be displayed in the plot.
     cpos: str, default: iso
         Model display perspective, optional: "iso", "xy", "yx", "xz", "zx", "yz", "zy".
         If 3d, defaults to "iso". If 2d, defaults to "xy".
@@ -608,6 +635,7 @@ def plot_nodal_responses(
         off_screen=PLOT_ARGS.off_screen,
     )
     plotbase = PlotNodalResponse(model_info_steps, node_resp_steps, model_update)
+    plotbase.set_unit_symbol(unit_symbol)
     plotbase.set_comp_resp_type(resp_type=resp_type, component=resp_dof)
     if slides:
         plotbase.plot_slide(
@@ -650,6 +678,7 @@ def plot_nodal_responses_animation(
     show_defo: bool = True,
     resp_type: str = "disp",
     resp_dof: Union[list, tuple, str] = ("UX", "UY", "UZ"),
+    unit_symbol: str = None,
     show_bc: bool = True,
     bc_scale: float = 1.0,
     show_mp_constraint: bool = False,
@@ -683,6 +712,8 @@ def plot_nodal_responses_animation(
         Optional: "UX", "UY", "UZ", "RX", "RY", "RZ".
         You can also pass on a list or tuple to display multiple dimensions, for example, ["UX", "UY"],
         ["UX", "UY", "UZ"], ["RX", "RY", "RZ"], ["RX", "RY"], ["RY", "RZ"], ["RX", "RZ"], and so on.
+    unit_symbol: str, default: None
+        Unit symbol to be displayed in the plot.
     show_bc: bool, default: True
         Whether to display boundary supports.
     bc_scale: float, default: 1.0
@@ -724,7 +755,7 @@ def plot_nodal_responses_animation(
         off_screen=off_screen,
     )
     plotbase = PlotNodalResponse(model_info_steps, node_resp_steps, model_update)
-    plotbase.set_comp_resp_type(resp_type=resp_type, component=resp_dof)
+    plotbase.set_comp_resp_type(resp_type=resp_type, component=resp_dof, unit=unit_symbol)
     plotbase.plot_anim(
         plotter,
         alpha=scale,

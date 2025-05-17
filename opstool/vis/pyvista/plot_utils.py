@@ -6,8 +6,23 @@ import numpy as np
 import pyvista as pv
 
 from ...utils import OPS_ELE_TYPES, CONSTANTS
+
 PKG_NAME = CONSTANTS.get_pkg_name()
 pv.global_theme.title = PKG_NAME
+
+_scalar_bar_kargs = dict(
+    fmt="%.3e",
+    n_labels=10,
+    bold=True,
+    width=0.1,
+    height=0.5,
+    vertical=True,
+    font_family="courier",
+    label_font_size=None,
+    title_font_size=None,
+    position_x=0.825,
+    position_y=0.05
+)
 
 PLOT_ARGS = SimpleNamespace(
     point_size=1.0,
@@ -33,6 +48,7 @@ PLOT_ARGS = SimpleNamespace(
     font_size=15,
     title_font_size=18,
     off_screen=False,
+    scalar_bar_kargs=_scalar_bar_kargs,
     # --------------------------
     color_point="#FF0055",
     color_frame="#0652ff",
@@ -58,7 +74,7 @@ PLOT_ARGS = SimpleNamespace(
 
 
 def set_plot_props(
-    **kwargs
+        **kwargs
 ):
     """
     Set ploting properties.
@@ -208,6 +224,10 @@ def set_plot_props(
             Font size of title.
         - off_screen: bool, optional
             Renders off-screen when True. Useful for automated screenshots.
+        - scalar_bar_kargs: dict
+            Arguments to pass to
+            `Plotter.add_scalar_bar <https://docs.pyvista.org/api/plotting/_autosummary/pyvista.plotter.add_scalar_bar#pyvista.Plotter.add_scalar_bar>`_
+            For example, ``dict(fmt="%.3e", n_labels=10)``.
 
     Returns
     -------
@@ -223,11 +243,14 @@ def set_plot_props(
             else:
                 pv.set_jupyter_backend("trame")
     for key, value in kwargs.items():
-        setattr(PLOT_ARGS, key, value)
+        if key.lower() == "scalar_bar_kargs":
+            setattr(PLOT_ARGS, key.lower(), getattr(PLOT_ARGS, key.lower()).update(value))
+        else:
+            setattr(PLOT_ARGS, key, value)
 
 
 def set_plot_colors(
-    **kwargs,
+        **kwargs,
 ):
     """
     Set the display color of various element types.
@@ -337,11 +360,11 @@ def _get_ele_color(ele_types: list[str]):
 
 
 def _plot_points(
-    plotter,
-    pos,
-    color: str = "black",
-    size: float = 3.0,
-    render_points_as_spheres: bool = True,
+        plotter,
+        pos,
+        color: str = "black",
+        size: float = 3.0,
+        render_points_as_spheres: bool = True,
 ):
     point_plot = pv.PolyData(pos)
     plotter.add_mesh(
@@ -354,17 +377,17 @@ def _plot_points(
 
 
 def _plot_points_cmap(
-    plotter,
-    pos,
-    scalars,
-    cmap: str = "jet",
-    size: float = 3.0,
-    clim: list = None,
-    show_scalar_bar=False,
-    render_points_as_spheres=True,
+        plotter,
+        pos,
+        scalars,
+        cmap: str = "jet",
+        size: float = 3.0,
+        clim: list = None,
+        show_scalar_bar=False,
+        render_points_as_spheres=True,
 ):
     point_plot = pv.PolyData(pos)
-    point_plot["scalars"] = scalars   # auto to point_data or cell_data
+    point_plot["scalars"] = scalars  # auto to point_data or cell_data
     if clim is None:
         clim = (np.min(scalars), np.max(scalars))
     plotter.add_mesh(
@@ -381,7 +404,7 @@ def _plot_points_cmap(
 
 
 def _plot_lines(
-    plotter, pos, cells, width=1.0, color="blue", render_lines_as_tubes=True, label=None
+        plotter, pos, cells, width=1.0, color="blue", render_lines_as_tubes=True, label=None
 ):
     if len(cells) == 0:
         return None
@@ -399,15 +422,15 @@ def _plot_lines(
 
 
 def _plot_lines_cmap(
-    plotter,
-    pos,
-    cells,
-    scalars,
-    cmap="jet",
-    width=1.0,
-    clim=None,
-    render_lines_as_tubes=True,
-    show_scalar_bar=False,
+        plotter,
+        pos,
+        cells,
+        scalars,
+        cmap="jet",
+        width=1.0,
+        clim=None,
+        render_lines_as_tubes=True,
+        show_scalar_bar=False,
 ):
     if len(cells) == 0:
         return None
@@ -431,17 +454,17 @@ def _plot_lines_cmap(
 
 
 def _plot_unstru(
-    plotter,
-    pos,
-    cells,
-    cell_types,
-    color="green",
-    show_edges=True,
-    edge_color="black",
-    edge_width=1.0,
-    opacity=1.0,
-    style="surface",
-    label=None,
+        plotter,
+        pos,
+        cells,
+        cell_types,
+        color="green",
+        show_edges=True,
+        edge_color="black",
+        edge_width=1.0,
+        opacity=1.0,
+        style="surface",
+        label=None,
 ):
     """plot the unstructured grid."""
     if len(cells) == 0:
@@ -461,19 +484,19 @@ def _plot_unstru(
 
 
 def _plot_unstru_cmap(
-    plotter,
-    pos,
-    cells,
-    cell_types,
-    scalars,
-    cmap="jet",
-    clim=None,
-    show_edges=True,
-    edge_color="black",
-    edge_width=1.0,
-    opacity=1.0,
-    style="surface",
-    show_scalar_bar=False,
+        plotter,
+        pos,
+        cells,
+        cell_types,
+        scalars,
+        cmap="jet",
+        clim=None,
+        show_edges=True,
+        edge_color="black",
+        edge_width=1.0,
+        opacity=1.0,
+        style="surface",
+        show_scalar_bar=False,
 ):
     if len(cells) == 0:
         return None
@@ -499,14 +522,14 @@ def _plot_unstru_cmap(
 
 
 def _plot_all_mesh(
-    plotter,
-    pos,
-    line_cells,
-    unstru_cells,
-    unstru_celltypes,
-    color="gray",
-    edge_width=1.0,
-    render_lines_as_tubes=True,
+        plotter,
+        pos,
+        line_cells,
+        unstru_cells,
+        unstru_celltypes,
+        color="gray",
+        edge_width=1.0,
+        render_lines_as_tubes=True,
 ):
     line_plot = _plot_lines(
         plotter,
@@ -528,26 +551,26 @@ def _plot_all_mesh(
 
 
 def _plot_all_mesh_cmap(
-    plotter,
-    pos,
-    line_cells,
-    unstru_cells,
-    unstru_celltypes,
-    scalars,
-    cmap="jet",
-    clim=None,
-    show_edges=True,
-    edge_color="black",
-    edge_width=1.0,
-    point_size=0,
-    opacity=1.0,
-    style="surface",
-    lw=1.0,
-    render_lines_as_tubes=True,
-    render_points_as_spheres=True,
-    show_scalar_bar=False,
-    show_origin=False,
-    pos_origin=None,
+        plotter,
+        pos,
+        line_cells,
+        unstru_cells,
+        unstru_celltypes,
+        scalars,
+        cmap="jet",
+        clim=None,
+        show_edges=True,
+        edge_color="black",
+        edge_width=1.0,
+        point_size=0,
+        opacity=1.0,
+        style="surface",
+        lw=1.0,
+        render_lines_as_tubes=True,
+        render_points_as_spheres=True,
+        show_scalar_bar=False,
+        show_origin=False,
+        pos_origin=None,
 ):
     if point_size > 0:
         point_plot = _plot_points_cmap(
@@ -629,7 +652,7 @@ def _get_unstru_cells(unstru_data):
             unstru_cells_new = []
             for cell in unstru_cells:
                 num = cell[0]
-                data = [num] + [int(data) for data in cell[1 : 1 + num]]
+                data = [num] + [int(data) for data in cell[1: 1 + num]]
                 unstru_cells_new.extend(data)
     else:
         unstru_tags, unstru_cell_types, unstru_cells_new = [], [], []
@@ -652,7 +675,6 @@ def _dropnan_by_time(da, model_update=False):
                 da_2d_cleaned = da_2d
             cleaned_dataarrays.append(da_2d_cleaned)
     return cleaned_dataarrays
-
 
 # def group_cells(cells):
 #     line_cells, line_cells_type = [], []

@@ -125,6 +125,29 @@ class PlotTrussResponse(PlotResponseBase):
         cmin, cmax = np.min(minv), np.max(maxv)
         return cmin, cmax
 
+    def _make_title(self, scalars, step, time):
+        info = {
+            "title": self.resp_type.capitalize(),
+            "min": np.min(scalars),
+            "max": np.max(scalars),
+            "step": step,
+            "time": time
+        }
+        lines = [
+            f"* {info['title']}",
+            f"{info['min']:.3E} (min)",
+            f"{info['max']:.3E} (max)",
+            f"{info['step']} (step)",
+            f"{info['time']:.3f} (time)",
+        ]
+        if self.unit:
+            info["unit"] = self.unit
+            lines.insert(1, f"{info['unit']} (unit)")
+        max_len = max(len(line) for line in lines)
+        padded_lines = [line.rjust(max_len) for line in lines]
+        text = "\n".join(padded_lines)
+        return text + "\n"
+
     def _create_mesh(
         self,
         plotter,
@@ -198,26 +221,18 @@ class PlotTrussResponse(PlotResponseBase):
             render_lines_as_tubes=self.pargs.render_lines_as_tubes,
             show_scalar_bar=False,
         )
-        t_ = self.time[step]
-        title = self.resp_type.capitalize() + "\n"
-        title += f"step: {step};" + f" time: {t_:.4f}\n"
-        title += "min = {:.3E}\nmax = {:.3E}\n".format(np.min(scalars), np.max(scalars))
-        _ = plotter.add_text(
-            title,
-            position="upper_right",
-            font_size=self.pargs.title_font_size,
-            font="courier",
+        title = self._make_title(scalars, step, self.time[step])
+        # _ = plotter.add_text(
+        #     title,
+        #     position="upper_right",
+        #     font_size=self.pargs.title_font_size,
+        #     font="courier",
+        # )
+        scalar_bar = plotter.add_scalar_bar(
+            title=title,
+            **self.pargs.scalar_bar_kargs
         )
-        _ = plotter.add_scalar_bar(
-            fmt="%.3e",
-            n_labels=10,
-            bold=True,
-            vertical=True,
-            font_family="courier",
-            label_font_size=self.pargs.font_size,
-            title_font_size=self.pargs.title_font_size,
-            position_x=0.875,
-        )
+
         if show_values:
             plotter.add_point_labels(
                 label_points,
@@ -353,6 +368,7 @@ def plot_truss_responses(
     step: Union[int, str] = "absMax",
     show_values: bool = True,
     resp_type: str = "axialForce",
+    unit_symbol: str = None,
     alpha: float = 1.0,
     line_width: float = 1.5,
     cpos: str = "iso",
@@ -376,6 +392,8 @@ def plot_truss_responses(
         Whether to display the response value.
     resp_type: str, default: "axialForce"
         Response type, optional, one of ["axialForce", "axialDefo", "Stress", "Strain"].
+    unit_symbol: str, default: None
+        Unit symbol to be displayed in the plot.
     alpha: float, default: 1.0
         Scale the size of the response graph.
 
@@ -411,6 +429,7 @@ def plot_truss_responses(
         off_screen=PLOT_ARGS.off_screen
     )
     plotbase = PlotTrussResponse(model_info_steps, truss_resp_step, model_update)
+    plotbase.set_unit_symbol(unit_symbol)
     plotbase.refactor_resp_step(resp_type=resp_type, ele_tags=ele_tags)
     if slides:
         plotbase.plot_slide(
@@ -444,6 +463,7 @@ def plot_truss_responses_animation(
     off_screen: bool = True,
     show_values: bool = False,
     resp_type: str = "axialForce",
+    unit_symbol: str = None,
     alpha: float = 1.0,
     line_width: float = 1.5,
     cpos: str = "iso",
@@ -467,6 +487,8 @@ def plot_truss_responses_animation(
         Whether to display the response value.
     resp_type: str, default: "axialForce"
         Response type, optional, one of ["axialForce", "axialDefo", "Stress", "Strain"].
+    unit_symbol: str, default: None
+        Unit symbol to be displayed in the plot.
     alpha: float, default: 1.0
         Scale the size of the response graph.
 
@@ -502,6 +524,7 @@ def plot_truss_responses_animation(
         off_screen=off_screen
     )
     plotbase = PlotTrussResponse(model_info_steps, truss_resp_step, model_update)
+    plotbase.set_unit_symbol(unit_symbol)
     plotbase.refactor_resp_step(resp_type=resp_type, ele_tags=ele_tags)
     plotbase.plot_anim(
         plotter,
