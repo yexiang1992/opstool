@@ -30,8 +30,14 @@ class PlotResponseBase:
         self.resp_step = None  # response data
         self.resp_type = None
         self.component = None  # component to be visualized
+        self.unit = ""  # unit symbol
 
         pv.set_plot_theme(PLOT_ARGS.theme)
+
+    def set_unit_symbol(self, symbol: str = None):
+        # unit
+        if symbol is not None:
+            self.unit = symbol
 
     def _get_model_data(self, key, idx):
         dims = self.ModelInfoSteps[key].dims
