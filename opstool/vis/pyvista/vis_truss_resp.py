@@ -12,6 +12,7 @@ from .plot_utils import (
     _plot_lines_cmap,
     _get_line_cells,
     _get_unstru_cells,
+    update_point_label_actor
 )
 from ...post import loadODB
 from ...utils import gram_schmidt
@@ -137,8 +138,8 @@ class PlotTrussResponse(PlotResponseBase):
             f"* {info['title']}",
             f"{info['min']:.3E} (min)",
             f"{info['max']:.3E} (max)",
-            f"{info['step']} (step)",
-            f"{info['time']:.3f} (time)",
+            f"{info['step']}(step); "
+            f"{info['time']:.3f}(time)",
         ]
         if self.unit:
             info["unit"] = self.unit
@@ -147,6 +148,46 @@ class PlotTrussResponse(PlotResponseBase):
         padded_lines = [line.rjust(max_len) for line in lines]
         text = "\n".join(padded_lines)
         return text + "\n"
+
+    def _get_mesh_data(self, step, alpha, ele_tags):
+        truss_tags, truss_coords, truss_cells = self._make_truss_info(ele_tags, step)
+        resps = self.resp_step[step].to_numpy()
+        resp_points, resp_cells = [], []
+        scalars = []
+        label_points, labels = [], []
+        for cell, resp in zip(truss_cells, resps):
+            coord1 = np.array(truss_coords[cell[1]])
+            coord2 = np.array(truss_coords[cell[2]])
+            xaxis = coord2 - coord1
+            length = np.linalg.norm(xaxis)
+            xaxis = xaxis / length
+            cos_theta = np.dot(xaxis, [0, 0, 1])
+            if 1 - cos_theta ** 2 < 1e-4:
+                axis_up = [1, 0, 0]
+            elif self.show_zaxis:
+                axis_up = [0, 0, 1]
+            else:
+                axis_up = [0, 1, 0]
+            _, plot_axis, _ = gram_schmidt(xaxis, axis_up)
+            coord3 = coord1 + alpha * resp * plot_axis
+            coord4 = coord2 + alpha * resp * plot_axis
+            coord_upper = [coord3 + length * i * xaxis / 12  for i in range(13)] + [
+                coord4
+            ]
+            coord_lower = [coord1 + length * i * xaxis / 12  for i in range(13)] + [
+                coord3
+            ]
+            for i in range(len(coord_upper)):
+                resp_cells.append([2, len(resp_points), len(resp_points) + 1])
+                resp_points.extend([coord_lower[i], coord_upper[i]])
+                scalars.extend([resp, resp])
+            label_points.append((coord3 + coord4) / 2)
+            labels.append(resp)
+        labels = [f"{label:.3E}" for label in labels]
+        label_points = np.array(label_points)
+        resp_points = np.array(resp_points)
+        scalars = np.array(scalars)
+        return truss_coords, truss_cells, scalars, resp_points, resp_cells, labels, label_points
 
     def _create_mesh(
         self,
@@ -161,48 +202,14 @@ class PlotTrussResponse(PlotResponseBase):
         cpos="iso"
     ):
         step = int(round(value))
-        truss_tags, truss_coords, truss_cells = self._make_truss_info(ele_tags, step)
-        resps = self.resp_step[step].to_numpy()
-        resp_points, resp_cells = [], []
-        scalars = []
-        label_points, labels = [], []
-        for cell, resp in zip(truss_cells, resps):
-            coord1 = np.array(truss_coords[cell[1]])
-            coord2 = np.array(truss_coords[cell[2]])
-            xaxis = coord2 - coord1
-            length = np.linalg.norm(xaxis)
-            xaxis = xaxis / length
-            cos_theta = np.dot(xaxis, [0, 0, 1])
-            if 1 - cos_theta**2 < 1e-4:
-                axis_up = [1, 0, 0]
-            elif self.show_zaxis:
-                axis_up = [0, 0, 1]
-            else:
-                axis_up = [0, 1, 0]
-            _, plot_axis, _ = gram_schmidt(xaxis, axis_up)
-            coord3 = coord1 + alpha * resp * plot_axis
-            coord4 = coord2 + alpha * resp * plot_axis
-            coord_upper = [coord3 + length / 12 * i * xaxis for i in range(13)] + [
-                coord4
-            ]
-            coord_lower = [coord1 + length / 12 * i * xaxis for i in range(13)] + [
-                coord3
-            ]
-            for i in range(len(coord_upper)):
-                resp_cells.append([2, len(resp_points), len(resp_points) + 1])
-                resp_points.extend([coord_lower[i], coord_upper[i]])
-                scalars.extend([resp, resp])
-            label_points.append((coord3 + coord4) / 2)
-            labels.append(resp)
-        labels = [f"{label:.3E}" for label in labels]
-        label_points = np.array(label_points)
-        resp_points = np.array(resp_points)
-        scalars = np.array(scalars)
+        truss_coords, truss_cells, scalars, resp_points, resp_cells, labels, label_points = self._get_mesh_data(
+            step, alpha, ele_tags
+        )
         #  ---------------------------------
         plotter.clear_actors()  # !!!!!!
         if plot_all_mesh:
             self._plot_all_mesh(plotter, color="gray", step=step)
-        _ = _plot_lines(
+        line_plot = _plot_lines(
             plotter,
             pos=truss_coords,
             cells=truss_cells,
@@ -222,30 +229,69 @@ class PlotTrussResponse(PlotResponseBase):
             show_scalar_bar=False,
         )
         title = self._make_title(scalars, step, self.time[step])
-        # _ = plotter.add_text(
-        #     title,
-        #     position="upper_right",
-        #     font_size=self.pargs.title_font_size,
-        #     font="courier",
-        # )
         scalar_bar = plotter.add_scalar_bar(
             title=title,
             **self.pargs.scalar_bar_kargs
         )
+        if scalar_bar:
+            title_prop = scalar_bar.GetTitleTextProperty()
+            title_prop.SetJustificationToRight()
+            title_prop.BoldOn()
 
         if show_values:
-            plotter.add_point_labels(
+            label_plot = plotter.add_point_labels(
                 label_points,
                 labels,
                 # text_color="white",
                 font_size=self.pargs.font_size,
+                font_family="courier",
                 bold=True,
-                always_visible=True,
+                always_visible=False,
                 shape=None,
                 shape_opacity=0.0,
+                show_points=False,
             )
+        else:
+            label_plot = None
         self.update(plotter, cpos)
-        return resp_plot
+        return line_plot, resp_plot, scalar_bar, label_plot
+
+    def _update_mesh(self, step, alpha, ele_tags, line_plot, resp_plot, scalar_bar, label_plot, plotter):
+        step = int(round(step))
+        truss_coords, truss_cells, scalars, resp_points, resp_cells, labels, label_points = self._get_mesh_data(
+            step, alpha, ele_tags
+        )
+
+        if line_plot:
+            line_plot.points = truss_coords
+            line_plot.lines = truss_cells
+
+        if resp_plot:
+            resp_plot.points = resp_points
+            resp_plot.lines = resp_cells
+            resp_plot["scalars"] = scalars
+
+        if scalar_bar:
+            title = self._make_title(scalars, step, self.time[step])
+            scalar_bar.SetTitle(title)
+
+        if label_plot:
+            # mapper = label_plot.GetMapper()
+            text_property = pv.TextProperty(
+                bold=True,
+                font_size=self.pargs.font_size,
+                font_family="courier",
+                color=pv.global_theme.font.color,
+            )
+            update_point_label_actor(
+                label_plot,
+                label_points,
+                labels,
+                text_property=text_property,
+                renderer=plotter.renderer,
+                shape_opacity=0.0,
+                always_visible=False
+            )
 
     def plot_slide(
         self,
@@ -258,9 +304,9 @@ class PlotTrussResponse(PlotResponseBase):
     ):
         plot_all_mesh = True if ele_tags is None else False
         _, clim, alpha_ = self._get_resp_peak()
-        func = partial(
-            self._create_mesh,
+        line_plot, resp_plot, scalar_bar, label_plot = self._create_mesh(
             plotter,
+            self.num_steps - 1,
             ele_tags=ele_tags,
             clim=clim,
             plot_all_mesh=plot_all_mesh,
@@ -268,6 +314,17 @@ class PlotTrussResponse(PlotResponseBase):
             alpha=alpha * alpha_,
             line_width=line_width,
             cpos=cpos
+        )
+
+        func = partial(
+            self._update_mesh,
+            alpha=alpha * alpha_,
+            ele_tags=ele_tags,
+            line_plot=line_plot,
+            resp_plot=resp_plot,
+            scalar_bar=scalar_bar,
+            label_plot=label_plot,
+            plotter=plotter,
         )
         plotter.add_slider_widget(
             func,
@@ -328,17 +385,28 @@ class PlotTrussResponse(PlotResponseBase):
         plot_all_mesh = True if ele_tags is None else False
         _, clim, alpha_ = self._get_resp_peak()
         # plotter.write_frame()  # write initial data
-        for step in range(self.num_steps):
-            self._create_mesh(
-                plotter,
-                step,
-                ele_tags=ele_tags,
-                show_values=show_values,
-                clim=clim,
-                plot_all_mesh=plot_all_mesh,
+        line_plot, resp_plot, scalar_bar, label_plot = self._create_mesh(
+            plotter,
+            0,
+            ele_tags=ele_tags,
+            clim=clim,
+            plot_all_mesh=plot_all_mesh,
+            show_values=show_values,
+            alpha=alpha * alpha_,
+            line_width=line_width,
+            cpos=cpos
+        )
+        plotter.write_frame()
+        for step in range(1, self.num_steps):
+            self._update_mesh(
+                step=step,
                 alpha=alpha * alpha_,
-                line_width=line_width,
-                cpos=cpos
+                ele_tags=ele_tags,
+                line_plot=line_plot,
+                resp_plot=resp_plot,
+                scalar_bar=scalar_bar,
+                label_plot=label_plot,
+                plotter=plotter,
             )
             plotter.write_frame()
 
