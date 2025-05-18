@@ -1,6 +1,6 @@
 from types import SimpleNamespace
-from typing import Union
 
+import vtk
 import matplotlib.pyplot as plt
 import numpy as np
 import pyvista as pv
@@ -11,9 +11,9 @@ PKG_NAME = CONSTANTS.get_pkg_name()
 pv.global_theme.title = PKG_NAME
 
 _scalar_bar_kargs = dict(
-    fmt="%.3e",
+    fmt="%10.3e",
     n_labels=10,
-    bold=True,
+    bold=False,
     width=0.1,
     height=0.5,
     vertical=True,
@@ -675,6 +675,58 @@ def _dropnan_by_time(da, model_update=False):
                 da_2d_cleaned = da_2d
             cleaned_dataarrays.append(da_2d_cleaned)
     return cleaned_dataarrays
+
+
+def update_point_label_actor(
+    label_actor: vtk.vtkActor2D,
+    coords,
+    labels,
+    text_property,
+    renderer: vtk.vtkRenderer = None,
+    *,
+    shape_opacity: float = 0.0,
+    always_visible: bool = True,
+    tolerance: float = 0.001,
+):
+    if len(coords) != len(labels):
+        raise ValueError("coords and labels must have the same length")
+
+        # Create new vtkPoints and label array
+    vtk_points = vtk.vtkPoints()
+    vtk_labels = vtk.vtkStringArray()
+    vtk_labels.SetName("labels")
+
+    for pt, text in zip(coords, labels):
+        vtk_points.InsertNextPoint(*pt)
+        vtk_labels.InsertNextValue(str(text))
+
+    polydata = vtk.vtkPolyData()
+    polydata.SetPoints(vtk_points)
+    polydata.GetPointData().AddArray(vtk_labels)
+
+    # Construct label hierarchy
+    hierarchy = vtk.vtkPointSetToLabelHierarchy()
+    hierarchy.SetLabelArrayName("labels")
+
+    if always_visible or renderer is None:
+        hierarchy.SetInputData(polydata)
+    else:
+        visible_filter = vtk.vtkSelectVisiblePoints()
+        visible_filter.SetInputData(polydata)
+        visible_filter.SetRenderer(renderer)
+        visible_filter.SetTolerance(tolerance)
+        hierarchy.SetInputConnection(visible_filter.GetOutputPort())
+
+    # Text style
+    hierarchy.SetTextProperty(text_property)
+
+    hierarchy.Update()
+
+    # Replace the mapper's input connection
+    mapper = label_actor.GetMapper()
+    mapper.SetBackgroundOpacity(shape_opacity)
+    mapper.SetInputConnection(hierarchy.GetOutputPort())
+
 
 # def group_cells(cells):
 #     line_cells, line_cells_type = [], []
