@@ -134,12 +134,12 @@ class PlotNodalResponse(PlotResponseBase):
             f"* {info['dof']} (DOF)",
             f"{info['min']:.3E} (norm.min)",
             f"{info['max']:.3E} (norm.max)",
-            f"{info['step']} (step)",
-            f"{info['time']:.3f} (time)",
+            f"{info['step']}(step); "
+            f"{info['time']:.3f}(time)",
         ]
         if self.unit:
             info["unit"] = self.unit
-            lines.insert(1, f"{info['unit']} (unit)")
+            lines.insert(2, f"{info['unit']} (unit)")
 
         max_len = max(len(line) for line in lines)
         padded_lines = [line.rjust(max_len) for line in lines]
@@ -231,6 +231,7 @@ class PlotNodalResponse(PlotResponseBase):
         # scalar_bar.SetTitle(title)
         title_prop = scalar_bar.GetTitleTextProperty()
         title_prop.SetJustificationToRight()
+        title_prop.BoldOn()
         self.show_zaxis = False if np.max(model_dims) <= 2 else True
         if show_outline:
             plotter.show_bounds(
