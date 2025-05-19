@@ -109,20 +109,22 @@ class PlotNodalResponse(PlotResponseBase):
             # min_resp = np.min(resp, axis=0)
             norm = np.linalg.norm(resp, axis=1)
             max_norm, min_norm = np.max(norm), np.min(norm)
+        title = "Nodal Responses"
         if self.resp_type == "disp":
-            title = "Displacement"
+            resp_type = "Displacement"
         elif self.resp_type == "vel":
-            title = "Velocity"
+            resp_type = "Velocity"
         elif self.resp_type == "accel":
-            title = "Acceleration"
+            resp_type = "Acceleration"
         else:
-            title = f"{self.resp_type.capitalize()}"
+            resp_type = f"{self.resp_type.capitalize()}"
         if isinstance(self.component, (list, tuple)):
             dof = ",".join(self.component)
         else:
             dof = self.component
         info = {
             "title": title,
+            "resp_type": resp_type,
             "dof": dof,
             "min": min_norm,
             "max": max_norm,
@@ -131,6 +133,7 @@ class PlotNodalResponse(PlotResponseBase):
         }
         lines = [
             f"* {info['title']}",
+            f"* {info['resp_type']}",
             f"* {info['dof']} (DOF)",
             f"{info['min']:.3E} (norm.min)",
             f"{info['max']:.3E} (norm.max)",
@@ -139,7 +142,7 @@ class PlotNodalResponse(PlotResponseBase):
         ]
         if self.unit:
             info["unit"] = self.unit
-            lines.insert(2, f"{info['unit']} (unit)")
+            lines.insert(3, f"{info['unit']} (unit)")
 
         max_len = max(len(line) for line in lines)
         padded_lines = [line.rjust(max_len) for line in lines]
@@ -228,10 +231,11 @@ class PlotNodalResponse(PlotResponseBase):
             title=title,
             **self.pargs.scalar_bar_kargs
         )
-        # scalar_bar.SetTitle(title)
-        title_prop = scalar_bar.GetTitleTextProperty()
-        title_prop.SetJustificationToRight()
-        title_prop.BoldOn()
+        if scalar_bar:
+            # scalar_bar.SetTitle(title)
+            title_prop = scalar_bar.GetTitleTextProperty()
+            title_prop.SetJustificationToRight()
+            title_prop.BoldOn()
         self.show_zaxis = False if np.max(model_dims) <= 2 else True
         if show_outline:
             plotter.show_bounds(
@@ -497,7 +501,7 @@ class PlotNodalResponse(PlotResponseBase):
                 )
                 plotter.write_frame()
         else:
-            point_plot, line_plot, solid_plot, text, bc_plot, mp_plot = (
+            point_plot, line_plot, solid_plot, scalar_bar, bc_plot, mp_plot = (
                 self._create_mesh(
                     plotter,
                     self.num_steps - 1,
@@ -518,7 +522,7 @@ class PlotNodalResponse(PlotResponseBase):
                     point_plot=point_plot,
                     line_plot=line_plot,
                     solid_plot=solid_plot,
-                    text=text,
+                    scalar_bar=scalar_bar,
                     bc_plot=bc_plot,
                     mp_plot=mp_plot,
                     alpha=alpha_,
@@ -756,7 +760,8 @@ def plot_nodal_responses_animation(
         off_screen=off_screen,
     )
     plotbase = PlotNodalResponse(model_info_steps, node_resp_steps, model_update)
-    plotbase.set_comp_resp_type(resp_type=resp_type, component=resp_dof, unit=unit_symbol)
+    plotbase.set_unit_symbol(unit_symbol)
+    plotbase.set_comp_resp_type(resp_type=resp_type, component=resp_dof)
     plotbase.plot_anim(
         plotter,
         alpha=scale,
