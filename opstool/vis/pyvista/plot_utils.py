@@ -244,7 +244,7 @@ def set_plot_props(
                 pv.set_jupyter_backend("trame")
     for key, value in kwargs.items():
         if key.lower() == "scalar_bar_kargs":
-            setattr(PLOT_ARGS, key.lower(), getattr(PLOT_ARGS, key.lower()).update(value))
+            getattr(PLOT_ARGS, key.lower()).update(value)
         else:
             setattr(PLOT_ARGS, key, value)
 
@@ -451,6 +451,72 @@ def _plot_lines_cmap(
         show_scalar_bar=show_scalar_bar,
     )
     return line_plot
+
+
+def _plot_face(
+        plotter,
+        pos,
+        cells,
+        color="green",
+        show_edges=True,
+        edge_color="black",
+        edge_width=1.0,
+        opacity=1.0,
+        style="surface",
+        label=None,
+):
+    """plot the face grid."""
+    if len(cells) == 0:
+        return None
+    surf = pv.PolyData(pos, faces=cells)
+    plotter.add_mesh(
+        surf,
+        color=color,
+        show_edges=show_edges,
+        edge_color=edge_color,
+        line_width=edge_width,
+        opacity=opacity,
+        style=style,
+        label=label,
+    )
+    return surf
+
+
+def _plot_face_cmap(
+        plotter,
+        pos,
+        cells,
+        scalars,
+        cmap="jet",
+        clim=None,
+        show_edges=True,
+        edge_color="black",
+        edge_width=1.0,
+        opacity=1.0,
+        style="surface",
+        show_scalar_bar=False,
+):
+    if len(cells) == 0:
+        return None
+    surf = pv.PolyData(pos, faces=cells)
+    surf["scalars"] = scalars
+    if clim is None:
+        clim = (np.min(scalars), np.max(scalars))
+    plotter.add_mesh(
+        surf,
+        colormap=cmap,
+        scalars="scalars",
+        clim=clim,
+        show_edges=show_edges,
+        edge_color=edge_color,
+        line_width=edge_width,
+        opacity=opacity,
+        interpolate_before_map=True,
+        style=style,
+        show_scalar_bar=show_scalar_bar,
+        render_lines_as_tubes=True
+    )
+    return surf
 
 
 def _plot_unstru(
@@ -677,7 +743,7 @@ def _dropnan_by_time(da, model_update=False):
     return cleaned_dataarrays
 
 
-def update_point_label_actor(
+def _update_point_label_actor(
     label_actor: vtk.vtkActor2D,
     coords,
     labels,
