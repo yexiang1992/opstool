@@ -321,44 +321,46 @@ class PlotTrussResponse(PlotResponseBase):
         plot_model=True,
     ):
         _, clim, alpha_ = self._get_resp_peak()
-        line_plot, resp_plot, scalar_bar, label_plot = self._create_mesh(
-            plotter,
-            self.num_steps - 1,
-            ele_tags=ele_tags,
-            clim=clim,
-            plot_all_mesh=plot_model,
-            show_values=show_values,
-            alpha=alpha * alpha_,
-            line_width=line_width,
-            style=style,
-            opacity=opacity,
-            cpos=cpos,
-        )
+        if self.ModelUpdate:
+            func = partial(
+                self._create_mesh,
+                plotter,
+                ele_tags=ele_tags,
+                clim=clim,
+                plot_all_mesh=plot_model,
+                show_values=show_values,
+                alpha=alpha * alpha_,
+                line_width=line_width,
+                style=style,
+                opacity=opacity,
+                cpos=cpos,
+            )
+        else:
+            line_plot, resp_plot, scalar_bar, label_plot = self._create_mesh(
+                plotter,
+                self.num_steps - 1,
+                ele_tags=ele_tags,
+                clim=clim,
+                plot_all_mesh=plot_model,
+                show_values=show_values,
+                alpha=alpha * alpha_,
+                line_width=line_width,
+                style=style,
+                opacity=opacity,
+                cpos=cpos,
+            )
 
-        func = partial(
-            self._update_mesh,
-            alpha=alpha * alpha_,
-            ele_tags=ele_tags,
-            line_plot=line_plot,
-            resp_plot=resp_plot,
-            scalar_bar=scalar_bar,
-            label_plot=label_plot,
-            plotter=plotter,
-        )
-        plotter.add_slider_widget(
-            func,
-            [0, self.num_steps - 1],
-            value=self.num_steps - 1,
-            pointa=(0.01, 0.925),
-            pointb=(0.45, 0.925),
-            title="Step",
-            title_opacity=1,
-            # title_color="black",
-            fmt="%.0f",
-            title_height=0.03,
-            slider_width=0.03,
-            tube_width=0.008,
-        )
+            func = partial(
+                self._update_mesh,
+                alpha=alpha * alpha_,
+                ele_tags=ele_tags,
+                line_plot=line_plot,
+                resp_plot=resp_plot,
+                scalar_bar=scalar_bar,
+                label_plot=label_plot,
+                plotter=plotter,
+            )
+        plotter.add_slider_widget(func, [0, self.num_steps - 1], value=self.num_steps - 1, **self.slider_widget_args)
 
     def plot_peak_step(
         self,
@@ -410,50 +412,50 @@ class PlotTrussResponse(PlotResponseBase):
             plotter.open_movie(savefig, framerate=framerate)
         _, clim, alpha_ = self._get_resp_peak()
         # plotter.write_frame()  # write initial data
-        line_plot, resp_plot, scalar_bar, label_plot = self._create_mesh(
-            plotter,
-            0,
-            ele_tags=ele_tags,
-            clim=clim,
-            plot_all_mesh=plot_model,
-            show_values=show_values,
-            alpha=alpha * alpha_,
-            line_width=line_width,
-            style=style,
-            opacity=opacity,
-            cpos=cpos,
-        )
-        plotter.write_frame()
-        for step in range(1, self.num_steps):
-            self._update_mesh(
-                step=step,
-                alpha=alpha * alpha_,
+
+        if self.ModelUpdate:
+            for step in range(self.num_steps):
+                self._create_mesh(
+                    plotter,
+                    step,
+                    ele_tags=ele_tags,
+                    show_values=show_values,
+                    clim=clim,
+                    plot_all_mesh=plot_model,
+                    alpha=alpha * alpha_,
+                    line_width=line_width,
+                    style=style,
+                    opacity=opacity,
+                    cpos=cpos,
+                )
+                plotter.write_frame()
+        else:
+            line_plot, resp_plot, scalar_bar, label_plot = self._create_mesh(
+                plotter,
+                0,
                 ele_tags=ele_tags,
-                line_plot=line_plot,
-                resp_plot=resp_plot,
-                scalar_bar=scalar_bar,
-                label_plot=label_plot,
-                plotter=plotter,
+                clim=clim,
+                plot_all_mesh=plot_model,
+                show_values=show_values,
+                alpha=alpha * alpha_,
+                line_width=line_width,
+                style=style,
+                opacity=opacity,
+                cpos=cpos,
             )
             plotter.write_frame()
-
-    def update(self, plotter, cpos):
-        cpos = cpos.lower()
-        viewer = {
-            "xy": plotter.view_xy,
-            "yx": plotter.view_yx,
-            "xz": plotter.view_xz,
-            "zx": plotter.view_zx,
-            "yz": plotter.view_yz,
-            "zy": plotter.view_zy,
-            "iso": plotter.view_isometric,
-        }
-        if not self.show_zaxis and cpos not in ["xy", "yx"]:
-            cpos = "xy"
-            plotter.enable_2d_style()
-            plotter.enable_parallel_projection()
-        viewer[cpos]()
-        return plotter
+            for step in range(1, self.num_steps):
+                self._update_mesh(
+                    step=step,
+                    alpha=alpha * alpha_,
+                    ele_tags=ele_tags,
+                    line_plot=line_plot,
+                    resp_plot=resp_plot,
+                    scalar_bar=scalar_bar,
+                    label_plot=label_plot,
+                    plotter=plotter,
+                )
+                plotter.write_frame()
 
 
 def plot_truss_responses(
