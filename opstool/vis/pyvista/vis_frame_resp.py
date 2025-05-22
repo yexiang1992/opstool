@@ -1,25 +1,24 @@
 from functools import partial
-from typing import Union
+from typing import Optional, Union
 
 import numpy as np
 import pyvista as pv
 
+from ...post import loadODB
 from .plot_resp_base import PlotResponseBase
 from .plot_utils import (
     PLOT_ARGS,
-    _plot_all_mesh,
-    _plot_lines,
-    # _plot_lines_cmap,
-    _plot_face_cmap,
-    _update_point_label_actor,
     _get_line_cells,
     _get_unstru_cells,
+    _plot_all_mesh,
+    # _plot_lines_cmap,
+    _plot_face_cmap,
+    _plot_lines,
+    _update_point_label_actor,
 )
-from ...post import loadODB
 
 
 class PlotFrameResponse(PlotResponseBase):
-
     def __init__(self, model_info_steps, beam_resp_step, model_update):
         super().__init__(model_info_steps, beam_resp_step, model_update)
         self.resp_factor = 1.0
@@ -54,100 +53,90 @@ class PlotFrameResponse(PlotResponseBase):
         ]:
             self.resp_type = "sectionDeformations"
         else:
-            raise ValueError(
+            raise ValueError(  # noqa: TRY003
                 f"Invalid response type: {resp_type}. "
                 "Valid options are: localForces, basicForces, basicDeformations, "
                 "plasticDeformations, sectionForces, sectionDeformations."
             )
-        self._set_comp_type(component)
-
-    def _set_comp_type(self, comp_type):
-        self.component_type = comp_type.upper()
+        # component type
+        self.component_type = component.upper()
         if self.resp_type == "localForces":
-            if comp_type.upper() == "FX":
-                self.component = ["FX1", "FX2"]
-                self.resp_factor = np.array([-1.0, 1.0])
-                self.plot_axis = "y"
-            elif comp_type.upper() == "FY":
-                self.component = ["FY1", "FY2"]
-                self.resp_factor = np.array([-1.0, 1.0])
-                self.plot_axis = "y"
-            elif comp_type.upper() == "FZ":
-                self.component = ["FZ1", "FZ2"]
-                self.resp_factor = np.array([-1.0, 1.0])
-                self.plot_axis = "z"
-            elif comp_type.upper() == "MX":
-                self.component = ["MX1", "MX2"]
-                self.resp_factor = np.array([-1.0, 1.0])
-                self.plot_axis = "y"
-            elif comp_type.upper() == "MY":
-                self.component = ["MY1", "MY2"]
-                self.plot_axis = "z"
-                self.resp_factor = np.array([1.0, -1.0])
-            elif comp_type.upper() == "MZ":
-                self.component = ["MZ1", "MZ2"]
-                self.resp_factor = np.array([-1.0, 1.0])
-                self.plot_axis = "y"
-            else:
-                raise ValueError(
-                    f"Invalid component type for localForces: {comp_type}. "
-                    "Valid options are: FX, FY, FZ, MX, MY, MZ."
-                )
+            self._set_comp_type_local(component)
         elif self.resp_type in [
             "basicForces",
             "basicDeformations",
             "plasticDeformation",
         ]:
-            if comp_type.upper() == "N":
-                self.component = ["N", "N"]
-                self.plot_axis = "y"
-            elif comp_type.upper() == "MZ":
-                self.component = ["MZ1", "MZ2"]
-                self.resp_factor = np.array([-1.0, 1.0])
-                self.plot_axis = "y"
-            elif comp_type.upper() == "MY":
-                self.component = ["MY1", "MY2"]
-                self.resp_factor = np.array([1.0, -1.0])
-                self.plot_axis = "z"
-            elif comp_type.upper() == "T":
-                self.component = ["T", "T"]
-                self.plot_axis = "y"
-            else:
-                raise ValueError(
-                    f"Invalid component type for {self.resp_type}: {comp_type}. "
-                    "Valid options are: N, MZ, MY, T."
-                )
+            self._set_comp_type_basic(component)
         else:
-            if comp_type.upper() == "N":
-                self.component = comp_type.upper()
-                self.plot_axis = "y"
-            elif comp_type.upper() == "MZ":
-                self.component = comp_type.upper()
-                self.plot_axis = "y"
-            elif comp_type.upper() == "VY":
-                self.component = comp_type.upper()
-                self.plot_axis = "y"
-            elif comp_type.upper() == "MY":
-                self.component = comp_type.upper()
-                self.plot_axis = "z"
-            elif comp_type.upper() == "VZ":
-                self.component = comp_type.upper()
-                self.plot_axis = "z"
-            elif comp_type.upper() == "T":
-                self.component = comp_type.upper()
-                self.plot_axis = "y"
-            else:
-                raise ValueError(
-                    f"Invalid component type for {self.resp_type}: {comp_type}. "
-                    "Valid options are: N, MZ, VY, MY, VZ, T."
-                )
+            self._set_comp_type_section(component)
+
+    def _set_comp_type_local(self, comp_type):
+        if comp_type.upper() == "FX":
+            self.component = ["FX1", "FX2"]
+            self.resp_factor = np.array([-1.0, 1.0])
+            self.plot_axis = "y"
+        elif comp_type.upper() == "FY":
+            self.component = ["FY1", "FY2"]
+            self.resp_factor = np.array([-1.0, 1.0])
+            self.plot_axis = "y"
+        elif comp_type.upper() == "FZ":
+            self.component = ["FZ1", "FZ2"]
+            self.resp_factor = np.array([-1.0, 1.0])
+            self.plot_axis = "z"
+        elif comp_type.upper() == "MX":
+            self.component = ["MX1", "MX2"]
+            self.resp_factor = np.array([-1.0, 1.0])
+            self.plot_axis = "y"
+        elif comp_type.upper() == "MY":
+            self.component = ["MY1", "MY2"]
+            self.plot_axis = "z"
+            self.resp_factor = np.array([1.0, -1.0])
+        elif comp_type.upper() == "MZ":
+            self.component = ["MZ1", "MZ2"]
+            self.resp_factor = np.array([-1.0, 1.0])
+            self.plot_axis = "y"
+        else:
+            raise ValueError(  # noqa: TRY003
+                f"Invalid component type for localForces: {comp_type}. Valid options are: FX, FY, FZ, MX, MY, MZ."
+            )
+
+    def _set_comp_type_basic(self, comp_type):
+        if comp_type.upper() == "N":
+            self.component = ["N", "N"]
+            self.plot_axis = "y"
+        elif comp_type.upper() == "MZ":
+            self.component = ["MZ1", "MZ2"]
+            self.resp_factor = np.array([-1.0, 1.0])
+            self.plot_axis = "y"
+        elif comp_type.upper() == "MY":
+            self.component = ["MY1", "MY2"]
+            self.resp_factor = np.array([1.0, -1.0])
+            self.plot_axis = "z"
+        elif comp_type.upper() == "T":
+            self.component = ["T", "T"]
+            self.plot_axis = "y"
+        else:
+            raise ValueError(  # noqa: TRY003
+                f"Invalid component type for {self.resp_type}: {comp_type}. Valid options are: N, MZ, MY, T."
+            )
+
+    def _set_comp_type_section(self, comp_type):
+        if comp_type.upper() in ["N", "MZ", "VY", "T"]:
+            self.component = comp_type.upper()
+            self.plot_axis = "y"
+        elif comp_type.upper() in ["VZ", "MY"]:
+            self.component = comp_type.upper()
+            self.plot_axis = "z"
+        else:
+            raise ValueError(  # noqa: TRY003
+                f"Invalid component type for {self.resp_type}: {comp_type}. Valid options are: N, MZ, VY, MY, VZ, T."
+            )
 
     def _plot_all_mesh(self, plotter, color="gray", step=0):
         pos = self._get_node_data(step).to_numpy()
         line_cells, _ = _get_line_cells(self._get_line_data(step))
-        _, unstru_cell_types, unstru_cells = _get_unstru_cells(
-            self._get_unstru_data(step)
-        )
+        _, unstru_cell_types, unstru_cells = _get_unstru_cells(self._get_unstru_data(step))
 
         _plot_all_mesh(
             plotter,
@@ -169,9 +158,7 @@ class PlotFrameResponse(PlotResponseBase):
         beam_cells = []
         if ele_tags is None:
             beam_tags = beam_data.coords["eleTags"].values
-            beam_cells_orign = (
-                beam_data.loc[:, ["numNodes", "nodeI", "nodeJ"]].to_numpy().astype(int)
-            )
+            beam_cells_orign = beam_data.loc[:, ["numNodes", "nodeI", "nodeJ"]].to_numpy().astype(int)
             yaxis = beam_data.loc[:, ["yaxis-x", "yaxis-y", "yaxis-z"]]
             zaxis = beam_data.loc[:, ["zaxis-x", "zaxis-y", "zaxis-z"]]
             for i, cell in enumerate(beam_cells_orign):
@@ -234,15 +221,12 @@ class PlotFrameResponse(PlotResponseBase):
                 resp = [np.min(data) for data in self.resp_step]
                 step = np.argmin(resp)
             else:
-                raise ValueError("Invalid argument, one of [absMax, absMin, Max, Min]")
+                raise ValueError("Invalid argument, one of [absMax, absMin, Max, Min]")  # noqa: TRY003
         else:
             step = int(idx)
         resp = self.resp_step[step]
         maxv = np.amax(np.abs(resp))
-        if maxv == 0:
-            alpha_ = 0.0
-        else:
-            alpha_ = self.max_bound_size * self.pargs.scale_factor / maxv
+        alpha_ = 0.0 if maxv == 0 else self.max_bound_size * self.pargs.scale_factor / maxv
         cmin, cmax = self._get_resp_clim()
         return float(alpha_), step, (cmin, cmax)
 
@@ -252,16 +236,9 @@ class PlotFrameResponse(PlotResponseBase):
         cmin, cmax = np.min(minv), np.max(maxv)
         return cmin, cmax
 
-    def _get_resp_mesh(
-        self, beam_node_coords, beam_cells, sec_locs, resp, resp_scale, axis_data
-    ):
+    def _get_resp_mesh(self, beam_node_coords, beam_cells, sec_locs, resp, resp_scale, axis_data, show_values):
+        show_values = "eleMaxMin" if show_values is True else show_values
         label_poins, labels, resp_points, resp_cells, scalars = [], [], [], [], []
-        idx, resp, resp_scale, sec_locs = (
-            0,
-            resp.to_numpy(),
-            resp_scale.to_numpy(),
-            sec_locs.to_numpy(),
-        )
         for i, cell in enumerate(beam_cells):
             axis = axis_data[i]
             node1, node2 = cell[1:]
@@ -282,34 +259,60 @@ class PlotFrameResponse(PlotResponseBase):
                 force = resp[i][~np.isnan(resp[i])]
                 force_scale = resp_scale[i][~np.isnan(resp_scale[i])]
             pos1 = [coord1 + loc * (coord2 - coord1) for loc in locs]  # lower
-            # upper
-            pos2 = [coord + force_scale[i] * axis for i, coord in enumerate(pos1)]
-            # pos1, pos2 = np.array(pos1), np.array(pos2)
+            pos2 = [coord + force_scale[i] * axis for i, coord in enumerate(pos1)]  # upper
 
-            for i in range(len(pos1)-1):
-                resp_cells.append(
-                    [4, len(resp_points), len(resp_points) + 1, len(resp_points) + 2, len(resp_points) + 3]
-                )
-                resp_points.extend([pos2[i], pos2[i+1], pos1[i+1], pos1[i]])
-                scalars.extend([force[i], force[i+1], force[i+1], force[i]])
-
-            if self.resp_type in [
-                "localForces",
-                "basicForces",
-                "basicDeformations",
-                "plasticDeformation",
+            for i in range(len(pos1) - 1):
+                resp_cells.append([
+                    4,
+                    len(resp_points),
+                    len(resp_points) + 1,
+                    len(resp_points) + 2,
+                    len(resp_points) + 3,
+                ])
+                resp_points.extend([pos2[i], pos2[i + 1], pos1[i + 1], pos1[i]])
+                scalars.extend([force[i], force[i + 1], force[i + 1], force[i]])
+            if isinstance(show_values, str) and show_values.lower() in [
+                "elemaxmin",
+                "eleminmax",
+                "elemax",
+                "elemin",
+                "all",
             ]:
-                label_poins.extend([pos2[0], pos2[-1]])
-                labels.extend([force[0], force[-1]])
-            else:
-                label_poins.extend(pos2)
-                labels.extend(force)
-
+                if self.resp_type in [
+                    "localForces",
+                    "basicForces",
+                    "basicDeformations",
+                    "plasticDeformation",
+                ]:
+                    label_poins.extend([pos2[0], pos2[-1]])
+                    labels.extend([force[0], force[-1]])
+                else:
+                    if show_values.lower() == "all":
+                        label_poins.extend(pos2)
+                        labels.extend(force)
+                    elif show_values.lower() == "elemax":
+                        idx = np.argmax(force)
+                        label_poins.append(pos2[idx])
+                        labels.append(force[idx])
+                    elif show_values.lower() == "elemin":
+                        idx = np.argmin(force)
+                        label_poins.append(pos2[idx])
+                        labels.append(force[idx])
+                    else:
+                        idxmin = np.argmin(force)
+                        idxmax = np.argmax(force)
+                        label_poins.extend([pos2[idxmin], pos2[idxmax]])
+                        labels.extend([force[idxmin], force[idxmax]])
+        resp_points = np.array(resp_points)
+        scalars = np.array(scalars)
+        if isinstance(show_values, str) and show_values.lower() in ["maxmin", "minmax"]:
+            idxmin = np.argmin(scalars)
+            idxmax = np.argmax(scalars)
+            label_poins.extend([resp_points[idxmin], resp_points[idxmax]])
+            labels.extend([scalars[idxmin], scalars[idxmax]])
         fmt = self.pargs.scalar_bar_kargs["fmt"]
         labels = [f"{fmt}" % label for label in labels]
         label_poins = np.array(label_poins)
-        resp_points = np.array(resp_points)
-        scalars = np.array(scalars)
         return resp_points, resp_cells, scalars, labels, label_poins
 
     def _make_title(self, scalars, step, time):
@@ -320,7 +323,7 @@ class PlotFrameResponse(PlotResponseBase):
             "min": np.min(scalars),
             "max": np.max(scalars),
             "step": step,
-            "time": time
+            "time": time,
         }
         lines = [
             f"* {info['title']} Responses",
@@ -328,8 +331,7 @@ class PlotFrameResponse(PlotResponseBase):
             f"* {info['dof']} (DOF)",
             f"{info['min']:.3E} (min)",
             f"{info['max']:.3E} (max)",
-            f"{info['step']}(step); "
-            f"{info['time']:.3f}(time)",
+            f"{info['step']}(step); {info['time']:.3f}(time)",
         ]
         if self.unit:
             info["unit"] = self.unit
@@ -351,18 +353,16 @@ class PlotFrameResponse(PlotResponseBase):
         line_width=1.0,
         style="surface",
         opacity=1.0,
-        cpos="iso"
+        cpos="iso",
     ):
-        step = int(round(value))
-        resp = self.resp_step[step]
+        step = round(value)
+        resp = self.resp_step[step].to_numpy()
         resp_scale = resp * alpha
-        beam_tags, beam_node_coords, beam_cells, yaxis, zaxis = self._make_frame_info(
-            ele_tags, step
-        )
+        beam_tags, beam_node_coords, beam_cells, yaxis, zaxis = self._make_frame_info(ele_tags, step)
         axis_data = yaxis if self.plot_axis == "y" else zaxis
-        sec_locs = self.sec_locs[step]
+        sec_locs = self.sec_locs[step].to_numpy()
         resp_points, resp_cells, scalars, labels, label_poins = self._get_resp_mesh(
-            beam_node_coords, beam_cells, sec_locs, resp, resp_scale, axis_data
+            beam_node_coords, beam_cells, sec_locs, resp, resp_scale, axis_data, show_values
         )
         #  ---------------------------------
         plotter.clear_actors()  # !!!!!!
@@ -409,10 +409,7 @@ class PlotFrameResponse(PlotResponseBase):
 
         t_ = self.time[step]
         title = self._make_title(scalars, step, t_)
-        scalar_bar = plotter.add_scalar_bar(
-            title=title,
-            **self.pargs.scalar_bar_kargs
-        )
+        scalar_bar = plotter.add_scalar_bar(title=title, **self.pargs.scalar_bar_kargs)
         if scalar_bar:
             # scalar_bar.SetTitle(title)
             title_prop = scalar_bar.GetTitleTextProperty()
@@ -427,7 +424,7 @@ class PlotFrameResponse(PlotResponseBase):
                 font_size=self.pargs.font_size,
                 font_family="courier",
                 bold=False,
-                always_visible=False,
+                always_visible=True,
                 shape=None,
                 shape_opacity=0.0,
                 show_points=False,
@@ -437,17 +434,15 @@ class PlotFrameResponse(PlotResponseBase):
         self.update(plotter, cpos=cpos)
         return line_plot, resp_plot, scalar_bar, label_plot
 
-    def _update_mesh(self, step, alpha, ele_tags, line_plot, resp_plot, scalar_bar, label_plot, plotter):
-        step = int(round(step))
-        resp = self.resp_step[step]
+    def _update_mesh(self, step, alpha, ele_tags, show_values, line_plot, resp_plot, scalar_bar, label_plot, plotter):
+        step = round(step)
+        resp = self.resp_step[step].to_numpy()
         resp_scale = resp * alpha
-        beam_tags, beam_node_coords, beam_cells, yaxis, zaxis = self._make_frame_info(
-            ele_tags, step
-        )
+        beam_tags, beam_node_coords, beam_cells, yaxis, zaxis = self._make_frame_info(ele_tags, step)
         axis_data = yaxis if self.plot_axis == "y" else zaxis
-        sec_locs = self.sec_locs[step]
+        sec_locs = self.sec_locs[step].to_numpy()
         resp_points, resp_cells, scalars, labels, label_points = self._get_resp_mesh(
-            beam_node_coords, beam_cells, sec_locs, resp, resp_scale, axis_data
+            beam_node_coords, beam_cells, sec_locs, resp, resp_scale, axis_data, show_values
         )
 
         if line_plot:
@@ -479,7 +474,7 @@ class PlotFrameResponse(PlotResponseBase):
                 text_property=text_property,
                 renderer=plotter.renderer,
                 shape_opacity=0.0,
-                always_visible=False
+                always_visible=True,
             )
 
     def plot_slide(
@@ -494,49 +489,51 @@ class PlotFrameResponse(PlotResponseBase):
         style="surface",
         opacity=1.0,
         plot_model=True,
-        cpos="iso"
+        cpos="iso",
     ):
         self.refactor_resp_data(ele_tags, resp_type, component)
         alpha_, maxstep, clim = self._get_resp_scale_factor()
 
-        line_plot, resp_plot, scalar_bar, label_plot = self._create_mesh(
-            plotter,
-            self.num_steps - 1,
-            ele_tags=ele_tags,
-            clim=clim,
-            plot_all_mesh=plot_model,
-            show_values=show_values,
-            alpha=alpha * alpha_,
-            line_width=line_width,
-            style=style,
-            opacity=opacity,
-            cpos=cpos
-        )
-
-        func = partial(
-            self._update_mesh,
-            alpha=alpha * alpha_,
-            ele_tags=ele_tags,
-            line_plot=line_plot,
-            resp_plot=resp_plot,
-            scalar_bar=scalar_bar,
-            label_plot=label_plot,
-            plotter=plotter,
-        )
-        plotter.add_slider_widget(
-            func,
-            [0, self.num_steps - 1],
-            value=self.num_steps - 1,
-            pointa=(0.01, 0.925),
-            pointb=(0.45, 0.925),
-            title="Step",
-            title_opacity=1,
-            # title_color="black",
-            fmt="%.0f",
-            title_height=0.03,
-            slider_width=0.03,
-            tube_width=0.008,
-        )
+        if self.ModelUpdate:
+            func = partial(
+                self._create_mesh,
+                plotter,
+                alpha=alpha * alpha_,
+                ele_tags=ele_tags,
+                show_values=show_values,
+                clim=clim,
+                plot_all_mesh=plot_model,
+                line_width=line_width,
+                style=style,
+                opacity=opacity,
+                cpos=cpos,
+            )
+        else:
+            line_plot, resp_plot, scalar_bar, label_plot = self._create_mesh(
+                plotter,
+                self.num_steps - 1,
+                ele_tags=ele_tags,
+                clim=clim,
+                plot_all_mesh=plot_model,
+                show_values=show_values,
+                alpha=alpha * alpha_,
+                line_width=line_width,
+                style=style,
+                opacity=opacity,
+                cpos=cpos,
+            )
+            func = partial(
+                self._update_mesh,
+                alpha=alpha * alpha_,
+                ele_tags=ele_tags,
+                show_values=show_values,
+                line_plot=line_plot,
+                resp_plot=resp_plot,
+                scalar_bar=scalar_bar,
+                label_plot=label_plot,
+                plotter=plotter,
+            )
+        plotter.add_slider_widget(func, [0, self.num_steps - 1], value=self.num_steps - 1, **self.slider_widget_args)
 
     def plot_peak_step(
         self,
@@ -551,7 +548,7 @@ class PlotFrameResponse(PlotResponseBase):
         style="surface",
         opacity=1.0,
         plot_model=True,
-        cpos="iso"
+        cpos="iso",
     ):
         self.refactor_resp_data(ele_tags, resp_type, component)
         alpha_, step, clim = self._get_resp_scale_factor(idx=step)
@@ -566,7 +563,7 @@ class PlotFrameResponse(PlotResponseBase):
             line_width=line_width,
             style=style,
             opacity=opacity,
-            cpos=cpos
+            cpos=cpos,
         )
 
     def plot_anim(
@@ -577,13 +574,13 @@ class PlotFrameResponse(PlotResponseBase):
         resp_type=None,
         component=None,
         show_values=True,
-        framerate: int = None,
+        framerate=None,
         savefig: str = "FrameForcesAnimation.gif",
         line_width=1.0,
         style="surface",
         opacity=1.0,
         plot_model=True,
-        cpos="iso"
+        cpos="iso",
     ):
         if framerate is None:
             framerate = np.ceil(self.num_steps / 10)
@@ -594,63 +591,62 @@ class PlotFrameResponse(PlotResponseBase):
         self.refactor_resp_data(ele_tags, resp_type, component)
         alpha_, maxstep, clim = self._get_resp_scale_factor()
         # plotter.write_frame()  # write initial data
-
-        line_plot, resp_plot, scalar_bar, label_plot = self._create_mesh(
-            plotter,
-            0,
-            ele_tags=ele_tags,
-            clim=clim,
-            plot_all_mesh=plot_model,
-            show_values=show_values,
-            alpha=alpha * alpha_,
-            line_width=line_width,
-            style=style,
-            opacity=opacity,
-            cpos=cpos
-        )
-        plotter.write_frame()
-        for step in range(1, self.num_steps):
-            self._update_mesh(
-                step=step,
-                alpha=alpha * alpha_,
+        if self.ModelUpdate:
+            for step in range(self.num_steps):
+                self._create_mesh(
+                    plotter,
+                    step,
+                    alpha=alpha * alpha_,
+                    ele_tags=ele_tags,
+                    show_values=show_values,
+                    clim=clim,
+                    plot_all_mesh=plot_model,
+                    line_width=line_width,
+                    style=style,
+                    opacity=opacity,
+                    cpos=cpos,
+                )
+                plotter.write_frame()
+        else:
+            line_plot, resp_plot, scalar_bar, label_plot = self._create_mesh(
+                plotter,
+                0,
                 ele_tags=ele_tags,
-                line_plot=line_plot,
-                resp_plot=resp_plot,
-                scalar_bar=scalar_bar,
-                label_plot=label_plot,
-                plotter=plotter,
+                clim=clim,
+                plot_all_mesh=plot_model,
+                show_values=show_values,
+                alpha=alpha * alpha_,
+                line_width=line_width,
+                style=style,
+                opacity=opacity,
+                cpos=cpos,
             )
             plotter.write_frame()
-
-    def update(self, plotter, cpos):
-        cpos = cpos.lower()
-        viewer = {
-            "xy": plotter.view_xy,
-            "yx": plotter.view_yx,
-            "xz": plotter.view_xz,
-            "zx": plotter.view_zx,
-            "yz": plotter.view_yz,
-            "zy": plotter.view_zy,
-            "iso": plotter.view_isometric,
-        }
-        if not self.show_zaxis and cpos not in ["xy", "yx"]:
-            cpos = "xy"
-            plotter.enable_2d_style()
-            plotter.enable_parallel_projection()
-        viewer[cpos]()
-        return plotter
+            for step in range(1, self.num_steps):
+                self._update_mesh(
+                    step=step,
+                    alpha=alpha * alpha_,
+                    ele_tags=ele_tags,
+                    show_values=show_values,
+                    line_plot=line_plot,
+                    resp_plot=resp_plot,
+                    scalar_bar=scalar_bar,
+                    label_plot=label_plot,
+                    plotter=plotter,
+                )
+                plotter.write_frame()
 
 
 def plot_frame_responses(
     odb_tag: Union[int, str] = 1,
-    ele_tags: Union[int, list] = None,
+    ele_tags: Optional[Union[int, list]] = None,
     resp_type: str = "sectionForces",
     resp_dof: str = "MZ",
-    unit_symbol: str = None,
+    unit_symbol: Optional[str] = None,
     slides: bool = False,
     step: Union[int, str] = "absMax",
     scale: float = 1.0,
-    show_values: bool = False,
+    show_values: Union[bool, str] = "MaxMin",
     style: str = "surface",
     line_width: float = 1.5,
     opacity: float = 1.0,
@@ -693,8 +689,16 @@ def plot_frame_responses(
         If slides = False, this parameter will be used as the step to plot.
         If str, Optional: [absMax, absMin, Max, Min].
         If int, this step will be demonstrated (counting from 0).
-    show_values: bool, default: True
+    show_values: Union[bool, str], default: MaxMin
         Whether to display the response value.
+        If str, optional: ["MaxMin", "eleMaxMin", "eleMax", "eleMin", "all"].
+
+        - "MaxMin": show the max and min values of the response.
+        - "eleMaxMin": show the max and min values of the response for each element.
+        - "eleMax": show the max value of the response for each element.
+        - "eleMin": show the min value of the response for each element.
+        - "all": show all values of the response for each element.
+
     scale: float, default: 1.0
         Scale the size of the response graph.
 
@@ -727,9 +731,7 @@ def plot_frame_responses(
     `Plotter.export_html <https://docs.pyvista.org/api/plotting/_autosummary/pyvista.plotter.export_html#pyvista.Plotter.export_html>`_.
     to export this plotter as an interactive scene to an HTML file.
     """
-    model_info_steps, model_update, beam_resp_steps = loadODB(
-        odb_tag, resp_type="Frame"
-    )
+    model_info_steps, model_update, beam_resp_steps = loadODB(odb_tag, resp_type="Frame")
     plotter = pv.Plotter(
         notebook=PLOT_ARGS.notebook,
         line_smoothing=PLOT_ARGS.line_smoothing,
@@ -749,7 +751,7 @@ def plot_frame_responses(
             style=style,
             opacity=opacity,
             plot_model=plot_model,
-            cpos=cpos
+            cpos=cpos,
         )
     else:
         plotbase.plot_peak_step(
@@ -764,7 +766,7 @@ def plot_frame_responses(
             style=style,
             opacity=opacity,
             plot_model=plot_model,
-            cpos=cpos
+            cpos=cpos,
         )
     if PLOT_ARGS.anti_aliasing:
         plotter.enable_anti_aliasing(PLOT_ARGS.anti_aliasing)
@@ -773,14 +775,14 @@ def plot_frame_responses(
 
 def plot_frame_responses_animation(
     odb_tag: Union[int, str] = 1,
-    ele_tags: Union[int, list] = None,
+    ele_tags: Optional[Union[int, list]] = None,
     resp_type: str = "sectionForces",
     resp_dof: str = "MZ",
-    unit_symbol: str = None,
+    unit_symbol: Optional[str] = None,
     scale: float = 1.0,
-    show_values: bool = False,
+    show_values: Union[bool, str] = "MaxMin",
     cpos: str = "iso",
-    framerate: int = None,
+    framerate: Optional[int] = None,
     savefig: str = "FrameForcesAnimation.gif",
     off_screen: bool = True,
     style: str = "surface",
@@ -824,8 +826,16 @@ def plot_frame_responses_animation(
             You can adjust the scale to make the response graph more visible.
             A negative number will reverse the direction.
 
-    show_values: bool, default: True
+    show_values: Union[bool, str], default: MaxMin
         Whether to display the response value.
+        If str, optional: ["MaxMin", "eleMaxMin", "eleMax", "eleMin", "all"].
+
+        - "MaxMin": show the max and min values of the response.
+        - "eleMaxMin": show the max and min values of the response for each element.
+        - "eleMax": show the max value of the response for each element.
+        - "eleMin": show the min value of the response for each element.
+        - "all": show all values of the response for each element.
+
     framerate: int, default: None
         Framerate for the display, i.e., the number of frames per second.
     savefig: str, default: FrameForcesAnimation.gif
@@ -858,9 +868,7 @@ def plot_frame_responses_animation(
     `Plotter.export_html <https://docs.pyvista.org/api/plotting/_autosummary/pyvista.plotter.export_html#pyvista.Plotter.export_html>`_.
     to export this plotter as an interactive scene to an HTML file.
     """
-    model_info_steps, model_update, beam_resp_steps = loadODB(
-        odb_tag, resp_type="Frame"
-    )
+    model_info_steps, model_update, beam_resp_steps = loadODB(odb_tag, resp_type="Frame")
     plotter = pv.Plotter(
         notebook=PLOT_ARGS.notebook,
         line_smoothing=PLOT_ARGS.line_smoothing,
@@ -881,7 +889,7 @@ def plot_frame_responses_animation(
         style=style,
         opacity=opacity,
         plot_model=plot_model,
-        cpos=cpos
+        cpos=cpos,
     )
     if PLOT_ARGS.anti_aliasing:
         plotter.enable_anti_aliasing(PLOT_ARGS.anti_aliasing)
