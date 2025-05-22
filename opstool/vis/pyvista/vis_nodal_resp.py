@@ -368,20 +368,7 @@ class PlotNodalResponse(PlotResponseBase):
                 bc_scale=bc_scale,
                 **kargs,
             )
-        plotter.add_slider_widget(
-            func,
-            [0, self.num_steps - 1],
-            value=self.num_steps - 1,
-            pointa=(0.01, 0.925),
-            pointb=(0.45, 0.925),
-            title="Step",
-            title_opacity=1,
-            # title_color="black",
-            fmt="%.0f",
-            title_height=0.03,
-            slider_width=0.03,
-            tube_width=0.008,
-        )
+        plotter.add_slider_widget(func, [0, self.num_steps - 1], value=self.num_steps - 1, **self.slider_widget_args)
 
     def plot_peak_step(
         self,
