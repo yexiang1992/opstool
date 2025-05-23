@@ -1,22 +1,21 @@
 from functools import partial
-from typing import Union
+from typing import Optional, Union
 
 import numpy as np
 import pyvista as pv
 
+from ...post import loadODB
 from .plot_resp_base import PlotResponseBase
 from .plot_utils import (
     PLOT_ARGS,
-    _plot_all_mesh,
-    _plot_unstru_cmap,
     _get_line_cells,
     _get_unstru_cells,
+    _plot_all_mesh,
+    _plot_unstru_cmap,
 )
-from ...post import loadODB
 
 
 class PlotUnstruResponse(PlotResponseBase):
-
     def __init__(self, model_info_steps, resp_step, model_update):
         super().__init__(model_info_steps, resp_step, model_update)
         self.ele_type = "Shell"
@@ -24,9 +23,7 @@ class PlotUnstruResponse(PlotResponseBase):
     def _plot_all_mesh(self, plotter, color="gray", step=0):
         pos = self._get_node_data(step).to_numpy()
         line_cells, _ = _get_line_cells(self._get_line_data(step))
-        _, unstru_cell_types, unstru_cells = _get_unstru_cells(
-            self._get_unstru_data(step)
-        )
+        _, unstru_cell_types, unstru_cells = _get_unstru_cells(self._get_unstru_data(step))
 
         _plot_all_mesh(
             plotter,
@@ -46,10 +43,7 @@ class PlotUnstruResponse(PlotResponseBase):
         elif self.ele_type.lower() in ["brick", "solid"]:
             return self._get_model_data("BrickData", step)
         else:
-            raise ValueError(
-                f"Invalid element type {self.ele_type}! "
-                "Valid options are: Shell, Plane, Brick."
-            )
+            raise ValueError(f"Invalid element type {self.ele_type}! Valid options are: Shell, Plane, Brick.")  # noqa: TRY003
 
     def _set_comp_resp_type(self, ele_type, resp_type, component):
         self.ele_type = ele_type
@@ -97,7 +91,7 @@ class PlotUnstruResponse(PlotResponseBase):
                 resp = [np.min(data) for data in self.resp_step]
                 step = np.argmin(resp)
             else:
-                raise ValueError("Invalid argument, one of [absMax, absMin, Max, Min]")
+                raise ValueError("Invalid argument, one of [absMax, absMin, Max, Min]")  # noqa: TRY003
         else:
             step = int(idx)
         cmin, cmax = self._get_resp_clim()
@@ -123,7 +117,7 @@ class PlotUnstruResponse(PlotResponseBase):
             "min": np.min(scalars),
             "max": np.max(scalars),
             "step": step,
-            "time": time
+            "time": time,
         }
         lines = [
             f"* {info['title']} Responses",
@@ -131,8 +125,7 @@ class PlotUnstruResponse(PlotResponseBase):
             f"* {info['dof']} (DOF)",
             f"{info['min']:.3E} (min)",
             f"{info['max']:.3E} (max)",
-            f"{info['step']}(step); "
-            f"{info['time']:.3f}(time)",
+            f"{info['step']}(step); {info['time']:.3f}(time)",
         ]
         if self.unit:
             info["unit"] = self.unit
@@ -143,20 +136,14 @@ class PlotUnstruResponse(PlotResponseBase):
         text = "\n".join(padded_lines)
         return text + "\n"
 
-    def _create_mesh(
-        self,
-        plotter,
-        value,
-        ele_tags=None,
-        plot_all_mesh=True,
-        clim=None,
-        style="surface",
-        cpos="iso"
-    ):
-        step = int(round(value))
+    def _get_mesh_data(self, step, ele_tags):
         tags, pos, cells, cell_types = self._make_unstru_info(ele_tags, step)
-        resps = self.resp_step[step].to_numpy()
-        scalars = resps
+        scalars = self.resp_step[step].to_numpy()
+        return pos, cells, cell_types, scalars
+
+    def _create_mesh(self, plotter, value, ele_tags=None, plot_all_mesh=True, clim=None, style="surface", cpos="iso"):
+        step = round(value)
+        pos, cells, cell_types, scalars = self._get_mesh_data(value, ele_tags)
         #  ---------------------------------
         plotter.clear_actors()  # !!!!!!
         if plot_all_mesh:
@@ -178,10 +165,7 @@ class PlotUnstruResponse(PlotResponseBase):
         )
 
         title = self._make_title(scalars, step, self.time[step])
-        scalar_bar = plotter.add_scalar_bar(
-            title=title,
-            **self.pargs.scalar_bar_kargs
-        )
+        scalar_bar = plotter.add_scalar_bar(title=title, **self.pargs.scalar_bar_kargs)
         if scalar_bar:
             # scalar_bar.SetTitle(title)
             title_prop = scalar_bar.GetTitleTextProperty()
@@ -189,70 +173,59 @@ class PlotUnstruResponse(PlotResponseBase):
             title_prop.BoldOn()
 
         self.update(plotter, cpos)
-        return resp_plot
+        return resp_plot, scalar_bar
 
-    def plot_slide(
-        self,
-        plotter,
-        ele_tags=None,
-        style="surface",
-        plot_model=True,
-        cpos="iso"
-    ):
+    def _update_mesh(self, step, ele_tags, resp_plot, scalar_bar):
+        step = round(step)
+        pos, cells, cell_types, scalars = self._get_mesh_data(step, ele_tags)
+
+        if resp_plot:
+            resp_plot["scalars"] = scalars
+
+        if scalar_bar:
+            title = self._make_title(scalars, step, self.time[step])
+            scalar_bar.SetTitle(title)
+
+    def plot_slide(self, plotter, ele_tags=None, style="surface", plot_model=True, cpos="iso"):
         _, clim = self._get_resp_peak()
-        func = partial(
-            self._create_mesh,
-            plotter,
-            ele_tags=ele_tags,
-            clim=clim,
-            plot_all_mesh=plot_model,
-            style=style,
-            cpos=cpos
-        )
-        plotter.add_slider_widget(
-            func,
-            [0, self.num_steps - 1],
-            value=self.num_steps - 1,
-            pointa=(0.01, 0.925),
-            pointb=(0.45, 0.925),
-            title="Step",
-            title_opacity=1,
-            # title_color="black",
-            fmt="%.0f",
-            title_height=0.03,
-            slider_width=0.03,
-            tube_width=0.008,
-        )
+        if self.ModelUpdate:
+            func = partial(
+                self._create_mesh,
+                plotter,
+                ele_tags=ele_tags,
+                clim=clim,
+                plot_all_mesh=plot_model,
+                style=style,
+                cpos=cpos,
+            )
+        else:
+            resp_plot, scalar_bar = self._create_mesh(
+                plotter,
+                self.num_steps - 1,
+                ele_tags=ele_tags,
+                clim=clim,
+                plot_all_mesh=plot_model,
+                style=style,
+                cpos=cpos,
+            )
+            func = partial(self._update_mesh, ele_tags=ele_tags, resp_plot=resp_plot, scalar_bar=scalar_bar)
+        plotter.add_slider_widget(func, [0, self.num_steps - 1], value=self.num_steps - 1, **self.slider_widget_args)
 
-    def plot_peak_step(
-        self,
-        plotter,
-        step="absMax",
-        ele_tags=None,
-        style="surface",
-        plot_model=True,
-        cpos="iso"
-    ):
+    def plot_peak_step(self, plotter, step="absMax", ele_tags=None, style="surface", plot_model=True, cpos="iso"):
         step, clim = self._get_resp_peak(idx=step)
         self._create_mesh(
-            plotter=plotter,
-            value=step,
-            ele_tags=ele_tags,
-            clim=clim,
-            plot_all_mesh=plot_model,
-            style=style,
-            cpos=cpos
+            plotter=plotter, value=step, ele_tags=ele_tags, clim=clim, plot_all_mesh=plot_model, style=style, cpos=cpos
         )
 
     def plot_anim(
         self,
         plotter,
         ele_tags=None,
-        framerate: int = None,
+        framerate: Optional[int] = None,
         savefig: str = "ShellRespAnimation.gif",
         style="surface",
         plot_model=True,
-        cpos="iso"
+        cpos="iso",
     ):
         if framerate is None:
             framerate = np.ceil(self.num_steps / 11)
@@ -262,46 +235,43 @@ class PlotUnstruResponse(PlotResponseBase):
             plotter.open_movie(savefig, framerate=framerate)
         _, clim = self._get_resp_peak()
         # plotter.write_frame()  # write initial data
-        for step in range(self.num_steps):
-            self._create_mesh(
+
+        if self.ModelUpdate:
+            for step in range(self.num_steps):
+                self._create_mesh(
+                    plotter, step, ele_tags=ele_tags, clim=clim, plot_all_mesh=plot_model, style=style, cpos=cpos
+                )
+                plotter.write_frame()
+        else:
+            resp_plot, scalar_bar = self._create_mesh(
                 plotter,
-                step,
+                0,
                 ele_tags=ele_tags,
                 clim=clim,
                 plot_all_mesh=plot_model,
                 style=style,
-                cpos=cpos
+                cpos=cpos,
             )
             plotter.write_frame()
-
-    def update(self, plotter, cpos):
-        cpos= cpos.lower()
-        viewer = {
-            "xy": plotter.view_xy,
-            "yx": plotter.view_yx,
-            "xz": plotter.view_xz,
-            "zx": plotter.view_zx,
-            "yz": plotter.view_yz,
-            "zy": plotter.view_zy,
-            "iso": plotter.view_isometric,
-        }
-        if not self.show_zaxis and cpos not in ["xy", "yx"]:
-            cpos = "xy"
-            plotter.enable_2d_style()
-            plotter.enable_parallel_projection()
-        viewer[cpos]()
-        return plotter
+            for step in range(1, self.num_steps):
+                self._update_mesh(
+                    step=step,
+                    ele_tags=ele_tags,
+                    resp_plot=resp_plot,
+                    scalar_bar=scalar_bar,
+                )
+                plotter.write_frame()
 
 
 def plot_unstruct_responses(
     odb_tag: Union[int, str] = 1,
     ele_type: str = "Shell",
-    ele_tags: Union[int, list] = None,
+    ele_tags: Optional[Union[int, list]] = None,
     slides: bool = False,
     step: Union[int, str] = "absMax",
     resp_type: str = "sectionForces",
     resp_dof: str = "MXX",
-    unit_symbol: str = None,
+    unit_symbol: Optional[str] = None,
     style: str = "surface",
     cpos: str = "iso",
     plot_model: bool = True,
@@ -403,9 +373,7 @@ def plot_unstruct_responses(
     )
     plotbase = PlotUnstruResponse(model_info_steps, resp_step, model_update)
     plotbase.set_unit_symbol(unit_symbol)
-    plotbase.refactor_resp_step(
-        ele_tags=ele_tags, ele_type=ele_type, resp_type=resp_type, component=resp_dof
-    )
+    plotbase.refactor_resp_step(ele_tags=ele_tags, ele_type=ele_type, resp_type=resp_type, component=resp_dof)
     if slides:
         plotbase.plot_slide(
             plotter,
@@ -415,14 +383,7 @@ def plot_unstruct_responses(
             plot_model=plot_model,
         )
     else:
-        plotbase.plot_peak_step(
-            plotter,
-            ele_tags=ele_tags,
-            step=step,
-            style=style,
-            cpos=cpos,
-            plot_model=plot_model
-        )
+        plotbase.plot_peak_step(plotter, ele_tags=ele_tags, step=step, style=style, cpos=cpos, plot_model=plot_model)
     if PLOT_ARGS.anti_aliasing:
         plotter.enable_anti_aliasing(PLOT_ARGS.anti_aliasing)
     return plotbase.update(plotter, cpos)
@@ -430,13 +391,13 @@ def plot_unstruct_responses(
 
 def plot_unstruct_responses_animation(
     odb_tag: Union[int, str] = 1,
-    ele_tags: Union[int, list] = None,
-    framerate: int = None,
+    ele_tags: Optional[Union[int, list]] = None,
+    framerate: Optional[int] = None,
     ele_type: str = "Shell",
-    resp_type: str = None,
-    resp_dof: str = None,
-    unit_symbol: str = None,
-    savefig: str = None,
+    resp_type: Optional[str] = None,
+    resp_dof: Optional[str] = None,
+    unit_symbol: Optional[str] = None,
+    savefig: Optional[str] = None,
     off_screen: bool = True,
     style: str = "surface",
     cpos: str = "iso",
@@ -540,21 +501,13 @@ def plot_unstruct_responses_animation(
     )
     plotbase = PlotUnstruResponse(model_info_steps, resp_step, model_update)
     plotbase.set_unit_symbol(unit_symbol)
-    plotbase.refactor_resp_step(
-        ele_tags=ele_tags, ele_type=ele_type, resp_type=resp_type, component=resp_dof
-    )
+    plotbase.refactor_resp_step(ele_tags=ele_tags, ele_type=ele_type, resp_type=resp_type, component=resp_dof)
     plotbase.plot_anim(
-        plotter,
-        ele_tags=ele_tags,
-        framerate=framerate,
-        savefig=savefig,
-        style=style,
-        cpos=cpos,
-        plot_model=plot_model
+        plotter, ele_tags=ele_tags, framerate=framerate, savefig=savefig, style=style, cpos=cpos, plot_model=plot_model
     )
     if PLOT_ARGS.anti_aliasing:
         plotter.enable_anti_aliasing(PLOT_ARGS.anti_aliasing)
-    print(f"Animation saved as {savefig}!")
+    print(f"Animation has been saved as {savefig}!")
     return plotbase.update(plotter, cpos)
 
 
@@ -569,10 +522,7 @@ def _check_input(ele_type, resp_type, resp_dof):
         ele_type = "Brick"
         resp_type, resp_dof = _check_input_solid(resp_type, resp_dof)
     else:
-        raise ValueError(
-            f"Not supported element type {ele_type}! "
-            "Valid options are: Shell, Plane, Brick."
-        )
+        raise ValueError(f"Not supported element type {ele_type}! Valid options are: Shell, Plane, Brick.")  # noqa: TRY003
     return ele_type, resp_type, resp_dof
 
 
@@ -593,9 +543,8 @@ def _check_input_shell(resp_type, resp_dof):
     ]:
         resp_type = "sectionDeformations"
     else:
-        raise ValueError(
-            f"Not supported response type {resp_type}! "
-            "Valid options are: sectionForces, sectionDeformations."
+        raise ValueError(  # noqa: TRY003
+            f"Not supported response type {resp_type}! Valid options are: sectionForces, sectionDeformations."
         )
     if resp_dof is None:
         resp_dof = "MXX"
@@ -609,9 +558,8 @@ def _check_input_shell(resp_type, resp_dof):
         "vxz",
         "vyz",
     ]:
-        raise ValueError(
-            f"Not supported component {resp_dof}! "
-            "Valid options are: FXX, FYY, FXY, MXX, MYY, MXY, VXZ, VYZ."
+        raise ValueError(  # noqa: TRY003
+            f"Not supported component {resp_dof}! Valid options are: FXX, FYY, FXY, MXX, MYY, MXY, VXZ, VYZ."
         )
     return resp_type, resp_dof
 
@@ -627,7 +575,7 @@ def _check_input_plane(resp_type, resp_dof):
         elif resp_dof.lower() in ["sigma11", "sigma22", "sigma12"]:
             resp_type = "Stresses"
         else:
-            raise ValueError(
+            raise ValueError(  # noqa: TRY003
                 f"Not supported component {resp_dof}! "
                 "Valid options are: sigma11, sigma22, sigma12, p1, p2, sigma_vm, tau_max."
             )
@@ -640,15 +588,12 @@ def _check_input_plane(resp_type, resp_dof):
             resp_type = "Strains"
             resp_dof = resp_dof.replace("sigma", "eps")
         else:
-            raise ValueError(
+            raise ValueError(  # noqa: TRY003
                 f"Not supported component {resp_dof}! "
                 "Valid options are: sigma11, sigma22, sigma12, p1, p2, sigma_vm, tau_max."
             )
     else:
-        raise ValueError(
-            f"Not supported response type {resp_type}! "
-            "Valid options are: Stresses, Strains."
-        )
+        raise ValueError(f"Not supported response type {resp_type}! Valid options are: Stresses, Strains.")  # noqa: TRY003
     return resp_type, resp_dof
 
 
@@ -663,7 +608,7 @@ def _check_input_solid(resp_type, resp_dof):
         elif resp_dof.lower() in ["sigma11", "sigma22", "sigma33", "sigma12", "sigma23", "sigma13"]:
             resp_type = "Stresses"
         else:
-            raise ValueError(
+            raise ValueError(  # noqa: TRY003
                 f"Not supported component {resp_dof}! "
                 "Valid options are: sigma11, sigma22, sigma33, sigma12, sigma23, sigma13, "
                 "p1, p2, p3, sigma_vm, tau_max, sigma_oct, tau_oct!"
@@ -677,13 +622,10 @@ def _check_input_solid(resp_type, resp_dof):
             resp_type = "Strains"
             resp_dof = resp_dof.replace("sigma", "eps")
         else:
-            raise ValueError(
+            raise ValueError(  # noqa: TRY003
                 f"Not supported component {resp_dof}! "
                 "Valid options are: sigma11, sigma22, sigma12, p1, p2, sigma_vm, tau_max."
             )
     else:
-        raise ValueError(
-            f"Not supported response type {resp_type}! "
-            "Valid options are: Stresses, Strains."
-        )
+        raise ValueError(f"Not supported response type {resp_type}! Valid options are: Stresses, Strains.")  # noqa: TRY003
     return resp_type, resp_dof
