@@ -1,23 +1,25 @@
 from functools import partial
-from typing import Union, List, Tuple
+from typing import Optional, Union
 
 import numpy as np
 import pyvista as pv
 
-from .plot_utils import (
-    PLOT_ARGS,
-    _plot_all_mesh_cmap,
-    _get_line_cells,
-    _get_unstru_cells,
-)
-from .vis_model import PlotModelBase
 from ...post import load_eigen_data
 from ...utils import CONSTANTS
+from .plot_resp_base import PlotResponseBase, slider_widget_args
+from .plot_utils import (
+    PLOT_ARGS,
+    _get_line_cells,
+    _get_unstru_cells,
+    _plot_all_mesh_cmap,
+)
+from .vis_model import PlotModelBase
+
 PKG_NAME = CONSTANTS.get_pkg_name()
 SHAPE_MAP = CONSTANTS.get_shape_map()
 
 
-class PlotEigenBase:
+class PlotEigenBase(PlotResponseBase):
     def __init__(self, model_info, modal_props, eigen_vectors):
         self.nodal_data = model_info["NodalData"]
         self.nodal_tags = self.nodal_data.coords["tags"]
@@ -26,20 +28,19 @@ class PlotEigenBase:
         self.bounds = self.nodal_data.attrs["bounds"]
         self.min_bound_size = self.nodal_data.attrs["minBoundSize"]
         self.max_bound_size = self.nodal_data.attrs["maxBoundSize"]
-        self.show_zaxis = False if np.max(self.ndims) <= 2 else True
+        self.show_zaxis = not np.max(self.ndims) <= 2
+        self.slider_widget_args = slider_widget_args
         # -------------------------------------------------------------
         self.line_data = model_info["AllLineElesData"]
         self.line_cells, self.line_tags = _get_line_cells(self.line_data)
         # -------------------------------------------------------------
         self.unstru_data = model_info["UnstructuralData"]
-        self.unstru_tags, self.unstru_cell_types, self.unstru_cells = _get_unstru_cells(
-            self.unstru_data
-        )
+        self.unstru_tags, self.unstru_cell_types, self.unstru_cells = _get_unstru_cells(self.unstru_data)
         # --------------------------------------------------
         self.pargs = PLOT_ARGS
         self.ModalProps = modal_props
         self.EigenVectors = eigen_vectors.to_numpy()[..., :3]
-        self.plot_model_base = PlotModelBase(model_info, dict())
+        self.plot_model_base = PlotModelBase(model_info, {})
         pv.set_plot_theme(PLOT_ARGS.theme)
 
     def _make_eigen_txt(self, step):
@@ -74,9 +75,7 @@ class PlotEigenBase:
             rmy = self.ModalProps.loc[:, "partiMassRatiosCumuRMY"][step]
             rmz = self.ModalProps.loc[:, "partiMassRatiosCumuRMZ"][step]
             txt += f"{mx:7.3f} {my:7.3f} {mz:7.3f} {rmx:7.3f} {rmy:7.3f} {rmz:7.3f}\n"
-            txt += "{:>7} {:>7} {:>7} {:>7} {:>7} {:>7}\n".format(
-                "X", "Y", "Z", "RX", "RY", "RZ"
-            )
+            txt += "{:>7} {:>7} {:>7} {:>7} {:>7} {:>7}\n".format("X", "Y", "Z", "RX", "RY", "RZ")
         return txt
 
     def _create_mesh(
@@ -99,7 +98,7 @@ class PlotEigenBase:
         else:
             plotter.clear_actors()
             subplots = False
-        step = int(round(idx)) - 1
+        step = round(idx) - 1
         eigen_vec = self.EigenVectors[step]
         value_ = np.max(np.sqrt(np.sum(eigen_vec**2, axis=1)))
         alpha_ = self.max_bound_size * self.pargs.scale_factor / value_
@@ -138,10 +137,7 @@ class PlotEigenBase:
             )
         else:
             period = 1 / self.ModalProps.loc[:, "eigenFrequency"][step]
-            if period < 1e-3:
-                txt = f"Mode {step + 1}  T = {period:.3E} s"
-            else:
-                txt = f"Mode {step + 1}  T = {period:.3f} s"
+            txt = f"Mode {step + 1}  T = {period:.3E} s" if period < 0.001 else f"Mode {step + 1}  T = {period:.3f} s"
             plotter.add_text(
                 txt,
                 position="upper_left",
@@ -171,7 +167,7 @@ class PlotEigenBase:
 
     def subplots(self, plotter, modei, modej, link_views=True, **kargs):
         if modej - modei + 1 > 64:
-            raise ValueError("When subplots True, mode_tag range must < 64 for clarify")
+            raise ValueError("When subplots True, mode_tag range must < 64 for clarify")  # noqa: TRY003
         shape = SHAPE_MAP[modej - modei + 1]
         for i, idx in enumerate(range(modei, modej + 1)):
             idxi = int(np.ceil((i + 1) / shape[1]) - 1)
@@ -182,18 +178,7 @@ class PlotEigenBase:
 
     def plot_slides(self, plotter, modei, modej, **kargs):
         plotter.add_slider_widget(
-            partial(self._create_mesh, plotter, **kargs),
-            [modei, modej],
-            value=modei,
-            pointa=(0.01, 0.925),
-            pointb=(0.45, 0.925),
-            title="Mode",
-            title_opacity=1,
-            # title_color="black",
-            fmt="%.0f",
-            title_height=0.03,
-            slider_width=0.03,
-            tube_width=0.008,
+            partial(self._create_mesh, plotter, **kargs), [modei, modej], value=modei, **self.slider_widget_args
         )
 
     def plot_anim(
@@ -205,9 +190,7 @@ class PlotEigenBase:
         savefig: str = "EigenAnimation.gif",
         **kargs,
     ):
-        point_plot, line_plot, solid_plot, alpha_, mp_plot = self._create_mesh(
-            plotter, mode_tag, **kargs
-        )
+        point_plot, line_plot, solid_plot, alpha_, mp_plot = self._create_mesh(plotter, mode_tag, **kargs)
         # animation
         if savefig.endswith(".gif"):
             plotter.open_gif(savefig, fps=framerate, palettesize=64)
@@ -234,30 +217,13 @@ class PlotEigenBase:
                 solid_plot.points = points
             if mp_plot:
                 mp_plot.points = points
-            plotter.update_scalar_bar_range(
-                clim=[np.min(xyz_eigen), np.max(xyz_eigen)], name=None
-            )
+            plotter.update_scalar_bar_range(clim=[np.min(xyz_eigen), np.max(xyz_eigen)], name=None)
             plotter.write_frame()
-
-    def update(self, plotter, cpos):
-        viewer = {
-            "xy": plotter.view_xy,
-            "yx": plotter.view_yx,
-            "xz": plotter.view_xz,
-            "zx": plotter.view_zx,
-            "yz": plotter.view_yz,
-            "zy": plotter.view_zy,
-            "iso": plotter.view_isometric,
-        }
-        if not self.show_zaxis:
-            cpos = "xy"
-        viewer[cpos]()
-        return plotter
 
 
 def plot_eigen(
-    mode_tags: Union[List, Tuple, int],
-    odb_tag: Union[int, str] = None,
+    mode_tags: Union[list, tuple, int],
+    odb_tag: Optional[Union[int, str]] = None,
     subplots: bool = False,
     link_views: bool = True,
     scale: float = 1.0,
@@ -269,7 +235,7 @@ def plot_eigen(
     bc_scale: float = 1.0,
     show_mp_constraint: bool = True,
     solver: str = "-genBandArpack",
-):
+) -> pv.Plotter:
     """Modal visualization.
 
     Parameters
@@ -321,7 +287,7 @@ def plot_eigen(
     """
     if isinstance(mode_tags, int):
         mode_tags = [1, mode_tags]
-    resave = True if odb_tag is None else False
+    resave = odb_tag is None
     odb_tag = "Auto" if odb_tag is None else odb_tag
     modalProps, eigenvectors, MODEL_INFO = load_eigen_data(
         odb_tag=odb_tag, mode_tag=mode_tags[-1], solver=solver, resave=resave
@@ -375,7 +341,7 @@ def plot_eigen(
 
 def plot_eigen_animation(
     mode_tag: int,
-    odb_tag: Union[int, str] = None,
+    odb_tag: Optional[Union[int, str]] = None,
     n_cycle: int = 5,
     framerate: int = 3,
     savefig: str = "EigenAnimation.gif",
@@ -383,7 +349,7 @@ def plot_eigen_animation(
     cpos: str = "iso",
     solver: str = "-genBandArpack",
     **kargs,
-):
+) -> pv.Plotter:
     """Modal animation visualization.
 
     Parameters
@@ -423,7 +389,7 @@ def plot_eigen_animation(
     `Plotter.export_html <https://docs.pyvista.org/api/plotting/_autosummary/pyvista.plotter.export_html#pyvista.Plotter.export_html>`_.
     to export this plotter as an interactive scene to an HTML file.
     """
-    resave = True if odb_tag is None else False
+    resave = odb_tag is None
     modalProps, eigenvectors, MODEL_INFO = load_eigen_data(
         odb_tag=odb_tag, mode_tag=mode_tag, solver=solver, resave=resave
     )
@@ -444,5 +410,5 @@ def plot_eigen_animation(
     )
     if PLOT_ARGS.anti_aliasing:
         plotter.enable_anti_aliasing(PLOT_ARGS.anti_aliasing)
-    print(f"Animation saved to {savefig}!")
+    print(f"Animation has been saved to {savefig}!")
     return plotbase.update(plotter, cpos)

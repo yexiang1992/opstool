@@ -1,8 +1,22 @@
+from typing import Optional
+
 import numpy as np
 import pyvista as pv
 import xarray as xr
 
 from .plot_utils import PLOT_ARGS
+
+slider_widget_args = {
+    "pointa": (0.01, 0.925),
+    "pointb": (0.45, 0.925),
+    "title": "Step",
+    "title_opacity": 1,
+    # title_color="black",
+    "fmt": "%.0f",
+    "title_height": 0.03,
+    "slider_width": 0.03,
+    "tube_width": 0.008,
+}
 
 
 class PlotResponseBase:
@@ -23,15 +37,23 @@ class PlotResponseBase:
         self.max_bound_size = self._get_node_data(0).attrs["maxBoundSize"]
         model_dims = self._get_node_data(0).attrs["ndims"]
         # # show z-axis in 3d view
-        self.show_zaxis = False if np.max(model_dims) <= 2 else True
+        self.show_zaxis = not np.max(model_dims) <= 2
 
         # ------------------------------------------------------------
         self.pargs = PLOT_ARGS
         self.resp_step = None  # response data
         self.resp_type = None
         self.component = None  # component to be visualized
+        self.unit = ""  # unit symbol
+
+        self.slider_widget_args = slider_widget_args
 
         pv.set_plot_theme(PLOT_ARGS.theme)
+
+    def set_unit_symbol(self, symbol: Optional[str] = None):
+        # unit
+        if symbol is not None:
+            self.unit = symbol
 
     def _get_model_data(self, key, idx):
         dims = self.ModelInfoSteps[key].dims
@@ -73,3 +95,21 @@ class PlotResponseBase:
         elif da.ndim == 3:
             return da.loc[:, :, component]
         return None
+
+    def update(self, plotter: pv.Plotter, cpos):
+        cpos = cpos.lower()
+        viewer = {
+            "xy": plotter.view_xy,
+            "yx": plotter.view_yx,
+            "xz": plotter.view_xz,
+            "zx": plotter.view_zx,
+            "yz": plotter.view_yz,
+            "zy": plotter.view_zy,
+            "iso": plotter.view_isometric,
+        }
+        if not self.show_zaxis and cpos not in ["xy", "yx"]:
+            cpos = "xy"
+            plotter.enable_2d_style()
+            plotter.enable_parallel_projection()
+        viewer[cpos]()
+        return plotter

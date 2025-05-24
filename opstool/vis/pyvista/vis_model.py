@@ -141,7 +141,7 @@ class PlotModelBase:
             plotter.add_point_labels(
                 self.points,
                 node_labels,
-                text_color="#048243",
+                text_color=self.pargs.color_nodal_label,
                 font_size=self.pargs.font_size,
                 point_color=self.pargs.color_point,
                 bold=True,
@@ -159,7 +159,7 @@ class PlotModelBase:
             plotter.add_point_labels(
                 ele_centers,
                 ele_labels,
-                text_color="#650021",
+                text_color=self.pargs.color_ele_label,
                 font_size=self.pargs.font_size,
                 point_size=self.pargs.point_size+2,
                 bold=True,
@@ -230,23 +230,24 @@ class PlotModelBase:
                     ]
                 )
         if len(points_zero) > 0:
-            _plot_points(
-                plotter,
-                np.array(points_zero),
-                self.pargs.color_link,
-                self.pargs.point_size * 1.2,
-            )
+            return _plot_points(
+                    plotter,
+                    np.array(points_zero),
+                    self.pargs.color_link,
+                    self.pargs.point_size * 1.2,
+                )
         if len(points_nonzero) > 0:
             points_nonzero = np.array(points_nonzero)
-            _plot_lines(
-                plotter,
-                points_nonzero,
-                cells_nonzero,
-                width=self.pargs.line_width / 2,
-                color=self.pargs.color_link,
-                render_lines_as_tubes=False,
-                label="Link",
-            )
+            return _plot_lines(
+                    plotter,
+                    points_nonzero,
+                    cells_nonzero,
+                    width=self.pargs.line_width / 2,
+                    color=self.pargs.color_link,
+                    render_lines_as_tubes=False,
+                    label="Link",
+                )
+        return None
 
     @staticmethod
     def _plot_local_axis(
@@ -294,30 +295,30 @@ class PlotModelBase:
     def plot_link_local_axes(self, plotter, alpha: float = 1.0):
         if len(self.link_data) == 0:
             return None
-        self._plot_local_axis(
-            plotter,
-            self.link_data.loc[:, ["xaxis-x", "xaxis-y", "xaxis-z"]].to_numpy(),
-            self.link_data.loc[:, ["yaxis-x", "yaxis-y", "yaxis-z"]].to_numpy(),
-            self.link_data.loc[:, ["zaxis-x", "zaxis-y", "zaxis-z"]].to_numpy(),
-            self.link_data.loc[:, ["xo", "yo", "zo"]].to_numpy(),
-            self.link_data.loc[:, "length"].to_numpy(),
-            alpha,
-            self.pargs.font_size,
-        )
+        return self._plot_local_axis(
+                plotter,
+                self.link_data.loc[:, ["xaxis-x", "xaxis-y", "xaxis-z"]].to_numpy(),
+                self.link_data.loc[:, ["yaxis-x", "yaxis-y", "yaxis-z"]].to_numpy(),
+                self.link_data.loc[:, ["zaxis-x", "zaxis-y", "zaxis-z"]].to_numpy(),
+                self.link_data.loc[:, ["xo", "yo", "zo"]].to_numpy(),
+                self.link_data.loc[:, "length"].to_numpy(),
+                alpha,
+                self.pargs.font_size,
+            )
 
     def plot_beam_local_axes(self, plotter, alpha: float = 1.0):
         if len(self.beam_data) == 0:
             return None
-        self._plot_local_axis(
-            plotter,
-            self.beam_data.loc[:, ["xaxis-x", "xaxis-y", "xaxis-z"]].to_numpy(),
-            self.beam_data.loc[:, ["yaxis-x", "yaxis-y", "yaxis-z"]].to_numpy(),
-            self.beam_data.loc[:, ["zaxis-x", "zaxis-y", "zaxis-z"]].to_numpy(),
-            self.beam_data.loc[:, ["xo", "yo", "zo"]].to_numpy(),
-            self.beam_data.loc[:, "length"].to_numpy(),
-            alpha,
-            self.pargs.font_size,
-        )
+        return self._plot_local_axis(
+                plotter,
+                self.beam_data.loc[:, ["xaxis-x", "xaxis-y", "xaxis-z"]].to_numpy(),
+                self.beam_data.loc[:, ["yaxis-x", "yaxis-y", "yaxis-z"]].to_numpy(),
+                self.beam_data.loc[:, ["zaxis-x", "zaxis-y", "zaxis-z"]].to_numpy(),
+                self.beam_data.loc[:, ["xo", "yo", "zo"]].to_numpy(),
+                self.beam_data.loc[:, "length"].to_numpy(),
+                alpha,
+                self.pargs.font_size,
+            )
 
     # def plot_beam_sec(self, plotter, paras):
     #     ext_points = self.MINFO["BeamSecExtPoints"]
@@ -416,16 +417,16 @@ class PlotModelBase:
             lengths.append((np.linalg.norm(v1) + np.linalg.norm(v2)) / 2)
         xlocal, ylocal, zlocal = np.array(xlocal), np.array(ylocal), np.array(zlocal)
         midpoints, lengths = np.array(midpoints), np.array(lengths)
-        self._plot_local_axis(
-            plotter,
-            xlocal,
-            ylocal,
-            zlocal,
-            midpoints,
-            lengths,
-            alpha,
-            self.pargs.font_size,
-        )
+        return self._plot_local_axis(
+                plotter,
+                xlocal,
+                ylocal,
+                zlocal,
+                midpoints,
+                lengths,
+                alpha,
+                self.pargs.font_size,
+            )
 
     def plot_node_load(self, plotter, alpha: float = 1.0):
         if len(self.nodal_load_data) == 0:
@@ -466,6 +467,7 @@ class PlotModelBase:
                 plotter.add_mesh(
                     glyphs, show_scalar_bar=False, color=colors[p], label=label
                 )
+        return None
 
     def plot_ele_load(self, plotter, alpha: float = 1.0):
         if len(self.ele_load_data) == 0:
@@ -554,6 +556,7 @@ class PlotModelBase:
                 plotter.add_mesh(
                     glyphs, show_scalar_bar=False, color=colors[p], label=label
                 )
+        return None
 
     def plot_mp_constraint(self, plotter, show_dofs=False, points_new=None):
         if len(self.mp_constraint_data) == 0:
@@ -593,6 +596,8 @@ class PlotModelBase:
         }
         if not self.show_zaxis:
             cpos = "xy"
+            plotter.enable_2d_style()
+            plotter.enable_parallel_projection()
         viewer[cpos]()
         return plotter
 
@@ -616,7 +621,7 @@ def plot_model(
     show_outline: bool = False,
     show_legend: bool = False,
     cpos: str = "iso",
-):
+) -> pv.Plotter:
     """
     Geometric model visualization based on ``pyvista``.
 

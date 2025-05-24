@@ -1,13 +1,29 @@
 from types import SimpleNamespace
-from typing import Union
+from typing import Optional
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pyvista as pv
+import vtk
 
-from ...utils import OPS_ELE_TYPES, CONSTANTS
+from ...utils import CONSTANTS, OPS_ELE_TYPES
+
 PKG_NAME = CONSTANTS.get_pkg_name()
 pv.global_theme.title = PKG_NAME
+
+_scalar_bar_kargs = {
+    "fmt": "%10.3e",
+    "n_labels": 10,
+    "bold": False,
+    "width": 0.1,
+    "height": 0.5,
+    "vertical": True,
+    "font_family": "courier",
+    "label_font_size": None,
+    "title_font_size": None,
+    "position_x": 0.825,
+    "position_y": 0.05,
+}
 
 PLOT_ARGS = SimpleNamespace(
     point_size=1.0,
@@ -33,6 +49,7 @@ PLOT_ARGS = SimpleNamespace(
     font_size=15,
     title_font_size=18,
     off_screen=False,
+    scalar_bar_kargs=_scalar_bar_kargs,
     # --------------------------
     color_point="#FF0055",
     color_frame="#0652ff",
@@ -51,13 +68,13 @@ PLOT_ARGS = SimpleNamespace(
     cmap="jet",
     cmap_model=None,
     n_colors=256,
-    color_map = "jet",
+    color_map="jet",
+    color_nodal_label="#048243",
+    color_ele_label="#650021",
 )
 
 
-def set_plot_props(
-    **kwargs
-):
+def set_plot_props(**kwargs):
     """
     Set ploting properties.
 
@@ -206,22 +223,27 @@ def set_plot_props(
             Font size of title.
         - off_screen: bool, optional
             Renders off-screen when True. Useful for automated screenshots.
+        - scalar_bar_kargs: dict
+            Arguments to pass to
+            `Plotter.add_scalar_bar <https://docs.pyvista.org/api/plotting/_autosummary/pyvista.plotter.add_scalar_bar#pyvista.Plotter.add_scalar_bar>`_
+            For example, ``dict(fmt="%.3e", n_labels=10)``.
 
     Returns
     -------
     None
     """
-    if "point_size" in kwargs.keys():
-        if abs(kwargs["point_size"]) < 1e-3:
-            kwargs["point_size"] = 1e-5
-    if "notebook" in kwargs.keys():
-        if kwargs["notebook"]:
-            if "jupyter_backend" in kwargs.keys():
-                pv.set_jupyter_backend(kwargs["jupyter_backend"])
-            else:
-                pv.set_jupyter_backend("trame")
+    if "point_size" in kwargs and abs(kwargs["point_size"]) < 1e-3:
+        kwargs["point_size"] = 1e-5
+    if kwargs.get("notebook"):
+        if "jupyter_backend" in kwargs:
+            pv.set_jupyter_backend(kwargs["jupyter_backend"])
+        else:
+            pv.set_jupyter_backend("trame")
     for key, value in kwargs.items():
-        setattr(PLOT_ARGS, key, value)
+        if key.lower() == "scalar_bar_kargs":
+            getattr(PLOT_ARGS, key.lower()).update(value)
+        else:
+            setattr(PLOT_ARGS, key, value)
 
 
 def set_plot_colors(
@@ -262,7 +284,7 @@ def set_plot_colors(
             Color for constraint.
         - bc : str, list[int, int, int], optional
             Color for boundary conditions.
-        cmap : str, list, optional
+        - cmap : str, list, optional
             Name of the Matplotlib colormap to us when mapping the
             scalars.  See available Matplotlib colormaps.  Only
             applicable for when displaying ``scalars``. Requires Matplotlib
@@ -274,7 +296,7 @@ def set_plot_colors(
             existing colormap with a custom one.  For example, to
             create a three color colormap you might specify
             ``['green', 'red', 'blue']``.
-        cmap_model : str, list, optional, default=None
+        - cmap_model : str, list, optional, default=None
             Matplotlib colormap used for geometry model visualization.
             Same as ``cmap``, except that this parameter will be used
             for geometry model visualization and will be automatically mapped
@@ -284,6 +306,10 @@ def set_plot_colors(
 
             Available color maps are shown in
             `Colormaps in Matplotlib <https://matplotlib.org/stable/users/explain/colors/colormaps.html>`_
+        - nodal_label: str, default="#048243"
+            Color for nodal label.
+        - ele_label: str, default="#650021"
+            Color for element label.
 
     Returns
     -------
@@ -294,10 +320,10 @@ def set_plot_colors(
             setattr(PLOT_ARGS, key, value)
         else:
             setattr(PLOT_ARGS, "color_" + key, value)
-    if "cmap" in kwargs.keys():
-        setattr(PLOT_ARGS, "color_map", kwargs["cmap"])
-    if "frame" in kwargs.keys():
-        setattr(PLOT_ARGS, "color_beam", kwargs["frame"])
+    if "cmap" in kwargs:
+        PLOT_ARGS.color_map = kwargs["cmap"]
+    if "frame" in kwargs:
+        PLOT_ARGS.color_beam = kwargs["frame"]
 
 
 def _get_ele_color(ele_types: list[str]):
@@ -353,13 +379,12 @@ def _plot_points_cmap(
     scalars,
     cmap: str = "jet",
     size: float = 3.0,
-    clim: list = None,
+    clim: Optional[list] = None,
     show_scalar_bar=False,
     render_points_as_spheres=True,
 ):
     point_plot = pv.PolyData(pos)
-    point_plot.point_data["data0"] = scalars
-    point_plot["scalars"] = scalars
+    point_plot["scalars"] = scalars  # auto to point_data or cell_data
     if clim is None:
         clim = (np.min(scalars), np.max(scalars))
     plotter.add_mesh(
@@ -375,9 +400,7 @@ def _plot_points_cmap(
     return point_plot
 
 
-def _plot_lines(
-    plotter, pos, cells, width=1.0, color="blue", render_lines_as_tubes=True, label=None
-):
+def _plot_lines(plotter, pos, cells, width=1.0, color="blue", render_lines_as_tubes=True, label=None):
     if len(cells) == 0:
         return None
     line_plot = pv.PolyData()
@@ -409,7 +432,6 @@ def _plot_lines_cmap(
     line_plot = pv.PolyData()
     line_plot.points = pos
     line_plot.lines = cells
-    line_plot.point_data["data0"] = scalars
     line_plot["scalars"] = scalars
     if clim is None:
         clim = (np.min(scalars), np.max(scalars))
@@ -424,6 +446,72 @@ def _plot_lines_cmap(
         show_scalar_bar=show_scalar_bar,
     )
     return line_plot
+
+
+def _plot_face(
+    plotter,
+    pos,
+    cells,
+    color="green",
+    show_edges=True,
+    edge_color="black",
+    edge_width=1.0,
+    opacity=1.0,
+    style="surface",
+    label=None,
+):
+    """plot the face grid."""
+    if len(cells) == 0:
+        return None
+    surf = pv.PolyData(pos, faces=cells)
+    plotter.add_mesh(
+        surf,
+        color=color,
+        show_edges=show_edges,
+        edge_color=edge_color,
+        line_width=edge_width,
+        opacity=opacity,
+        style=style,
+        label=label,
+    )
+    return surf
+
+
+def _plot_face_cmap(
+    plotter,
+    pos,
+    cells,
+    scalars,
+    cmap="jet",
+    clim=None,
+    show_edges=True,
+    edge_color="black",
+    edge_width=1.0,
+    opacity=1.0,
+    style="surface",
+    show_scalar_bar=False,
+):
+    if len(cells) == 0:
+        return None
+    surf = pv.PolyData(pos, faces=cells)
+    surf["scalars"] = scalars
+    if clim is None:
+        clim = (np.min(scalars), np.max(scalars))
+    plotter.add_mesh(
+        surf,
+        colormap=cmap,
+        scalars="scalars",
+        clim=clim,
+        show_edges=show_edges,
+        edge_color=edge_color,
+        line_width=edge_width,
+        opacity=opacity,
+        interpolate_before_map=True,
+        style=style,
+        show_scalar_bar=show_scalar_bar,
+        render_lines_as_tubes=True,
+    )
+    return surf
 
 
 def _plot_unstru(
@@ -642,12 +730,60 @@ def _dropnan_by_time(da, model_update=False):
             cleaned_dataarrays.append([])
         else:
             dim2 = dims[1]
-            if model_update:
-                da_2d_cleaned = da_2d.dropna(dim=dim2, how="any")
-            else:
-                da_2d_cleaned = da_2d
+            da_2d_cleaned = da_2d.dropna(dim=dim2, how="any") if model_update else da_2d
             cleaned_dataarrays.append(da_2d_cleaned)
     return cleaned_dataarrays
+
+
+def _update_point_label_actor(
+    label_actor: vtk.vtkActor2D,
+    coords,
+    labels,
+    text_property,
+    renderer: vtk.vtkRenderer = None,
+    *,
+    shape_opacity: float = 0.0,
+    always_visible: bool = True,
+    tolerance: float = 0.001,
+):
+    if len(coords) != len(labels):
+        raise ValueError("coords and labels must have the same length")  # noqa: TRY003
+
+        # Create new vtkPoints and label array
+    vtk_points = vtk.vtkPoints()
+    vtk_labels = vtk.vtkStringArray()
+    vtk_labels.SetName("labels")
+
+    for pt, text in zip(coords, labels):
+        vtk_points.InsertNextPoint(*pt)
+        vtk_labels.InsertNextValue(str(text))
+
+    polydata = vtk.vtkPolyData()
+    polydata.SetPoints(vtk_points)
+    polydata.GetPointData().AddArray(vtk_labels)
+
+    # Construct label hierarchy
+    hierarchy = vtk.vtkPointSetToLabelHierarchy()
+    hierarchy.SetLabelArrayName("labels")
+
+    if always_visible or renderer is None:
+        hierarchy.SetInputData(polydata)
+    else:
+        visible_filter = vtk.vtkSelectVisiblePoints()
+        visible_filter.SetInputData(polydata)
+        visible_filter.SetRenderer(renderer)
+        visible_filter.SetTolerance(tolerance)
+        hierarchy.SetInputConnection(visible_filter.GetOutputPort())
+
+    # Text style
+    hierarchy.SetTextProperty(text_property)
+
+    hierarchy.Update()
+
+    # Replace the mapper's input connection
+    mapper = label_actor.GetMapper()
+    mapper.SetBackgroundOpacity(shape_opacity)
+    mapper.SetInputConnection(hierarchy.GetOutputPort())
 
 
 # def group_cells(cells):
