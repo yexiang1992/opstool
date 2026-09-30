@@ -568,7 +568,7 @@ def _get_elastic_sec_forces(ele_tag, length, ele_load_data, pattern_tags, load_e
             wx, wy, wz = wxa * factor, wya * factor, wza * factor
             xa = xa * length
             xb = xb * length
-            idx2 = sec_x > xa & sec_x < xb
+            idx2 = (sec_x > xa) & (sec_x < xb)
             idx3 = sec_x >= xb
             sec_f[idx2, 0] += -wx * (sec_x[idx2] - xa)
             sec_f[idx2, 1] += 0.5 * wy * (sec_x[idx2] - xa) ** 2
